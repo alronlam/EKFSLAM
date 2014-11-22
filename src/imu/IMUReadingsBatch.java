@@ -1,13 +1,12 @@
 package imu;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import stepbasedins.data.SensorEntry;
 
 public class IMUReadingsBatch {
 
-	private List<SensorEntry> entries;
+	private ArrayList<SensorEntry> entries;
 
 	public IMUReadingsBatch() {
 		entries = new ArrayList<SensorEntry>();
@@ -17,4 +16,8 @@ public class IMUReadingsBatch {
 		entries.add(se);
 	}
 
+	@SuppressWarnings("unchecked")
+	public ArrayList<SensorEntry> getEntries() {
+		return (ArrayList<SensorEntry>) entries.clone();
+	}
 }
