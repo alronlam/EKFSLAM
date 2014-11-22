@@ -1,6 +1,8 @@
 package driver;
 
+import features.FeatureManager;
 import features.FeatureUpdate;
+import img.ImgLogReader;
 import imu.IMULogReader;
 import imu.IMUReadingsBatch;
 
@@ -8,6 +10,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
+
+import org.opencv.core.Mat;
 
 public class MainDriver {
 
@@ -28,6 +32,10 @@ public class MainDriver {
 		List<IMUReadingsBatch> imuDataset = imuLogReader.readSensorEntries();
 
 		/* Load Images Dataset */
+		ImgLogReader imgLogReader = new ImgLogReader("data/img");
+		List<Mat> imgDataset = imgLogReader.readImages();
+
+		FeatureManager featureManager = new FeatureManager();
 
 		/* Make sure their sizes match */
 
@@ -42,7 +50,7 @@ public class MainDriver {
 			vins.predict(currIMUBatch);
 
 			/* Image Update */
-			FeatureUpdate featureUpdate = null; // change this soon
+			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i));
 			breadcrumb.update(featureUpdate);
 			vins.update(featureUpdate);
 

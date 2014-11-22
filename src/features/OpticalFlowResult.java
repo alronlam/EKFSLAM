@@ -5,34 +5,36 @@ import java.util.List;
 import org.opencv.core.MatOfPoint2f;
 
 class OpticalFlowResult {
-	private MatOfPoint2f currentFeatures;
-	private MatOfPoint2f newFeatures;
+	private MatOfPoint2f nearFeatures;
+	private MatOfPoint2f farFeatures;
 	private List<Integer> badPointsIndex;
 	
+	private double currentSize;
 	
-	OpticalFlowResult(MatOfPoint2f currentFeatures, MatOfPoint2f newFeatures, List<Integer> badPointsIndex) {
-		this.currentFeatures = currentFeatures;
-		this.newFeatures = newFeatures;
+	OpticalFlowResult(MatOfPoint2f nearFeatures, MatOfPoint2f farFeatures, List<Integer> badPointsIndex, double currentSize) {
+		this.nearFeatures = nearFeatures;
+		this.farFeatures = farFeatures;
+		this.currentSize = currentSize;
 		this.badPointsIndex = badPointsIndex;
 	}
 
-	
-	MatOfPoint2f getCurrentFeatures() {
-		return currentFeatures;
+	MatOfPoint2f getNearFeatures() {
+		return nearFeatures;
 	}
 
-	
-	MatOfPoint2f getNewFeatures() {
-		return newFeatures;
+	MatOfPoint2f getFarFeatures() {
+		return farFeatures;
 	}
-
+	
+	double getCurrentSize() {
+		return currentSize;
+	}
 	
 	List<Integer> getBadPointsIndex() {
 		return badPointsIndex;
 	}
 	
-	
-	boolean isEmpty() {
-		return currentFeatures.empty();
+	boolean isNotEmpty() {
+		return !nearFeatures.empty() && !farFeatures.empty();
 	}
 }
