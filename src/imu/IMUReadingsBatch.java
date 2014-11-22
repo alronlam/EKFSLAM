@@ -3,6 +3,8 @@ package imu;
 import java.util.ArrayList;
 import java.util.List;
 
+import stepbasedins.data.SensorEntry;
+
 public class IMUReadingsBatch {
 
 	private List<SensorEntry> entries;

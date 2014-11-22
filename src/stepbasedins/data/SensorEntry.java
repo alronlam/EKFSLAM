@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package imu;
+package stepbasedins.data;
 
 import java.util.LinkedList;
 
@@ -202,11 +202,6 @@ public class SensorEntry {
 
 	public double calculateGyro_norm() {
 		return Math.sqrt(Math.pow(gyro_x, 2) + Math.pow(gyro_y, 2) + Math.pow(gyro_z, 2));
-	}
-
-	public String toRawString() {
-		return getAcc_x() + "," + getAcc_y() + "," + getAcc_z() + "," + getGyro_x() + "," + getGyro_y() + ","
-				+ getGyro_z() + "," + getOrient_x() + "," + getOrient_y() + "," + getOrient_z();
 	}
 
 }

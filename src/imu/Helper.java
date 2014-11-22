@@ -1,5 +1,7 @@
 package imu;
 
+import stepbasedins.data.SensorEntry;
+
 public class Helper {
 
 	public static Double[] convertToDouble(String[] tokens) {
