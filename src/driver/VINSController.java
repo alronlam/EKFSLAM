@@ -5,13 +5,13 @@ import java.util.Collections;
 import java.util.List;
 
 import desktop.imu.IMUReadingsBatch;
+import dummies.ekf.DevicePose;
+import dummies.ekf.EKF;
+import dummies.ekf.PointDouble;
+import dummies.features.FeatureUpdate;
 import stepbasedins.data.SensorEntry;
 import vins.motionestimation.IntegrateMotionEstimation;
 import vins.motionestimation.MotionEstimation;
-import ekf.DevicePose;
-import ekf.EKF;
-import ekf.PointDouble;
-import features.FeatureUpdate;
 
 public class VINSController {
 

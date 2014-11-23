@@ -1,4 +1,4 @@
-package ekf;
+package dummies.ekf;
 
 public class PointDouble {
 

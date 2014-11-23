@@ -1,4 +1,4 @@
-package features;
+package dummies.features;
 
 import java.util.List;
 

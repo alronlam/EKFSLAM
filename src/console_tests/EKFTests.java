@@ -7,10 +7,10 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Random;
 
+import dummies.ekf.DevicePose;
+import dummies.ekf.EKF;
+import dummies.ekf.PointDouble;
 import junit.framework.TestCase;
-import ekf.DevicePose;
-import ekf.EKF;
-import ekf.PointDouble;
 
 public class EKFTests extends TestCase {
 

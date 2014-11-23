@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Random;
 
-import ekf.EKF;
-import ekf.PointDouble;
+import dummies.ekf.EKF;
+import dummies.ekf.PointDouble;
 
 public class TestUtility {
 	private static Random rand = new Random();

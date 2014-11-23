@@ -1,8 +1,5 @@
 package driver;
 
-import features.FeatureManager;
-import features.FeatureUpdate;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -13,6 +10,8 @@ import org.opencv.core.Mat;
 import desktop.img.ImgLogReader;
 import desktop.imu.IMULogReader;
 import desktop.imu.IMUReadingsBatch;
+import dummies.features.FeatureManager;
+import dummies.features.FeatureUpdate;
 
 public class MainDriver {
 

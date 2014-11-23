@@ -1,4 +1,4 @@
-package features;
+package dummies.features;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Point3;
 import org.opencv.core.Size;
 
-import ekf.PointDouble;
+import dummies.ekf.PointDouble;
 
 public class FeatureManager {
 	private static final String TAG = "Feature Manager";

@@ -1,4 +1,4 @@
-package ekf;
+package dummies.ekf;
 
 import Jama.Matrix;
 

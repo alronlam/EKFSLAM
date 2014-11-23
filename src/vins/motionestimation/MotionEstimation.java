@@ -1,7 +1,7 @@
 package vins.motionestimation;
 
+import dummies.ekf.DevicePose;
 import stepbasedins.data.SensorEntry;
-import ekf.DevicePose;
 
 public interface MotionEstimation {
 	/**

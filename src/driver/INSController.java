@@ -1,10 +1,10 @@
 package driver;
 
 import desktop.imu.IMUReadingsBatch;
+import dummies.ekf.EKF;
+import dummies.ekf.PointDouble;
 import stepbasedins.controller.StepBasedINSController;
 import stepbasedins.data.BatchProcessingResults;
-import ekf.EKF;
-import ekf.PointDouble;
 
 public class INSController {
 

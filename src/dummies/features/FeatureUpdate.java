@@ -1,9 +1,9 @@
-package features;
+package dummies.features;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import ekf.PointDouble;
+import dummies.ekf.PointDouble;
 
 public class FeatureUpdate {
 	private List<Integer> badPointsIndex;

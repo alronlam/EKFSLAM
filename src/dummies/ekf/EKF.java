@@ -1,4 +1,4 @@
-package ekf;
+package dummies.ekf;
 
 import java.util.ArrayList;
 import java.util.Random;
