@@ -146,7 +146,7 @@ public class FeatureManager {
 		// }
 
 		// Triangulation
-
+		points4D = new Mat();
 		if (!goodOld.empty() && !goodNew.empty()) {
 			// SOLVING FOR THE ROTATION AND TRANSLATION MATRICES
 

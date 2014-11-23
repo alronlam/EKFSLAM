@@ -39,6 +39,11 @@ public class MainDriver {
 		StringBuilder vinsLog = new StringBuilder();
 		StringBuilder vinsIDPLog = new StringBuilder();
 
+		breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
+		insLog.append(ins.getDeviceCoords() + "\n");
+		vinsLog.append(vins.getDeviceCoords() + "\n");
+		vinsIDPLog.append(vinsIDP.getDeviceCoords() + "\n");
+
 		/* Load IMU Dataset */
 		IMULogReader imuLogReader = new IMULogReader("data/imu");
 		List<IMUReadingsBatch> imuDataset = imuLogReader.readSensorEntries();
@@ -52,7 +57,7 @@ public class MainDriver {
 
 		/* Their sizes may not match due to logging problems */
 		int datasetSize = Math.min(imuDataset.size(), imgDataset.size());
-
+		System.out.println("DATASET SIZE: " + imuDataset.size() + " and " + imgDataset.size());
 		for (int i = 0; i < datasetSize; i++) {
 
 			/* IMU Predict */
