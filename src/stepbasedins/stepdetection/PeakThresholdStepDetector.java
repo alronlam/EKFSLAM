@@ -8,7 +8,7 @@ import stepbasedins.data.SensorEntry;
 public class PeakThresholdStepDetector implements StepDetector {
 
 	private final double PEAK_THRESHOLD = 12;
-	private final double TIME_GAP = 350; // ns
+	private final double TIME_GAP = 350; // ms
 
 	private DetectedEntry lastDetectedEntry;
 
@@ -26,6 +26,14 @@ public class PeakThresholdStepDetector implements StepDetector {
 			if (currEntry != null) {
 				double accelerometerNorm = currEntry.getAcc_norm();
 				// Log.d("Norm is ", accelerometerNorm+"");
+
+				// if (lastDetectedEntry != null)
+				// System.out.println(accelerometerNorm
+				// + " time: "
+				// + (currEntry.getTimeRecorded() -
+				// lastDetectedEntry.getTimeRecorded() + " = "
+				// + currEntry.getTimeRecorded() + " - " +
+				// lastDetectedEntry.getTimeRecorded()));
 
 				if (accelerometerNorm >= PEAK_THRESHOLD
 						&& (lastDetectedEntry == null || (lastDetectedEntry != null && currEntry.getTimeRecorded()
