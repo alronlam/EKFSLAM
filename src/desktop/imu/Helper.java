@@ -29,7 +29,7 @@ public class Helper {
 		currEntry.setOrient_y(features[7]);
 		currEntry.setOrient_z(features[8]);
 
-		currEntry.setTimeRecorded(Long.parseLong(tokens[tokens.length - 1]));
+		currEntry.setTimeRecorded(Double.valueOf(tokens[tokens.length - 1]).longValue());
 
 		currEntry.buildSensorList();
 

@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 
 import stepbasedins.INSController;
@@ -19,6 +20,10 @@ import dummies.features.FeatureManager;
 import dummies.features.FeatureUpdate;
 
 public class MainDriver {
+
+	static {
+		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+	}
 
 	public static void main(String[] args) {
 
@@ -45,9 +50,8 @@ public class MainDriver {
 		FeatureManager featureManager = new FeatureManager();
 		idp.features.FeatureManager featureManagerIDP = new idp.features.FeatureManager();
 
-		/* Make sure their sizes match */
-
-		int datasetSize = imuDataset.size();
+		/* Their sizes may not match due to logging problems */
+		int datasetSize = Math.min(imuDataset.size(), imgDataset.size());
 
 		for (int i = 0; i < datasetSize; i++) {
 
@@ -77,7 +81,7 @@ public class MainDriver {
 		writeToFile(folder + "breadcrumb.csv", breadcrumbLog.toString());
 		writeToFile(folder + "ins.csv", insLog.toString());
 		writeToFile(folder + "vins.csv", vinsLog.toString());
-		writeToFile(folder + "vinsidp.csv", vinsIDPLog.toString());
+		writeToFile(folder + "vinsidp.csv", vinsLog.toString());
 	}
 
 	private static void writeToFile(String targetFilePath, String toWrite) {

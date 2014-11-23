@@ -16,6 +16,7 @@ import org.opencv.core.Size;
 import commondata.PointDouble;
 
 public class FeatureManager {
+
 	private static final String TAG = "Feature Manager";
 
 	// Optical flow fields
