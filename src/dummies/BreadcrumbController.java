@@ -1,4 +1,4 @@
-package driver;
+package dummies;
 
 import java.util.Collections;
 import java.util.List;

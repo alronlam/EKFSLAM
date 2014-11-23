@@ -1,4 +1,4 @@
-package driver;
+package stepbasedins;
 
 import desktop.imu.IMUReadingsBatch;
 import dummies.ekf.EKF;
