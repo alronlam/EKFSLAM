@@ -3,9 +3,10 @@ package vins.motionestimation;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-import dummies.ekf.DevicePose;
 import stepbasedins.data.SensorEntry;
 import Jama.Matrix;
+
+import commondata.DevicePose;
 
 public class IntegrateMotionEstimation implements MotionEstimation {
 	// timer counters

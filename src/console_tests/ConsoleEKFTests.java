@@ -2,8 +2,9 @@ package console_tests;
 
 import java.util.Random;
 
+import commondata.PointDouble;
+
 import dummies.ekf.EKF;
-import dummies.ekf.PointDouble;
 
 public class ConsoleEKFTests {
 	private EKF ekf;

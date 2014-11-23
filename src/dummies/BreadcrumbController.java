@@ -3,12 +3,14 @@ package dummies;
 import java.util.Collections;
 import java.util.List;
 
-import desktop.imu.IMUReadingsBatch;
-import dummies.ekf.EKF;
-import dummies.ekf.PointDouble;
-import dummies.features.FeatureUpdate;
 import stepbasedins.controller.StepBasedINSController;
 import stepbasedins.data.BatchProcessingResults;
+
+import commondata.PointDouble;
+
+import desktop.imu.IMUReadingsBatch;
+import dummies.ekf.EKF;
+import dummies.features.FeatureUpdate;
 
 public class BreadcrumbController {
 

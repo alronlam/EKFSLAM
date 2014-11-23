@@ -5,6 +5,9 @@ import java.util.Random;
 
 import Jama.Matrix;
 
+import commondata.DevicePose;
+import commondata.PointDouble;
+
 public class EKF {
 
 	private ArrayList<Double> X; // State Vector

@@ -13,7 +13,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Point3;
 import org.opencv.core.Size;
 
-import dummies.ekf.PointDouble;
+import commondata.PointDouble;
 
 public class FeatureManager {
 	private static final String TAG = "Feature Manager";

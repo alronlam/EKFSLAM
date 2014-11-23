@@ -4,11 +4,13 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Random;
 
+import commondata.PointDouble;
+
 import dummies.ekf.EKF;
-import dummies.ekf.PointDouble;
 
 public class TestUtility {
 	private static Random rand = new Random();
+
 	public static double round2Decimals(double value) {
 		return roundDecimals(value, 2);
 	}
@@ -18,7 +20,7 @@ public class TestUtility {
 		bd = bd.setScale(decimalPlaces, RoundingMode.HALF_UP);
 		return bd.doubleValue();
 	}
-	
+
 	public static String ekfPosition(EKF e) {
 		return e.getCurrDevicePose().get_xPos() + ", " + e.getCurrDevicePose().get_yPos();
 	}

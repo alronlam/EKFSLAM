@@ -2,6 +2,8 @@ package idp.ekf;
 
 import java.util.ArrayList;
 
+import commondata.PointDouble;
+
 import Jama.Matrix;
 
 public class EKF {

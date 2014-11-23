@@ -1,11 +1,11 @@
 package idp.features;
 
-import idp.ekf.PointDouble;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.opencv.core.Point;
+
+import commondata.PointDouble;
 
 public class FeatureUpdate {
 	private List<Integer> badPointsIndex;
