@@ -31,18 +31,14 @@ public class IMULogReader {
 				// Ignore the header file
 				scanner.nextLine();
 
+				IMUReadingsBatch currBatch = new IMUReadingsBatch();
 				while (scanner.hasNext()) {
-
-					IMUReadingsBatch currBatch = new IMUReadingsBatch();
-					for (int i = 0; i < 100 && scanner.hasNext(); i++) {
-						String currLine = scanner.nextLine();
-						String[] tokens = currLine.split(",");
-						SensorEntry currEntry = Helper.createSensorEntryFromStringTokens(tokens);
-						currBatch.addEntry(currEntry);
-					}
-
-					dataset.add(currBatch);
+					String currLine = scanner.nextLine();
+					String[] tokens = currLine.split(",");
+					SensorEntry currEntry = Helper.createSensorEntryFromStringTokens(tokens);
+					currBatch.addEntry(currEntry);
 				}
+				dataset.add(currBatch);
 				scanner.close();
 			}
 

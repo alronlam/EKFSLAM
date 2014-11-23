@@ -17,7 +17,6 @@ import desktop.imu.IMULogReader;
 import desktop.imu.IMUReadingsBatch;
 import dummies.BreadcrumbController;
 import dummies.features.FeatureManager;
-import dummies.features.FeatureUpdate;
 
 public class MainDriver {
 
@@ -60,28 +59,33 @@ public class MainDriver {
 		System.out.println("DATASET SIZE: " + imuDataset.size() + " and " + imgDataset.size());
 		for (int i = 0; i < datasetSize; i++) {
 
+			System.out.println("Time Step " + i);
+
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
-			breadcrumb.predict(currIMUBatch);
+			// breadcrumb.predict(currIMUBatch);
 			ins.predict(currIMUBatch);
-			vins.predict(currIMUBatch);
-			vinsIDP.predict(currIMUBatch);
-
+			// vins.predict(currIMUBatch);
+			// vinsIDP.predict(currIMUBatch);
+			System.out.println("Finished predicting.");
 			/* Image Update */
-			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i));
-			breadcrumb.update(featureUpdate);
-			vins.update(featureUpdate);
+			// FeatureUpdate featureUpdate =
+			// featureManager.getFeatureUpdate(imgDataset.get(i));
+			// breadcrumb.update(featureUpdate);
+			// vins.update(featureUpdate);
 
-			idp.features.FeatureUpdate idpFeatureUpdate = featureManagerIDP.getFeatureUpdate(imgDataset.get(i));
-			vinsIDP.update(idpFeatureUpdate);
+			// idp.features.FeatureUpdate idpFeatureUpdate =
+			// featureManagerIDP.getFeatureUpdate(imgDataset.get(i));
+			// vinsIDP.update(idpFeatureUpdate);
 
+			System.out.println("Finished updating.");
 			/* Update the logs per controller */
 			breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
 			insLog.append(ins.getDeviceCoords() + "\n");
 			vinsLog.append(vins.getDeviceCoords() + "\n");
 			vinsIDPLog.append(vinsIDP.getDeviceCoords() + "\n");
 		}
-
+		System.out.println(ins.totalStepsDetected);
 		String folder = "results/";
 		writeToFile(folder + "breadcrumb.csv", breadcrumbLog.toString());
 		writeToFile(folder + "ins.csv", insLog.toString());
