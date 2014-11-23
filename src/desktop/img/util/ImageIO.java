@@ -1,4 +1,4 @@
-package img.util;
+package desktop.img.util;
 
 import java.io.File;
 

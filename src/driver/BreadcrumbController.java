@@ -1,10 +1,9 @@
 package driver;
 
-import imu.IMUReadingsBatch;
-
 import java.util.Collections;
 import java.util.List;
 
+import desktop.imu.IMUReadingsBatch;
 import stepbasedins.controller.StepBasedINSController;
 import stepbasedins.data.BatchProcessingResults;
 import ekf.EKF;

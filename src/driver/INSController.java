@@ -1,6 +1,6 @@
 package driver;
 
-import imu.IMUReadingsBatch;
+import desktop.imu.IMUReadingsBatch;
 import stepbasedins.controller.StepBasedINSController;
 import stepbasedins.data.BatchProcessingResults;
 import ekf.EKF;

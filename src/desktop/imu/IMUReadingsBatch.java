@@ -1,4 +1,4 @@
-package imu;
+package desktop.imu;
 
 import java.util.ArrayList;
 

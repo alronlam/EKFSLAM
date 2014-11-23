@@ -1,11 +1,10 @@
 package driver;
 
-import imu.IMUReadingsBatch;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import desktop.imu.IMUReadingsBatch;
 import stepbasedins.data.SensorEntry;
 import vins.motionestimation.IntegrateMotionEstimation;
 import vins.motionestimation.MotionEstimation;

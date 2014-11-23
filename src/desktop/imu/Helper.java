@@ -1,4 +1,4 @@
-package imu;
+package desktop.imu;
 
 import stepbasedins.data.SensorEntry;
 

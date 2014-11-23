@@ -1,12 +1,12 @@
-package img;
-
-import img.util.ImageIO;
+package desktop.img;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.opencv.core.Mat;
+
+import desktop.img.util.ImageIO;
 
 public class ImgLogReader {
 
