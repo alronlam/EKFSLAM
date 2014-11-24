@@ -21,7 +21,7 @@ public class EKFTests extends TestCase {
 	private Random random;
 
 	// just for logging
-	private String root = "data";
+	private String root = "ekflogs";
 
 	@Override
 	protected void setUp() throws Exception {
@@ -178,8 +178,9 @@ public class EKFTests extends TestCase {
 
 		StringBuilder log = new StringBuilder();
 		StringBuilder logWithoutEKF = new StringBuilder();
+		StringBuilder logActualPath = new StringBuilder();
 
-		int iterations = 17;
+		int iterations = 30;
 
 		/* Calculate correct coordinates after everything is done */
 		double correctDistance = 1;
@@ -189,7 +190,7 @@ public class EKFTests extends TestCase {
 
 		/* Initialize Feature */
 		double featureX = 0;
-		double featureY = 20;
+		double featureY = 50;
 		PointDouble featureCoords = new PointDouble(featureX, featureY);
 		ekf.addFeature(featureCoords.getX(), featureCoords.getY());
 
@@ -200,15 +201,17 @@ public class EKFTests extends TestCase {
 		// ekf.getCurrDevicePose().toString());
 		log.append(ekf.getCurrDevicePose().toString() + "\r\n");
 		logWithoutEKF.append(deviceCoordsWithoutCorrection.toString() + "\r\n");
-
+		logActualPath.append(correctCoords.toString() + "\r\n");
 		// Simulate
 		for (int i = 1; i <= iterations; i++) {
 
 			correctCoords = correctCoords.add(correctDistance * Math.cos(correctHeadingRads),
 					correctDistance * Math.sin(correctHeadingRads));
 
+			logActualPath.append(correctCoords.toString() + "\r\n");
+
 			double insPredictedDistance = correctDistance + new Random().nextGaussian();
-			double insPredictedRadians = correctHeadingRads + new Random().nextGaussian();
+			double insPredictedRadians = correctHeadingRads + Math.toRadians(new Random().nextGaussian() * 10);
 
 			deviceCoordsWithoutCorrection = deviceCoordsWithoutCorrection.add(
 					insPredictedDistance * Math.cos(insPredictedRadians),
@@ -235,9 +238,9 @@ public class EKFTests extends TestCase {
 
 		// Log expected error w/o VINS, w/ VINS, and the improvement with VINS
 		// over pure INS
-
-		// logEntriesWithoutEKF(logWithoutEKF.toString(), iterations);
-		// logEntriesWithEKF(log.toString(), iterations, featureY, improvement);
+		logEntries(new File(root + "/Actual.csv"), logActualPath.toString());
+		logEntriesWithoutEKF(logWithoutEKF.toString(), iterations);
+		logEntriesWithEKF(log.toString(), iterations, featureY, improvement);
 		System.out.println("Improvement is " + improvement);
 		// Improvements should be positive to mean that VINS affected the
 		// estimates positively
@@ -251,17 +254,17 @@ public class EKFTests extends TestCase {
 		StringBuilder generalLogs = new StringBuilder();
 
 		double noiseStdDev = 0.5;
-		int iterations = 70;
+		int iterations = 30;
 
 		/* Calculate correct coordinates after everything is done */
 		double correctDistance = 1;
-		double correctHeadingRads = Math.toRadians(30);
+		double correctHeadingRads = Math.toRadians(90);
 
 		PointDouble correctCoords = new PointDouble(0, 0);
 
 		/* Initialize Feature */
-		double featureX = 40;
-		double featureY = 70;
+		double featureX = 0;
+		double featureY = 50;
 		PointDouble featureCoords = new PointDouble(featureX, featureY);
 		ekf.addFeature(featureCoords.getX(), featureCoords.getY());
 
@@ -282,8 +285,8 @@ public class EKFTests extends TestCase {
 					correctDistance * Math.sin(correctHeadingRads));
 
 			/* Simulate noisy INS distance */
-			double insPredictedDistance = correctDistance + random.nextGaussian() * noiseStdDev;
-			double insPredictedRadians = correctHeadingRads + random.nextGaussian() * noiseStdDev;
+			double insPredictedDistance = correctDistance + random.nextGaussian() * 1;
+			double insPredictedRadians = correctHeadingRads + Math.toRadians(random.nextGaussian() * 10);
 
 			deviceCoordsWithoutCorrection = deviceCoordsWithoutCorrection.add(
 					insPredictedDistance * Math.cos(insPredictedRadians),
@@ -297,10 +300,10 @@ public class EKFTests extends TestCase {
 					+ "\r\n");
 
 			/* Simulate noisy feature measurements */
-			double observedDistance = correctCoords.computeDistanceTo(featureCoords) + random.nextGaussian()
-					* noiseStdDev;
-			double observedHeading = correctCoords.computeRadiansTo(featureCoords) + random.nextGaussian()
-					* noiseStdDev;
+			double observedDistance = correctCoords.computeDistanceTo(featureCoords)
+					* (1 + random.nextGaussian() * 0.1);
+			double observedHeading = correctCoords.computeRadiansTo(featureCoords)
+					+ Math.toRadians(random.nextGaussian() * 10);
 			ekf.updateFromReobservedFeatureThroughDistanceHeading(0, observedDistance, observedHeading);
 
 			generalLogs.append("TestBadINSGoodVINS After Feature Update " + i + ": Covariance\n "
@@ -320,8 +323,8 @@ public class EKFTests extends TestCase {
 		generalLogs.append("TestBadINSBadVINS With EKF Error = " + errorWithEKF);
 		generalLogs.append("TestBadINSBadVINS With EKF Improvement = " + improvement);
 
-		// logEntriesWithoutEKF(logWithoutEKF.toString(), iterations);
-		// logEntriesWithEKF(log.toString(), iterations, featureY, improvement);
+		logEntriesWithoutEKF(logWithoutEKF.toString(), iterations);
+		logEntriesWithEKF(log.toString(), iterations, featureY, improvement);
 		// logEntries(new File(root + "/GeneralLog.txt"),
 		// generalLogs.toString());
 
@@ -339,6 +342,7 @@ public class EKFTests extends TestCase {
 			FileWriter fw = new FileWriter(file);
 			fw.write(log);
 			fw.close();
+			System.out.println("Successfully wrote to file.");
 			// FileOutputStream outputStream = new FileOutputStream(file);
 			//
 			// outputStream.write(log.getBytes());
@@ -351,15 +355,14 @@ public class EKFTests extends TestCase {
 	}
 
 	private void logEntriesWithoutEKF(String log, int numIterations) {
-		String fileDirectory = root + "/woekf_" + numIterations + "its_" + System.currentTimeMillis() + ".csv";
+		String fileDirectory = root + "/WoEKF.csv";
 		File fileSummarized = new File(fileDirectory);
 
 		logEntries(fileSummarized, log);
 	}
 
 	private void logEntriesWithEKF(String log, int numIterations, double featureY, double improvement) {
-		String fileDirectory = root + "/ekf_" + numIterations + "its_" + System.currentTimeMillis() + "_featureY"
-				+ featureY + "m_imp_" + improvement + ".csv";
+		String fileDirectory = root + "/WithEKF.csv";
 		File fileSummarized = new File(fileDirectory);
 
 		logEntries(fileSummarized, log);

@@ -1,7 +1,6 @@
 package dummies.ekf;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 import Jama.Matrix;
 
@@ -27,7 +26,7 @@ public class EKF {
 	public static final double Q_NOISE = 0.1;
 
 	public static final double VRV_DISTANCE_VARIANCE = 0.1;
-	public static final double VRV_HEADING_NOISE = Math.toRadians(1);
+	public static final double VRV_HEADING_NOISE = Math.toRadians(10);
 
 	public EKF() {
 		X = createX();
@@ -421,8 +420,6 @@ public class EKF {
 
 	// The measurement noise matrix
 	private Matrix createVRVMatrix(double distance) {
-		Random rand = new Random();
-
 		double[][] vrv = new double[2][2];
 		vrv[0][0] = distance * VRV_DISTANCE_VARIANCE;
 		vrv[1][1] = VRV_HEADING_NOISE;// Math.toRadians(2);
