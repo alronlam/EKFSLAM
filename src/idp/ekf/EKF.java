@@ -87,7 +87,7 @@ public class EKF {
 		Quaternion quaternionOld = X.getCurrentQuaternion();
 		PointTriple vOld = X.getCurrentV();
 		PointTriple omegaOld = X.getCurrentOmega();
-
+		
 		// Not sure if correct, but this is what's written in MonoSLAM code
 		PointTriple xyzPositionNew = xyzPositionOld.plus(vOld.times(deltaTime));
 		Quaternion qwt = QuaternionHelper.calculateQWT(omegaOld, deltaTime);
@@ -121,7 +121,6 @@ public class EKF {
 	public void updateFromReobservedFeatureThroughImageCoords(int featureIndex, double observedU,
 			double observedV) {
 		
-		// cam and features_info has not been initialized
 		IDPUtility.predict_camera_measurements(X, cam, features_info, featureIndex);
 		IDPUtility.calculate_derivatives(X, cam, features_info, featureIndex);
 		
@@ -131,6 +130,9 @@ public class EKF {
 		double predictedV = cam.Cy - cam.f*h_cam.get(1,0)/cam.dy/h_cam.get(2, 0);
 		
 		Matrix hMatrix = features_info.get(featureIndex).h;
+		if (hMatrix == null)
+			return;
+
 		Matrix pMatrix = P.toMatrix();
 		Matrix hphMatrix = hMatrix.times(pMatrix).times(hMatrix.transpose());
 		

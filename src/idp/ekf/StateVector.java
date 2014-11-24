@@ -20,6 +20,9 @@ public class StateVector {
 		X = new ArrayList<Double>();
 		for (int i = 0; i < stateVarsOfInterest; i++)
 			X.add(Helper.EPS);
+		
+		// set quaternion to 1
+		X.set(3, 1.0);
 	}
 
 	private StateVector() {
@@ -57,7 +60,24 @@ public class StateVector {
 	/*** Getters ***/
 
 	public String toString() {
-		return X.toString();
+		StringBuilder sn = new StringBuilder();
+		
+		sn.append("[" + X.get(0));
+		
+		for (int i = 1; i < X.size(); i++) {
+			sn.append(", " + i + " - ");
+			
+			if (Double.isNaN(X.get(i)))
+				sn.append("x");
+			else if (Math.abs(X.get(i)) > 1e-15)
+				sn.append(X.get(i));
+			else 
+				sn.append("0");
+		}
+		
+		sn.append("]");
+		
+		return sn.toString();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -93,11 +113,10 @@ public class StateVector {
 	}
 
 	public Quaternion getCurrentQuaternion() {
-
-		double r = X.get(3);
-		double x = X.get(4);
-		double y = X.get(5);
-		double z = X.get(6);
+		double x = X.get(3);
+		double y = X.get(4);
+		double z = X.get(5);
+		double r = X.get(6);
 
 		Quaternion quaternion = new Quaternion(x, y, z, r);
 		return quaternion;
@@ -134,10 +153,10 @@ public class StateVector {
 	}
 
 	public void setQuaternion(Quaternion q) {
-		X.set(3, q.getR());
-		X.set(4, q.getX());
-		X.set(5, q.getY());
-		X.set(6, q.getZ());
+		X.set(3, q.getX());
+		X.set(4, q.getY());
+		X.set(5, q.getZ());
+		X.set(6, q.getR());
 	}
 
 	public void setV(PointTriple newV) {

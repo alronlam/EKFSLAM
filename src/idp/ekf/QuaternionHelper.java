@@ -20,7 +20,6 @@ public class QuaternionHelper {
 
 	public static Quaternion calculateQWT(PointTriple w, double deltaTime) {
 		// VW::Quaternion qwt(omegaold * delta_t);
-
 		w = w.times(deltaTime);
 
 		double theta = w.getNorm();
