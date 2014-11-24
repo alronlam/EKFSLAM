@@ -15,8 +15,9 @@ import vins.VINSController;
 import desktop.img.ImgLogReader;
 import desktop.imu.IMULogReader;
 import desktop.imu.IMUReadingsBatch;
-import dummies.BreadcrumbController;
+import dummies.BreadcrumbDummiesController;
 import dummies.features.FeatureManager;
+import dummies.features.FeatureUpdate;
 
 public class MainDriver {
 
@@ -27,7 +28,7 @@ public class MainDriver {
 	public static void main(String[] args) {
 
 		/* Initialize the three controllers */
-		BreadcrumbController breadcrumb = new BreadcrumbController();
+		BreadcrumbDummiesController breadcrumb = new BreadcrumbDummiesController();
 		INSController ins = new INSController();
 		VINSController vins = new VINSController();
 		VINSIDPController vinsIDP = new VINSIDPController();
@@ -63,15 +64,14 @@ public class MainDriver {
 
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
-			// breadcrumb.predict(currIMUBatch);
-			ins.predict(currIMUBatch);
+			breadcrumb.predict(currIMUBatch);
+			// ins.predict(currIMUBatch);
 			// vins.predict(currIMUBatch);
 			// vinsIDP.predict(currIMUBatch);
 			System.out.println("Finished predicting.");
 			/* Image Update */
-			// FeatureUpdate featureUpdate =
-			// featureManager.getFeatureUpdate(imgDataset.get(i));
-			// breadcrumb.update(featureUpdate);
+			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i));
+			breadcrumb.update(featureUpdate);
 			// vins.update(featureUpdate);
 
 			// idp.features.FeatureUpdate idpFeatureUpdate =

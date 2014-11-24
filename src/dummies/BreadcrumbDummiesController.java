@@ -12,12 +12,12 @@ import desktop.imu.IMUReadingsBatch;
 import dummies.ekf.EKF;
 import dummies.features.FeatureUpdate;
 
-public class BreadcrumbController {
+public class BreadcrumbDummiesController {
 
 	private EKF ekf;
 	private StepBasedINSController ins;
 
-	public BreadcrumbController() {
+	public BreadcrumbDummiesController() {
 		this.ekf = new EKF();
 		this.ins = new StepBasedINSController();
 	}
@@ -37,12 +37,15 @@ public class BreadcrumbController {
 		if (featureUpdate != null) {
 			/* Delete features that disappeared */
 			List<Integer> toDelete = featureUpdate.getBadPointsIndex();
+			System.out.println("To Delete:" + toDelete.size());
 			Collections.reverse(toDelete);
 			for (Integer index : toDelete)
 				ekf.deleteFeature(index);
 
 			/* Update using re-observed features */
 			List<PointDouble> toUpdate = featureUpdate.getCurrentPoints();
+
+			System.out.println("To Update:" + toUpdate.size());
 			for (int i = 0; i < toUpdate.size(); i++) {
 				PointDouble currXY = toUpdate.get(i);
 				ekf.updateFromReobservedFeatureCoords(i, currXY.getX(), currXY.getY());
@@ -50,6 +53,8 @@ public class BreadcrumbController {
 
 			/* Add new features */
 			List<PointDouble> toAdd = featureUpdate.getNewPoints();
+			System.out.println("To Add:" + toAdd.size());
+
 			for (PointDouble featpos : toAdd)
 				ekf.addFeature(featpos.getX(), featpos.getY());
 		}
