@@ -51,9 +51,7 @@ public class QuaternionHelper {
 		dqomegadt_by_domega.set(3, 0, dqA_by_domegaB(omega.getZ(), omega.getX(), omegamod, deltaTime));
 		dqomegadt_by_domega.set(3, 1, dqA_by_domegaB(omega.getZ(), omega.getY(), omegamod, deltaTime));
 		dqomegadt_by_domega.set(3, 2, dqA_by_domegaA(omega.getZ(), omegamod, deltaTime));
-
-		dqomegadt_by_domega.print(0, 0);
-
+		
 		return dqomegadt_by_domega;
 	}
 

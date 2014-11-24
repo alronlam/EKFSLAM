@@ -178,9 +178,10 @@ public class FeatureManager {
 					break;
 
 				default:
-					F = Calib3d.findFundamentalMat(goodOld, goodNew);
+					checkpointImage = new Mat();
+					checkpointFeatures = new MatOfPoint2f();
+					return null;
 				}
-				System.out.println("TRY# " + tries);
 
 				tries++;
 
@@ -371,7 +372,7 @@ public class FeatureManager {
 			double y = points4D.get(1, i)[0] / w;
 			double z = points4D.get(2, i)[0] / w;
 
-			PointDouble point = new PointDouble(y, z);
+			PointDouble point = new PointDouble(x, z);
 
 			if (i < currentSize) {
 				// System.out.println("Current: " + i);

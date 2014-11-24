@@ -343,6 +343,23 @@ public class EKF {
 		numFeatures++;
 	}
 
+	public void deleteAllFeatures() {
+
+		this.numFeatures = 0;
+
+		X = new ArrayList<Double>(X.subList(0, 3));
+
+		double[][] pPhi = this.extractPPhi().getArray();
+		P.clear();
+		for (int i = 0; i < pPhi.length; i++) {
+			ArrayList<Double> row = new ArrayList<Double>();
+			for (int j = 0; j < pPhi[i].length; j++) {
+				row.add(pPhi[i][j]);
+			}
+			P.add(row);
+		}
+	}
+
 	/********** Methods for Creating Matrices **********/
 
 	private Matrix createH(double predictedDistance, int featureIndex, PointDouble featureCoords,
