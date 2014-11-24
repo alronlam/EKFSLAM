@@ -17,6 +17,7 @@ import desktop.imu.IMULogReader;
 import desktop.imu.IMUReadingsBatch;
 import dummies.BreadcrumbDummiesController;
 import dummies.features.FeatureManager;
+import dummies.features.FeatureUpdate;
 
 public class MainDriver {
 
@@ -63,20 +64,19 @@ public class MainDriver {
 
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
-			// breadcrumb.predict(currIMUBatch);
-			// ins.predict(currIMUBatch);
+			breadcrumb.predict(currIMUBatch);
+			ins.predict(currIMUBatch);
 			// vins.predict(currIMUBatch);
 			vinsIDP.predict(currIMUBatch);
 			System.out.println("Finished predicting.");
 			/* Image Update */
-			// FeatureUpdate featureUpdate =
-			// featureManager.getFeatureUpdate(imgDataset.get(i));
-			System.out.println("Finished getting featureUpdate");
-			// breadcrumb.update(featureUpdate);
+			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i));
+			breadcrumb.update(featureUpdate);
 			// vins.update(featureUpdate);
 
-			idp.features.FeatureUpdate idpFeatureUpdate = featureManagerIDP.getFeatureUpdate(imgDataset.get(i));
-			vinsIDP.update(idpFeatureUpdate);
+			// idp.features.FeatureUpdate idpFeatureUpdate =
+			// featureManagerIDP.getFeatureUpdate(imgDataset.get(i));
+			// vinsIDP.update(idpFeatureUpdate);
 
 			System.out.println("Finished updating.");
 			/* Update the logs per controller */
