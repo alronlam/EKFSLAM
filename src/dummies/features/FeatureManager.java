@@ -145,7 +145,6 @@ public class FeatureManager {
 		// get = true;
 		// }
 
-		// Triangulation
 		points4D = new Mat();
 		if (!goodOld.empty() && !goodNew.empty()) {
 			// SOLVING FOR THE ROTATION AND TRANSLATION MATRICES
@@ -169,11 +168,19 @@ public class FeatureManager {
 					F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 3, 0.85);
 					break;
 				case 3:
-					F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_LMEDS, 3, 0.85);
+					F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_8POINT, 3, 0.85);
 					break;
+				case 4:
+					F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_7POINT, 3, 0.85);
+					break;
+				case 5:
+					F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 20, 0.0);
+					break;
+
 				default:
 					F = Calib3d.findFundamentalMat(goodOld, goodNew);
 				}
+				System.out.println("TRY# " + tries);
 
 				tries++;
 
@@ -357,7 +364,6 @@ public class FeatureManager {
 		FeatureUpdate update = new FeatureUpdate();
 		List<PointDouble> currentPoints = new ArrayList<>();
 		List<PointDouble> newPoints = new ArrayList<>();
-
 		int currentSize = (int) opflowresult.getCurrentSize();
 		for (int i = 0; i < points4D.cols(); i++) {
 			double w = points4D.get(3, i)[0];
@@ -368,8 +374,10 @@ public class FeatureManager {
 			PointDouble point = new PointDouble(y, z);
 
 			if (i < currentSize) {
+				// System.out.println("Current: " + i);
 				currentPoints.add(point);
 			} else {
+				// System.out.println("New: " + i);
 				newPoints.add(point);
 			}
 		}
@@ -382,6 +390,8 @@ public class FeatureManager {
 		nearImage.copyTo(checkpointImage);
 		images.remove(0);
 		frames++;
+
+		System.out.println(update);
 
 		return update;
 	}

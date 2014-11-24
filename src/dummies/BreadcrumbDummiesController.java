@@ -39,24 +39,25 @@ public class BreadcrumbDummiesController {
 			List<Integer> toDelete = featureUpdate.getBadPointsIndex();
 			System.out.println("To Delete:" + toDelete.size());
 			Collections.reverse(toDelete);
-			for (Integer index : toDelete)
-				ekf.deleteFeature(index);
+			// for (Integer index : toDelete)
+			// ekf.deleteFeature(index);
 
 			/* Update using re-observed features */
 			List<PointDouble> toUpdate = featureUpdate.getCurrentPoints();
 
 			System.out.println("To Update:" + toUpdate.size());
-			for (int i = 0; i < toUpdate.size(); i++) {
-				PointDouble currXY = toUpdate.get(i);
-				ekf.updateFromReobservedFeatureCoords(i, currXY.getX(), currXY.getY());
-			}
+			// for (int i = 0; i < toUpdate.size(); i++) {
+			// PointDouble currXY = toUpdate.get(i);
+			// ekf.updateFromReobservedFeatureCoords(i, currXY.getX(),
+			// currXY.getY());
+			// }
 
 			/* Add new features */
 			List<PointDouble> toAdd = featureUpdate.getNewPoints();
 			System.out.println("To Add:" + toAdd.size());
 
-			for (PointDouble featpos : toAdd)
-				ekf.addFeature(featpos.getX(), featpos.getY());
+			// for (PointDouble featpos : toAdd)
+			// ekf.addFeature(featpos.getX(), featpos.getY());
 		}
 	}
 

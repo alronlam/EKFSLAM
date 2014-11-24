@@ -184,7 +184,7 @@ public class EKFTests extends TestCase {
 
 		/* Calculate correct coordinates after everything is done */
 		double correctDistance = 1;
-		double correctHeadingRads = Math.toRadians(90);
+		double correctHeadingRads = Math.toRadians(80);
 
 		PointDouble correctCoords = new PointDouble(0, 0);
 
@@ -210,7 +210,13 @@ public class EKFTests extends TestCase {
 
 			logActualPath.append(correctCoords.toString() + "\r\n");
 
-			double insPredictedDistance = correctDistance + new Random().nextGaussian();
+			double insPredictedDistance = correctDistance + new Random().nextGaussian();// *
+																						// (1
+																						// +
+																						// new
+																						// Random().nextGaussian()
+																						// *
+																						// 0.1);
 			double insPredictedRadians = correctHeadingRads + Math.toRadians(new Random().nextGaussian() * 10);
 
 			deviceCoordsWithoutCorrection = deviceCoordsWithoutCorrection.add(
@@ -285,7 +291,7 @@ public class EKFTests extends TestCase {
 					correctDistance * Math.sin(correctHeadingRads));
 
 			/* Simulate noisy INS distance */
-			double insPredictedDistance = correctDistance + random.nextGaussian() * 1;
+			double insPredictedDistance = correctDistance * (1 + random.nextGaussian() * 0.1);
 			double insPredictedRadians = correctHeadingRads + Math.toRadians(random.nextGaussian() * 10);
 
 			deviceCoordsWithoutCorrection = deviceCoordsWithoutCorrection.add(

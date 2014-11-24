@@ -39,4 +39,11 @@ public class FeatureUpdate {
 	void setNewPoints(List<PointDouble> newPoints) {
 		this.newPoints = newPoints;
 	}
+
+	public String toString() {
+		System.out.println("Bad: " + badPointsIndex.size());
+		System.out.println("Cur: " + currentPoints.size());
+		System.out.println("New: " + newPoints.size());
+		return "";
+	}
 }

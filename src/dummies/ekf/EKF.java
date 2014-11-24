@@ -23,10 +23,10 @@ public class EKF {
 
 	/* Constants */
 	public static final double P_DIAGONAL_INITIAL = 0;
-	public static final double Q_NOISE = 0.1;
+	public static final double Q_NOISE = 1;
 
-	public static final double VRV_DISTANCE_VARIANCE = 0.1;
-	public static final double VRV_HEADING_NOISE = Math.toRadians(10);
+	public static final double VRV_DISTANCE_VARIANCE = 0;
+	public static final double VRV_HEADING_NOISE = 0;// Math.toRadians(10);
 
 	public EKF() {
 		X = createX();
@@ -59,12 +59,23 @@ public class EKF {
 	private PointDouble getFeatureCoordsFromStateVector(int featureIndex) {
 
 		int stateVectorIndexOfFeature = 3 + featureIndex * 2;
-		double targetFeatureX = X.get(stateVectorIndexOfFeature);
-		double targetFeatureY = X.get(stateVectorIndexOfFeature + 1);
+		try {
+			double targetFeatureX = X.get(stateVectorIndexOfFeature);
+			double targetFeatureY = X.get(stateVectorIndexOfFeature + 1);
+			PointDouble point = new PointDouble(targetFeatureX, targetFeatureY);
 
-		PointDouble point = new PointDouble(targetFeatureX, targetFeatureY);
+			return point;
+		} catch (Exception e) {
+			// System.out.println("Number of features " + numFeatures);
+			// System.out.println("Attempting to update feature index " +
+			// featureIndex);
+			// System.out.println("Target feature x " +
+			// stateVectorIndexOfFeature);
+			// System.out.println("Target feature y " +
+			// stateVectorIndexOfFeature + 1);
+		}
 
-		return point;
+		return new PointDouble(0, 0);
 	}
 
 	private double getHeadingDegrees() {

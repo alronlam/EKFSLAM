@@ -18,28 +18,29 @@ import org.opencv.video.Video;
 class OpticalFlow {
 	private final Scalar BLACK = new Scalar(0);
 	private final Scalar WHITE = new Scalar(255);
-	private FeatureDetector detector = FeatureDetector.create(FeatureDetector.FAST);
+	private FeatureDetector detector = FeatureDetector.create(FeatureDetector.HARRIS);
 
 	OpticalFlowResult getFeatures(Mat checkpointImage, Mat nearImage, Mat farImage, MatOfPoint2f checkpointFeatures) {
-		
+
 		// Checkpoint to near frame
-		
+
 		MatOfPoint2f nearFeatures = new MatOfPoint2f();
 		MatOfByte cpNearStatus = new MatOfByte();
 		MatOfFloat cpNearError = new MatOfFloat();
-		
+
 		Mat detectMask = nearImage.clone();
 		detectMask.setTo(WHITE);
 		List<Point> nearFeaturesList = new ArrayList<>();
-		
+
 		boolean hasCurrent = false;
 		double currentSize = checkpointFeatures.size().height;
-		
+
 		if (checkpointFeatures.size().height > 0) {
 			hasCurrent = true;
-			Video.calcOpticalFlowPyrLK(checkpointImage, nearImage, checkpointFeatures, nearFeatures, cpNearStatus, cpNearError);
+			Video.calcOpticalFlowPyrLK(checkpointImage, nearImage, checkpointFeatures, nearFeatures, cpNearStatus,
+					cpNearError);
 			nearFeaturesList = nearFeatures.toList();
-			
+
 			// draw mask for detection
 			int index = 0;
 			for (Byte item : cpNearStatus.toList()) {
@@ -49,74 +50,79 @@ class OpticalFlow {
 				index++;
 			}
 		}
-		
+
 		// detect new features
-		
+
 		MatOfKeyPoint rawNearNewFeatures = new MatOfKeyPoint();
 		MatOfPoint2f nearNewFeatures = new MatOfPoint2f();
 		detector.detect(nearImage, rawNearNewFeatures, detectMask);
 		if (rawNearNewFeatures.size().height > 0) {
 			nearNewFeatures = convert(rawNearNewFeatures);
 		}
-		
-		//// Near frame to far frame
-		
+
+		// // Near frame to far frame
+
 		nearFeatures.push_back(nearNewFeatures);
-		nearFeaturesList = nearFeatures.toList(); 
-		
+		nearFeaturesList = nearFeatures.toList();
+
 		MatOfPoint2f farFeatures = new MatOfPoint2f();
 		MatOfByte nearFarStatus = new MatOfByte();
 		MatOfFloat nearFarError = new MatOfFloat();
-					
+
 		if (nearFeatures.size().height > 0) {
 			Video.calcOpticalFlowPyrLK(nearImage, farImage, nearFeatures, farFeatures, nearFarStatus, nearFarError);
 		}
-		
+
 		List<Point> farFeaturesList = farFeatures.toList();
 		List<Point> goodNearFeaturesList = new ArrayList<>();
 		List<Point> goodFarFeaturesList = new ArrayList<>();
 		List<Integer> badPointsIndex = new ArrayList<>();
-		
+
 		// Find good features, bad features index
-		
+
 		int index = 0;
-		
+
 		List<Byte> cpNearStatusList = null;
 		if (hasCurrent) {
 			cpNearStatusList = cpNearStatus.toList();
 		}
-		
+
+		int current = 0;
 		if (nearFarStatus.size().height > 0) {
 			for (Byte firstStatus : nearFarStatus.toList()) {
 				boolean isGood = false;
 				if (index < currentSize) {
 					Byte secondStatus = cpNearStatusList.get(index);
-					if ((firstStatus.intValue() & secondStatus.intValue()) == 1) {  
+					if ((firstStatus.intValue() & secondStatus.intValue()) == 1) {
+						// System.out.println("GOOD: " + index);
+						current++;
 						isGood = true;
 					} else {
+						// System.out.println("BAD: " + index);
 						badPointsIndex.add(Integer.valueOf(index));
 					}
 				} else {
+					// System.out.println("NEW: " + index);
 					isGood = true;
 				}
-				
+
 				if (isGood) {
-					goodNearFeaturesList.add( nearFeaturesList.get(index) );
-					goodFarFeaturesList.add( farFeaturesList.get(index) );
-				} 
+					goodNearFeaturesList.add(nearFeaturesList.get(index));
+					goodFarFeaturesList.add(farFeaturesList.get(index));
+				}
 				index++;
 			}
 		}
-		
+
 		MatOfPoint2f goodNearFeatures = new MatOfPoint2f();
 		MatOfPoint2f goodFarFeatures = new MatOfPoint2f();
 		goodNearFeatures.fromList(goodNearFeaturesList);
 		goodFarFeatures.fromList(goodFarFeaturesList);
-		
-		OpticalFlowResult result = new OpticalFlowResult(goodNearFeatures, goodFarFeatures, badPointsIndex, currentSize);
+
+		OpticalFlowResult result = new OpticalFlowResult(goodNearFeatures, goodFarFeatures, badPointsIndex, current);
 		return result;
 	}
-	
+
 	private MatOfPoint2f convert(MatOfKeyPoint keyPoints) {
 		KeyPoint[] keyPointsArray = keyPoints.toArray();
 		Point[] pointsArray = new Point[keyPointsArray.length];

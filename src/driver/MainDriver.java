@@ -60,7 +60,7 @@ public class MainDriver {
 		System.out.println("DATASET SIZE: " + imuDataset.size() + " and " + imgDataset.size());
 		for (int i = 0; i < datasetSize; i++) {
 
-			System.out.println("Time Step " + i);
+			System.out.println("\n\nTime Step " + i);
 
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
@@ -71,6 +71,7 @@ public class MainDriver {
 			System.out.println("Finished predicting.");
 			/* Image Update */
 			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i));
+			System.out.println("Finished getting featureUpdate");
 			breadcrumb.update(featureUpdate);
 			// vins.update(featureUpdate);
 
