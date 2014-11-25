@@ -19,6 +19,8 @@ public class BreadcrumbDummiesController {
 	private StepBasedINSController ins;
 	private int featureUpdateNullCount = 0;
 	private int updateCount = 0;
+	public int totalStepsDetected;
+	public double totalDistanceTraveled = 0;
 
 	public BreadcrumbDummiesController() {
 		this.ekf = new EKF();
@@ -31,7 +33,8 @@ public class BreadcrumbDummiesController {
 
 	public void predict(IMUReadingsBatch imuBatch) {
 		BatchProcessingResults result = this.ins.processSensorEntryBatch(imuBatch.getEntries());
-
+		totalStepsDetected += result.getDetectedSteps();
+		totalDistanceTraveled += result.getStrideLength();
 		ekf.predictFromINS(result.getStrideLength(), Math.toRadians(result.getHeadingAngle()));
 	}
 

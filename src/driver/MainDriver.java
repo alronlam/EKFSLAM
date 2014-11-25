@@ -171,6 +171,9 @@ public class MainDriver {
 			breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
 		}
 
+		System.out.println("Total steps detected " + breadcrumb.totalStepsDetected);
+		System.out.println("Total distance traveled " + breadcrumb.totalDistanceTraveled);
+
 		/* Log - Write to File */
 		breadcrumbLog.writeToFile();
 	}
