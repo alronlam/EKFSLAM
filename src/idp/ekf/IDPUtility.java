@@ -14,24 +14,21 @@ public class IDPUtility {
 
 	public static void predict_camera_measurements(StateVector x_k_k, Camera cam, ArrayList<FeatureInfo> features_info,
 			int featureIndex) {
+		Matrix x = x_k_k.toMatrix();
+		
 		// Pinhole Model (whatever that means)
 		// t_wc = x_k_k(1:3);
-		Matrix t_wc = x_k_k.toMatrix().getMatrix(0, 2, 0, 0);
+		Matrix t_wc = x.getMatrix(0, 2, 0, 0);
 
 		// r_wc = q2r(x_k_k(4:7));
-		Quaternion q = new Quaternion(x_k_k.toMatrix().get(3, 0), x_k_k.toMatrix().get(4, 0), x_k_k.toMatrix()
-				.get(5, 0), x_k_k.toMatrix().get(6, 0));
+		Quaternion q = new Quaternion(x.get(3, 0), x.get(4, 0), x.get(5, 0), x.get(6, 0));
 		Matrix r_wc = Helper.quaternionToRotationMatrix(q);
-
+		
 		// features = x_k_k(14:end);
-		Matrix features = x_k_k.toMatrix().getMatrix(13, x_k_k.toMatrix().getRowDimension(), 0, 0);
+		IDPFeature f = x_k_k.getFeature(featureIndex);
 
 		// implying i care about cartesian coords
-		Matrix yi = features.getMatrix(0, 5, 0, 0);
-		IDPFeature y = new IDPFeature(yi.get(0, 0), yi.get(1, 0), yi.get(2, 0), yi.get(3, 0), yi.get(4, 0),
-				yi.get(5, 0));
-		features = features.getMatrix(6, features.getRowDimension(), 0, 0);
-		Matrix hi = hi_inverse_depth(y, t_wc, r_wc, cam, features_info);
+		Matrix hi = hi_inverse_depth(f, t_wc, r_wc, cam, features_info);
 		if (hi != null)
 			features_info.get(featureIndex).h = hi.transpose();
 	}
@@ -41,7 +38,7 @@ public class IDPUtility {
 		// points 3d in camera coordinates
 		Matrix r_cw = r_wc.transpose();
 
-		double[][] xyz = { { yinit.getX(), yinit.getY(), yinit.getZ() } };
+		double[][] xyz = { { yinit.getX()}, {yinit.getY()}, {yinit.getZ()} };
 		Matrix yi = new Matrix(xyz);
 		double theta = yinit.getAzimuth();
 		double phi = yinit.getElevation();
@@ -78,10 +75,10 @@ public class IDPUtility {
 		double kv = 1 / cam.dy;
 
 		double[][] uv_u = new double[2][yi.getColumnDimension()];
-
+		
 		for (int i = 0; i < yi.getColumnDimension(); i++) {
-			uv_u[0][i] = u0 + (yi.get(0, i) / yi.get(3, i)) * f * ku;
-			uv_u[1][i] = v0 + (yi.get(0, i) / yi.get(3, i)) * f * kv;
+			uv_u[0][i] = u0 + (yi.get(0, i) / yi.get(2, i)) * f * ku;
+			uv_u[1][i] = v0 + (yi.get(0, i) / yi.get(2, i)) * f * kv;
 		}
 
 		return new Matrix(uv_u);
@@ -117,14 +114,11 @@ public class IDPUtility {
 			int featureIndex) {
 		Matrix x = x_k_km1.toMatrix();
 		Matrix x_v = x.getMatrix(0, 12, 0, 0);
-		Matrix x_features = x.getMatrix(13, x.getColumnDimension(), 0, 0);
+		Matrix x_features = x.getMatrix(13, x.getRowDimension() - 1, 0, 0);
 
 		if (features_info.get(featureIndex).h != null) {
 			Matrix y = x_features.getMatrix(0, 5, 0, 0);
-			x_features = x_features.getMatrix(6, x_features.getColumnDimension(), 0, 0);
 			features_info.get(featureIndex).H = calculate_Hi_inverse_depth(x_v, y, cam, featureIndex, features_info);
-		} else {
-			x_features = x_features.getMatrix(6, x_features.getColumnDimension(), 0, 0);
 		}
 	}
 

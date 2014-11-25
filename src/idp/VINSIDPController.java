@@ -42,7 +42,7 @@ public class VINSIDPController {
 		double wzP = random.nextGaussian();
 		PointTriple wP = new PointTriple(wxP, wyP, wzP);
 
-		ekf.predict(vP, wP, Constants.MS_OVERALL_CYCLE_FREQUENCY / 1000);
+		ekf.predict(vP, wP, Constants.MS_OVERALL_CYCLE_FREQUENCY / 1000.0);
 	}
 
 	public void update(FeatureUpdate featureUpdate) {
