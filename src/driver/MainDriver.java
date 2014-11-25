@@ -2,15 +2,13 @@ package driver;
 
 import idp.VINSIDPController;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.List;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 
 import stepbasedins.INSController;
+import util.FileLog;
 import vins.VINSController;
 import desktop.img.ImgLogReader;
 import desktop.imu.IMULogReader;
@@ -24,6 +22,12 @@ public class MainDriver {
 	static {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 	}
+
+	private static String logFolder = "results";
+	private static String breadcrumbLogFileName = "breadcrumb.csv";
+	private static String insLogFileName = "ins.csv";
+	private static String vinsLogFileName = "vins.csv";
+	private static String idpLogFileName = "idp.csv";
 
 	public static void main(String[] args) {
 		/* Load IMU Dataset */
@@ -49,10 +53,10 @@ public class MainDriver {
 		VINSIDPController vinsIDP = new VINSIDPController();
 
 		/* Initialize the logs for all three techniques */
-		StringBuilder breadcrumbLog = new StringBuilder();
-		StringBuilder insLog = new StringBuilder();
-		StringBuilder vinsLog = new StringBuilder();
-		StringBuilder vinsIDPLog = new StringBuilder();
+		FileLog breadcrumbLog = new FileLog(logFolder + "/" + breadcrumbLogFileName);
+		FileLog insLog = new FileLog(logFolder + "/" + insLogFileName);
+		FileLog vinsLog = new FileLog(logFolder + "/" + vinsLogFileName);
+		FileLog vinsIDPLog = new FileLog(logFolder + "/" + idpLogFileName);
 
 		breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
 		insLog.append(ins.getDeviceCoords() + "\n");
@@ -93,11 +97,11 @@ public class MainDriver {
 			vinsIDPLog.append(vinsIDP.getDeviceCoords() + "\n");
 		}
 		System.out.println(ins.totalStepsDetected);
-		String folder = "results/";
-		writeToFile(folder + "breadcrumb.csv", breadcrumbLog.toString());
-		writeToFile(folder + "ins.csv", insLog.toString());
-		writeToFile(folder + "vins.csv", vinsLog.toString());
-		writeToFile(folder + "vinsidp.csv", vinsLog.toString());
+
+		breadcrumbLog.writeToFile();
+		insLog.writeToFile();
+		vinsLog.writeToFile();
+		vinsIDPLog.writeToFile();
 	}
 
 	private static void runIDP(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset) {
@@ -106,7 +110,7 @@ public class MainDriver {
 		idp.features.FeatureManager featureManagerIDP = new idp.features.FeatureManager();
 
 		/* Initialize the logs for all three techniques */
-		StringBuilder vinsIDPLog = new StringBuilder();
+		FileLog vinsIDPLog = new FileLog(logFolder + "/" + idpLogFileName);
 		vinsIDPLog.append(vinsIDP.getDeviceCoords() + "\n");
 
 		/* Their sizes may not match due to logging problems */
@@ -133,8 +137,7 @@ public class MainDriver {
 		}
 
 		/* Log - Write to File */
-		String folder = "results/";
-		writeToFile(folder + "vinsidp.csv", vinsIDPLog.toString());
+		vinsIDPLog.writeToFile();
 	}
 
 	private static void runBreadcrumbDummies(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset) {
@@ -143,7 +146,7 @@ public class MainDriver {
 		FeatureManager featureManager = new FeatureManager();
 
 		/* Initialize the logs */
-		StringBuilder breadcrumbLog = new StringBuilder();
+		FileLog breadcrumbLog = new FileLog(logFolder + "/" + breadcrumbLogFileName);
 		breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
 
 		/* Their sizes may not match due to logging problems */
@@ -166,12 +169,10 @@ public class MainDriver {
 
 			/* Update the logs */
 			breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
-
 		}
 
 		/* Log - Write to File */
-		String folder = "results/";
-		writeToFile(folder + "breadcrumb.csv", breadcrumbLog.toString());
+		breadcrumbLog.writeToFile();
 	}
 
 	private static void runVINS(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset) {
@@ -180,7 +181,7 @@ public class MainDriver {
 		FeatureManager featureManager = new FeatureManager();
 
 		/* Initialize the logs */
-		StringBuilder vinsLog = new StringBuilder();
+		FileLog vinsLog = new FileLog(logFolder + "/" + vinsLogFileName);
 		vinsLog.append(vins.getDeviceCoords() + "\n");
 
 		/* Their sizes may not match due to logging problems */
@@ -206,8 +207,7 @@ public class MainDriver {
 		}
 
 		/* Log - Write to File */
-		String folder = "results/";
-		writeToFile(folder + "vins.csv", vinsLog.toString());
+		vinsLog.writeToFile();
 	}
 
 	private static void runINS(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset) {
@@ -215,7 +215,7 @@ public class MainDriver {
 		INSController ins = new INSController();
 
 		/* Initialize the logs */
-		StringBuilder insLog = new StringBuilder();
+		FileLog insLog = new FileLog(logFolder + "/" + insLogFileName);
 		insLog.append(ins.getDeviceCoords() + "\n");
 
 		/* Their sizes may not match due to logging problems */
@@ -223,7 +223,7 @@ public class MainDriver {
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
 		for (int i = 0; i < datasetSize; i++) {
 
-			System.out.println("\n\nTime Step " + i);
+			// System.out.println("\n\nTime Step " + i);
 
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
@@ -234,20 +234,9 @@ public class MainDriver {
 
 		}
 
-		/* Log - Write to File */
 		System.out.println("Total steps detected: " + ins.totalStepsDetected);
-		String folder = "results/";
-		writeToFile(folder + "ins.csv", insLog.toString());
-	}
 
-	private static void writeToFile(String targetFilePath, String toWrite) {
-		try {
-			FileWriter fw = new FileWriter(new File(targetFilePath));
-			fw.write(toWrite);
-			fw.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		/* Log - Write to File */
+		insLog.writeToFile();
 	}
 }

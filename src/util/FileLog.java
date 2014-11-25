@@ -6,31 +6,24 @@ import java.io.IOException;
 
 public class FileLog {
 
-	private FileWriter fw;
+	private String filePath;
+	private StringBuilder sb;
 
-	public FileLog(String path) {
-		try {
-			fw = new FileWriter(new File(path));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public FileLog(String filePath) {
+		this.filePath = filePath;
+		sb = new StringBuilder();
 	}
 
 	public void append(Object o) {
-		try {
-			fw.append(o.toString());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		sb.append(o.toString());
 	}
 
-	public void close() {
+	public void writeToFile() {
 		try {
+			FileWriter fw = new FileWriter(new File(filePath));
+			fw.write(sb.toString());
 			fw.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
