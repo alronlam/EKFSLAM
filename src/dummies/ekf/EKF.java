@@ -22,11 +22,11 @@ public class EKF {
 	private Matrix jzMatrix;
 
 	/* Constants */
-	public static final double P_DIAGONAL_INITIAL = 0;
-	public static final double Q_NOISE = 1;
+	public static double P_DIAGONAL_INITIAL = 0;
+	public static double Q_NOISE = 1;
 
-	public static final double VRV_DISTANCE_VARIANCE = 0;
-	public static final double VRV_HEADING_NOISE = 0;// Math.toRadians(10);
+	public static double VRV_DISTANCE_VARIANCE = 1;
+	public static double VRV_HEADING_NOISE = Math.toRadians(1);
 
 	public EKF() {
 		X = createX();

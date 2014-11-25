@@ -5,6 +5,7 @@ import java.util.List;
 
 import stepbasedins.controller.StepBasedINSController;
 import stepbasedins.data.BatchProcessingResults;
+import util.FileLog;
 
 import commondata.PointDouble;
 
@@ -17,6 +18,7 @@ public class BreadcrumbDummiesController {
 	private EKF ekf;
 	private StepBasedINSController ins;
 	private int featureUpdateNullCount = 0;
+	private int updateCount = 0;
 
 	public BreadcrumbDummiesController() {
 		this.ekf = new EKF();
@@ -35,28 +37,43 @@ public class BreadcrumbDummiesController {
 
 	public void update(FeatureUpdate featureUpdate) {
 
+		updateCount++;
+
+		FileLog pointsLog = new FileLog("logs/" + String.format("%5d", updateCount) + ".csv");
+
 		if (featureUpdate != null) {
 			featureUpdateNullCount = 0;
-			/* Delete features that disappeared */
+
 			List<Integer> toDelete = featureUpdate.getBadPointsIndex();
+			List<PointDouble> toUpdate = featureUpdate.getCurrentPoints();
+			List<PointDouble> toAdd = featureUpdate.getNewPoints();
+
 			System.out.println("To Delete:" + toDelete.size());
+			System.out.println("To Update:" + toUpdate.size());
+			System.out.println("To Add:" + toAdd.size());
+
+			pointsLog.append("Update Points:\r\n");
+			for (PointDouble update : toUpdate)
+				pointsLog.append(update.toString() + "\r\n");
+
+			pointsLog.append("\r\nAdd Points:\r\n");
+			for (PointDouble add : toAdd)
+				pointsLog.append(add.toString() + "\r\n");
+
+			pointsLog.writeToFile();
+
+			/* Delete features that disappeared */
 			Collections.reverse(toDelete);
 			for (Integer index : toDelete)
 				ekf.deleteFeature(index);
 
 			/* Update using re-observed features */
-			List<PointDouble> toUpdate = featureUpdate.getCurrentPoints();
-
-			System.out.println("To Update:" + toUpdate.size());
 			for (int i = 0; i < toUpdate.size(); i++) {
 				PointDouble currXY = toUpdate.get(i);
 				ekf.updateFromReobservedFeatureCoords(i, currXY.getX(), currXY.getY());
 			}
 
 			/* Add new features */
-			List<PointDouble> toAdd = featureUpdate.getNewPoints();
-			System.out.println("To Add:" + toAdd.size());
-
 			for (PointDouble featpos : toAdd)
 				ekf.addFeature(featpos.getX(), featpos.getY());
 		} else {
@@ -64,5 +81,7 @@ public class BreadcrumbDummiesController {
 			if (featureUpdateNullCount == 3)
 				ekf.deleteAllFeatures();
 		}
+
+		System.out.println("Coords are now: " + ekf.getDeviceCoords());
 	}
 }

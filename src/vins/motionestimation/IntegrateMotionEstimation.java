@@ -6,6 +6,7 @@ import java.util.Calendar;
 import stepbasedins.data.SensorEntry;
 import Jama.Matrix;
 
+import commondata.Constants;
 import commondata.DevicePose;
 
 public class IntegrateMotionEstimation implements MotionEstimation {
@@ -25,15 +26,22 @@ public class IntegrateMotionEstimation implements MotionEstimation {
 		else
 			curr = Calendar.getInstance().getTimeInMillis();
 
-		if (start + 350 >= curr) {
-			entries.add(s);
-		} else {
-			overflow.add(s);
-		}
+		// if (start + 350 >= curr) {
+		entries.add(s);
+		// } else {
+		// overflow.add(s);
+		// }
 
 	}
 
 	public DevicePose getHeadingAndDisplacement() {
+
+		if (entries.size() == 0)
+			return new DevicePose(0, 0, 0, 0);
+
+		// hard-coded for now because timestamps in the dataset are currently
+		// not correct
+		long deltaTime = Constants.MS_OVERALL_CYCLE_FREQUENCY;
 
 		double heading;
 		double orientXAvg, orientYAvg, orientZAvg;
@@ -108,9 +116,12 @@ public class IntegrateMotionEstimation implements MotionEstimation {
 		pos[1] = xyzMatrix.get(0, 1);
 		pos[2] = xyzMatrix.get(0, 2);
 
-		pos[0] *= Math.pow((curr - start), 2) / 2000000;
-		pos[1] *= Math.pow((curr - start), 2) / 2000000;
-		pos[2] *= Math.pow((curr - start), 2) / 2000000;
+		System.out.println("t = " + String.format("%.4f", (deltaTime / 1000.0)) + "ax=" + pos[0] + " ay=" + pos[2]
+				+ " az=" + pos[1]);
+
+		pos[0] *= Math.pow(deltaTime, 2) / 2000000;
+		pos[1] *= Math.pow(deltaTime, 2) / 2000000;
+		pos[2] *= Math.pow(deltaTime, 2) / 2000000;
 
 		// Log.i("ME", heading + " " + numInstances + "\n");
 
@@ -125,8 +136,8 @@ public class IntegrateMotionEstimation implements MotionEstimation {
 		overflow.clear();
 
 		// and reset the timers
-		start = -1;
-		curr = -1;
+		start = curr;
+		// curr = -1;
 
 		// Log.i("ME", "POS Vector: " + pos[0] + " " + pos[1] + " " + pos[2]);
 

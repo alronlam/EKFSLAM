@@ -39,7 +39,7 @@ public class MainDriver {
 		List<Mat> imgDataset = imgLogReader.readImages();
 
 		// runINS(imuDataset, imgDataset);
-		// runVINS(imuDataset, imgDataset);
+		runVINS(imuDataset, imgDataset);
 		// runBreadcrumbDummies(imuDataset, imgDataset);
 		// runIDP(imuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
@@ -71,7 +71,7 @@ public class MainDriver {
 		System.out.println("DATASET SIZE: " + imuDataset.size() + " and " + imgDataset.size());
 		for (int i = 0; i < datasetSize; i++) {
 
-			System.out.println("\n\nTime Step " + i);
+			System.out.println("\n\nTime Step " + (i + 1));
 
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
@@ -119,7 +119,7 @@ public class MainDriver {
 
 		for (int i = 0; i < datasetSize; i++) {
 
-			System.out.println("\n\nTime Step " + i);
+			System.out.println("\n\nTime Step " + (i + 1));
 
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
@@ -155,7 +155,7 @@ public class MainDriver {
 
 		for (int i = 0; i < datasetSize; i++) {
 
-			System.out.println("\n\nTime Step " + i);
+			System.out.println("\n\nTime Step " + (i + 1));
 
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
@@ -190,7 +190,7 @@ public class MainDriver {
 
 		for (int i = 0; i < datasetSize; i++) {
 
-			System.out.println("\n\nTime Step " + i);
+			System.out.println("\n\nTime Step " + (i + 1));
 
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
@@ -199,7 +199,7 @@ public class MainDriver {
 
 			/* Image Update */
 			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i));
-			vins.update(featureUpdate);
+			// vins.update(featureUpdate);
 			System.out.println("Finished updating.");
 
 			/* Update the logs */
@@ -223,7 +223,7 @@ public class MainDriver {
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
 		for (int i = 0; i < datasetSize; i++) {
 
-			// System.out.println("\n\nTime Step " + i);
+			// System.out.println("\n\nTime Step " + (i + 1));
 
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
@@ -235,6 +235,7 @@ public class MainDriver {
 		}
 
 		System.out.println("Total steps detected: " + ins.totalStepsDetected);
+		System.out.println("Total distance traveled: " + ins.totalDistanceTraveled);
 
 		/* Log - Write to File */
 		insLog.writeToFile();

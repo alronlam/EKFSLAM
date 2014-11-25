@@ -14,6 +14,7 @@ public class INSController {
 	private StepBasedINSController ins;
 
 	public int totalStepsDetected;
+	public double totalDistanceTraveled = 0;
 
 	public INSController() {
 		this.ekf = new EKF();
@@ -23,7 +24,7 @@ public class INSController {
 	public void predict(IMUReadingsBatch imuBatch) {
 		BatchProcessingResults result = this.ins.processSensorEntryBatch(imuBatch.getEntries());
 		totalStepsDetected += result.getDetectedSteps();
-
+		totalDistanceTraveled += result.getStrideLength();
 		// System.out.println(result.getStrideLength() + " " +
 		// result.getHeadingAngle() + "deg");
 		ekf.predictFromINS(result.getStrideLength(), Math.toRadians(result.getHeadingAngle()));

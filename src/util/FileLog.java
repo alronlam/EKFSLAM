@@ -8,6 +8,7 @@ public class FileLog {
 
 	private String filePath;
 	private StringBuilder sb;
+	private boolean hasWritten;
 
 	public FileLog(String filePath) {
 		this.filePath = filePath;
@@ -16,6 +17,23 @@ public class FileLog {
 
 	public void append(Object o) {
 		sb.append(o.toString());
+	}
+
+	public void flush() {
+		try {
+			FileWriter fw = new FileWriter(filePath, hasWritten);
+			fw.write(sb.toString());
+			sb = new StringBuilder();
+			fw.close();
+
+			if (!hasWritten)
+				hasWritten = true;
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 	public void writeToFile() {
