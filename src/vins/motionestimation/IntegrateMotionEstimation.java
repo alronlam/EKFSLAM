@@ -116,9 +116,6 @@ public class IntegrateMotionEstimation implements MotionEstimation {
 		pos[1] = xyzMatrix.get(0, 1);
 		pos[2] = xyzMatrix.get(0, 2);
 
-		System.out.println("t = " + String.format("%.4f", (deltaTime / 1000.0)) + "ax=" + pos[0] + " ay=" + pos[2]
-				+ " az=" + pos[1]);
-
 		pos[0] *= Math.pow(deltaTime, 2) / 2000000;
 		pos[1] *= Math.pow(deltaTime, 2) / 2000000;
 		pos[2] *= Math.pow(deltaTime, 2) / 2000000;

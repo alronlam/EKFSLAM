@@ -32,7 +32,6 @@ public class VINSController {
 		try {
 			DevicePose devicePose = motionEstimator.getHeadingAndDisplacement();
 
-			System.out.println(devicePose.getXYDistance() + "m ," + devicePose.getHeading());
 			ekf.predictFromINS(devicePose.getXYDistance(), devicePose.getHeadingRadians());
 
 		} catch (Exception e) {

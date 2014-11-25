@@ -39,8 +39,8 @@ public class MainDriver {
 		List<Mat> imgDataset = imgLogReader.readImages();
 
 		// runINS(imuDataset, imgDataset);
-		runVINS(imuDataset, imgDataset);
-		// runBreadcrumbDummies(imuDataset, imgDataset);
+		// runVINS(imuDataset, imgDataset);
+		runBreadcrumbDummies(imuDataset, imgDataset);
 		// runIDP(imuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 	}
@@ -199,7 +199,7 @@ public class MainDriver {
 
 			/* Image Update */
 			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i));
-			// vins.update(featureUpdate);
+			vins.update(featureUpdate);
 			System.out.println("Finished updating.");
 
 			/* Update the logs */
