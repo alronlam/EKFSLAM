@@ -8,14 +8,23 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.features2d.FeatureDetector;
 import org.opencv.features2d.KeyPoint;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.video.Video;
 
 class OpticalFlow {
+	private final int MAX_FEATURES = 60;
+	private final double QUALITY_LEVEL = 0.01;
+	private final double MIN_DISTANCE = 20;
+	private final int BLOCK_SIZE = 3;
+	private final boolean USE_HARRIS = false;
+	private final double k = 0.04;
+
 	private final Scalar BLACK = new Scalar(0);
 	private final Scalar WHITE = new Scalar(255);
 	private FeatureDetector detector = FeatureDetector.create(FeatureDetector.HARRIS);
@@ -53,12 +62,21 @@ class OpticalFlow {
 
 		// detect new features
 
-		MatOfKeyPoint rawNearNewFeatures = new MatOfKeyPoint();
-		MatOfPoint2f nearNewFeatures = new MatOfPoint2f();
-		detector.detect(nearImage, rawNearNewFeatures, detectMask);
-		if (rawNearNewFeatures.size().height > 0) {
-			nearNewFeatures = convert(rawNearNewFeatures);
+		MatOfPoint rawNearNewFeatures = new MatOfPoint();
+		int toFind = MAX_FEATURES - (int) currentSize;
+		if (toFind > 0) {
+			Imgproc.goodFeaturesToTrack(nearImage, rawNearNewFeatures, toFind, QUALITY_LEVEL, MIN_DISTANCE, detectMask,
+					BLOCK_SIZE, USE_HARRIS, k);
 		}
+
+		MatOfPoint2f nearNewFeatures = new MatOfPoint2f(rawNearNewFeatures.toArray());
+
+		/*
+		 * MatOfKeyPoint rawNearNewFeatures = new MatOfKeyPoint();
+		 * detector.detect(nearImage, rawNearNewFeatures, detectMask); if
+		 * (rawNearNewFeatures.size().height > 0) { nearNewFeatures =
+		 * convert(rawNearNewFeatures); }
+		 */
 
 		// // Near frame to far frame
 
@@ -129,6 +147,17 @@ class OpticalFlow {
 
 		for (int i = 0; i < keyPointsArray.length; i++) {
 			pointsArray[i] = (Point) keyPointsArray[i].pt;
+		}
+
+		return new MatOfPoint2f(pointsArray);
+	}
+
+	private MatOfPoint2f convert(MatOfPoint keyPoints) {
+		Point[] keyPointsArray = keyPoints.toArray();
+		Point[] pointsArray = new Point[keyPointsArray.length];
+
+		for (int i = 0; i < keyPointsArray.length; i++) {
+			pointsArray[i] = (Point) keyPointsArray[i];
 		}
 
 		return new MatOfPoint2f(pointsArray);
