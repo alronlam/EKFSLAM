@@ -12,6 +12,7 @@ import util.FileLog;
 import vins.VINSController;
 
 import commondata.Constants;
+import commondata.PointDouble;
 
 import desktop.img.ImgLogReader;
 import desktop.imu.IMULogReader;
@@ -49,8 +50,8 @@ public class MainDriver {
 		List<Mat> imgDataset = imgLogReader.readImages();
 
 		// runINS(imuDataset, imgDataset);
-		// runVINS(imuDataset, imgDataset);
-		runBreadcrumbDummies(imuDataset, imgDataset);
+		runVINS(imuDataset, imgDataset);
+		// runBreadcrumbDummies(imuDataset, imgDataset);
 		// runIDP(imuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 	}
@@ -107,7 +108,6 @@ public class MainDriver {
 			vinsIDPLog.append(vinsIDP.getDeviceCoords() + "\n");
 		}
 		System.out.println(ins.totalStepsDetected);
-
 		breadcrumbLog.writeToFile();
 		insLog.writeToFile();
 		vinsLog.writeToFile();
@@ -183,6 +183,8 @@ public class MainDriver {
 
 		System.out.println("Total steps detected " + breadcrumb.totalStepsDetected);
 		System.out.println("Total distance traveled " + breadcrumb.totalDistanceTraveled);
+		System.out.println("Total Displacement = "
+				+ breadcrumb.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)));
 
 		/* Log - Write to File */
 		breadcrumbLog.writeToFile();
@@ -249,6 +251,7 @@ public class MainDriver {
 
 		System.out.println("Total steps detected: " + ins.totalStepsDetected);
 		System.out.println("Total distance traveled: " + ins.totalDistanceTraveled);
+		System.out.println("Total Displacement = " + ins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)));
 
 		/* Log - Write to File */
 		insLog.writeToFile();
