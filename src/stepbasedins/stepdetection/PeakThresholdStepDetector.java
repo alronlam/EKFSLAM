@@ -27,11 +27,13 @@ public class PeakThresholdStepDetector implements StepDetector {
 				double accelerometerNorm = currEntry.getAcc_norm();
 				// Log.d("Norm is ", accelerometerNorm+"");
 
-				if (lastDetectedEntry != null)
-					System.out.println(accelerometerNorm
-							+ " time: "
-							+ (currEntry.getTimeRecorded() - lastDetectedEntry.getTimeRecorded() + " = "
-									+ currEntry.getTimeRecorded() + " - " + lastDetectedEntry.getTimeRecorded()));
+				// if (lastDetectedEntry != null)
+				// System.out.println(accelerometerNorm
+				// + " time: "
+				// + (currEntry.getTimeRecorded() -
+				// lastDetectedEntry.getTimeRecorded() + " = "
+				// + currEntry.getTimeRecorded() + " - " +
+				// lastDetectedEntry.getTimeRecorded()));
 
 				if (accelerometerNorm >= PEAK_THRESHOLD
 						&& (lastDetectedEntry == null || (lastDetectedEntry != null && currEntry.getTimeRecorded()
