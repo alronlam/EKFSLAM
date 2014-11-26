@@ -8,14 +8,23 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.features2d.FeatureDetector;
 import org.opencv.features2d.KeyPoint;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.video.Video;
 
 class OpticalFlow {
+	private final int MAX_FEATURES = 60;
+	private final double QUALITY_LEVEL = 0.01;
+	private final double MIN_DISTANCE = 20;
+	private final int BLOCK_SIZE = 3;
+	private final boolean USE_HARRIS = false;
+	private final double k = 0.04;
+
 	private final Scalar BLACK = new Scalar(0);
 	private final Scalar WHITE = new Scalar(255);
 	private FeatureDetector detector = FeatureDetector.create(FeatureDetector.HARRIS);
@@ -46,13 +55,14 @@ class OpticalFlow {
 		}
 
 		// Detect new features
-
-		MatOfKeyPoint rawNewFeatures = new MatOfKeyPoint();
-		MatOfPoint2f newFeatures = new MatOfPoint2f();
-		detector.detect(currentImage, rawNewFeatures, detectMask);
-		if (rawNewFeatures.size().height > 0) {
-			newFeatures = convert(rawNewFeatures);
+		MatOfPoint rawNearNewFeatures = new MatOfPoint();
+		int toFind = MAX_FEATURES - (int) previousFeatures.size().height;
+		if (toFind > 0) {
+			Imgproc.goodFeaturesToTrack(currentImage, rawNearNewFeatures, toFind, QUALITY_LEVEL, MIN_DISTANCE,
+					detectMask, BLOCK_SIZE, USE_HARRIS, k);
 		}
+
+		MatOfPoint2f newFeatures = new MatOfPoint2f(rawNearNewFeatures.toArray());
 
 		// Find good features and bad features index
 
