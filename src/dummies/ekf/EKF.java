@@ -23,7 +23,7 @@ public class EKF {
 
 	/* Constants */
 	public static double P_DIAGONAL_INITIAL = 0;
-	public static double Q_NOISE = 1;
+	public static double Q_NOISE = 0.01;
 
 	public static double VRV_DISTANCE_VARIANCE = 10;
 	public static double VRV_HEADING_NOISE = Math.toRadians(10);

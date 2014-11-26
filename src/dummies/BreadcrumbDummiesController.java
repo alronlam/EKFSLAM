@@ -51,9 +51,9 @@ public class BreadcrumbDummiesController {
 			List<PointDouble> toUpdate = featureUpdate.getCurrentPoints();
 			List<PointDouble> toAdd = featureUpdate.getNewPoints();
 
-			System.out.println("To Delete:" + toDelete.size());
-			System.out.println("To Update:" + toUpdate.size());
-			System.out.println("To Add:" + toAdd.size());
+			// System.out.println("To Delete:" + toDelete.size());
+			// System.out.println("To Update:" + toUpdate.size());
+			// System.out.println("To Add:" + toAdd.size());
 
 			pointsLog.append("Update Points:\r\n");
 			for (PointDouble update : toUpdate)
@@ -84,7 +84,5 @@ public class BreadcrumbDummiesController {
 			if (featureUpdateNullCount == 3)
 				ekf.deleteAllFeatures();
 		}
-
-		System.out.println("Coords are now: " + ekf.getDeviceCoords());
 	}
 }

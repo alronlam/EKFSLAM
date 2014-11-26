@@ -12,7 +12,6 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
-import org.opencv.features2d.FeatureDetector;
 import org.opencv.features2d.KeyPoint;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.video.Video;
@@ -27,7 +26,6 @@ class OpticalFlow {
 
 	private final Scalar BLACK = new Scalar(0);
 	private final Scalar WHITE = new Scalar(255);
-	private FeatureDetector detector = FeatureDetector.create(FeatureDetector.HARRIS);
 
 	OpticalFlowResult getFeatures(Mat checkpointImage, Mat nearImage, Mat farImage, MatOfPoint2f checkpointFeatures) {
 
