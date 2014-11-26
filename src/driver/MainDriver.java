@@ -1,7 +1,6 @@
 package driver;
 
 import idp.VINSIDPController;
-import idp.matrix.MatrixUtility;
 
 import java.util.List;
 
@@ -13,6 +12,7 @@ import util.FileLog;
 import vins.VINSController;
 
 import commondata.Constants;
+import commondata.PointDouble;
 
 import desktop.img.ImgLogReader;
 import desktop.imu.IMULogReader;
@@ -31,15 +31,16 @@ public class MainDriver {
 	private static String breadcrumbLogFileName = "breadcrumb.csv";
 	private static String insLogFileName = "ins.csv";
 	private static String vinsLogFileName = "vins.csv";
-	private static String idpLogFileName = "idp.csv";
+	private static String idpLogFileName = "vinsidp.csv";
 
 	public static void main(String[] args) {
 
 		String micohouse36mFolder = "data/" + Constants.FOLDER_MICOHOUSE_36M;
 		String straight7mFolder = "data/" + Constants.FOLDER_STRAIGHT_7M;
 		String standing30sFolder = "data/" + Constants.FOLDER_STANDING_30S;
+		String straightGox49mFolder = "data/" + Constants.FOLDER_GOX_49M;
 
-		String targetFolder = straight7mFolder;
+		String targetFolder = micohouse36mFolder;
 
 		/* Load IMU Dataset */
 		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
@@ -49,10 +50,10 @@ public class MainDriver {
 		ImgLogReader imgLogReader = new ImgLogReader(targetFolder + "/img");
 		List<Mat> imgDataset = imgLogReader.readImages();
 
-		// runINS(imuDataset, imgDataset);
-		// runVINS(imuDataset, imgDataset);
-//		runBreadcrumbDummies(imuDataset, imgDataset);
-		runIDP(imuDataset, imgDataset);
+		runINS(imuDataset, imgDataset);
+		runVINS(imuDataset, imgDataset);
+		runBreadcrumbDummies(imuDataset, imgDataset);
+		// runIDP(imuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 	}
 
@@ -108,7 +109,6 @@ public class MainDriver {
 			vinsIDPLog.append(vinsIDP.getDeviceCoords() + "\n");
 		}
 		System.out.println(ins.totalStepsDetected);
-
 		breadcrumbLog.writeToFile();
 		insLog.writeToFile();
 		vinsLog.writeToFile();
@@ -135,17 +135,22 @@ public class MainDriver {
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
 			vinsIDP.predict(currIMUBatch);
-			System.out.println("Finished predicting.");
+			// System.out.println("Finished predicting.");
 
 			/* Image Update */
 			idp.features.FeatureUpdate idpFeatureUpdate = featureManagerIDP.getFeatureUpdate(imgDataset.get(i));
 			vinsIDP.update(idpFeatureUpdate);
 
-			System.out.println("Finished updating.");
+			// System.out.println("Finished updating.");
 
 			/* Update the logs per controller */
-			vinsIDPLog.append(vinsIDP.getDeviceCoords() + "\n");
+			vinsIDPLog.append((vinsIDP.getDeviceCoords().getX() / 100000) + ","
+					+ (vinsIDP.getDeviceCoords().getY() / 100000) + "\n");
+			// vinsIDPLog.append(vinsIDP.getDeviceCoords() + "\n");
 		}
+
+		System.out
+				.println("Total Displacement = " + vinsIDP.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)));
 
 		/* Log - Write to File */
 		vinsIDPLog.writeToFile();
@@ -166,17 +171,19 @@ public class MainDriver {
 
 		for (int i = 0; i < datasetSize; i++) {
 
-			System.out.println("\n\nTime Step " + (i + 1));
+			System.out.println("Time Step " + (i + 1));
 
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
 			breadcrumb.predict(currIMUBatch);
-			System.out.println("Finished predicting.");
+			// System.out.println("Finished predicting.");
 
 			/* Image Update */
 			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i));
 			breadcrumb.update(featureUpdate);
-			System.out.println("Finished updating.");
+			// System.out.println("Finished updating.");
+
+			System.out.println(breadcrumb.getDeviceCoords() + "\n");
 
 			/* Update the logs */
 			breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
@@ -184,6 +191,8 @@ public class MainDriver {
 
 		System.out.println("Total steps detected " + breadcrumb.totalStepsDetected);
 		System.out.println("Total distance traveled " + breadcrumb.totalDistanceTraveled);
+		System.out.println("Total Displacement = "
+				+ breadcrumb.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)));
 
 		/* Log - Write to File */
 		breadcrumbLog.writeToFile();
@@ -209,7 +218,7 @@ public class MainDriver {
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
 			vins.predict(currIMUBatch);
-			System.out.println("Finished predicting.");
+			// System.out.println("Finished predicting.");
 
 			/* Image Update */
 			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i));
@@ -219,6 +228,7 @@ public class MainDriver {
 			/* Update the logs */
 			vinsLog.append(vins.getDeviceCoords() + "\n");
 		}
+		System.out.println("Total Displacement = " + vins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)));
 
 		/* Log - Write to File */
 		vinsLog.writeToFile();
@@ -250,6 +260,7 @@ public class MainDriver {
 
 		System.out.println("Total steps detected: " + ins.totalStepsDetected);
 		System.out.println("Total distance traveled: " + ins.totalDistanceTraveled);
+		System.out.println("Total Displacement = " + ins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)));
 
 		/* Log - Write to File */
 		insLog.writeToFile();

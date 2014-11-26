@@ -123,6 +123,7 @@ public class FeatureManager {
 
 		OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, farImage,
 				checkpointFeatures);
+
 		opflowresult.getNearFeatures().copyTo(checkpointFeatures);
 
 		MatOfPoint2f goodOld = opflowresult.getNearFeatures();
@@ -170,10 +171,13 @@ public class FeatureManager {
 				case 3:
 					F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_8POINT, 3, 0.85);
 					break;
+				// case 4:
+				// // gives a ridiculous shit
+				// F = Calib3d.findFundamentalMat(goodOld, goodNew,
+				// Calib3d.FM_8POINT, 5, 0.75);
+				// System.out.println(F.size().toString());
+				// break;
 				case 4:
-					F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_7POINT, 3, 0.85);
-					break;
-				case 5:
 					F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 20, 0.0);
 					break;
 
@@ -182,7 +186,6 @@ public class FeatureManager {
 					checkpointFeatures = new MatOfPoint2f();
 					return null;
 				}
-
 				tries++;
 
 				// F = Calib3d.findFundamentalMat(goodOld, goodNew);
@@ -194,7 +197,6 @@ public class FeatureManager {
 				E = nullMatF.clone();
 
 				// GETTING THE ESSENTIAL MATRIX
-
 				Core.gemm(cameraMatrix.t(), F, 1, nullMatF, 0, tempMat);
 				Core.gemm(tempMat, cameraMatrix, 1, nullMatF, 0, E);
 
@@ -392,7 +394,7 @@ public class FeatureManager {
 		images.remove(0);
 		frames++;
 
-		System.out.println(update);
+		// System.out.println(update);
 
 		return update;
 	}

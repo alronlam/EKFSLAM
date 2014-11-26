@@ -50,7 +50,7 @@ public class VINSIDPController {
 		/* Delete features that disappeared */
 		List<Integer> toDelete = featureUpdate.getBadPointsIndex();
 
-		System.out.println("To Delete:" + toDelete.size());
+		// System.out.println("To Delete:" + toDelete.size());
 		Collections.reverse(toDelete);
 		for (Integer index : toDelete)
 			ekf.deleteFeature(index);
@@ -58,7 +58,7 @@ public class VINSIDPController {
 		/* Update using re-observed features */
 		List<PointDouble> toUpdate = featureUpdate.getCurrentPoints();
 
-		System.out.println("To Update:" + toUpdate.size());
+		// System.out.println("To Update:" + toUpdate.size());
 		for (int i = 0; i < toUpdate.size(); i++) {
 			PointDouble currXY = toUpdate.get(i);
 			ekf.updateFromReobservedFeatureThroughImageCoords(i, currXY.getX(), currXY.getY());
@@ -67,7 +67,7 @@ public class VINSIDPController {
 		/* Add new features */
 		List<PointDouble> toAdd = featureUpdate.getNewPoints();
 
-		System.out.println("To Add:" + toAdd.size());
+		// System.out.println("To Add:" + toAdd.size());
 		for (PointDouble featpos : toAdd)
 			ekf.addFeature((int) featpos.getX(), (int) featpos.getY(), camera);
 
