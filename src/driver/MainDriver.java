@@ -40,8 +40,8 @@ public class MainDriver {
 
 		// runINS(imuDataset, imgDataset);
 		// runVINS(imuDataset, imgDataset);
-		runBreadcrumbDummies(imuDataset, imgDataset);
-		// runIDP(imuDataset, imgDataset);
+		// runBreadcrumbDummies(imuDataset, imgDataset);
+		runIDP(imuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 	}
 

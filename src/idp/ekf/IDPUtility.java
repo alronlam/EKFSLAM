@@ -60,7 +60,8 @@ public class IDPUtility {
 		Matrix uv_u = hu(hrl, cam);
 		// add distortion
 		Matrix uv_d = distort_fm(uv_u, cam);
-
+		
+		System.out.println(uv_d.getRowDimension() + " " + uv_d.getColumnDimension());
 		if (uv_d.get(0, 0) > 0 && uv_d.get(0, 0) < cam.nCols && uv_d.get(1, 0) > 0 && uv_d.get(1, 0) < cam.nRows)
 			return uv_d;
 		else
