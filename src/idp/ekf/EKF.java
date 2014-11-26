@@ -82,11 +82,13 @@ public class EKF {
 		// time step
 		Xm1 = X.clone();
 		Pm1 = P.clone();
-
+		
 		PointTriple xyzPositionOld = X.getCurrentXYZPosition();
 		Quaternion quaternionOld = X.getCurrentQuaternion();
 		PointTriple vOld = X.getCurrentV();
 		PointTriple omegaOld = X.getCurrentOmega();
+		
+		System.out.println(X);
 
 		// Not sure if correct, but this is what's written in MonoSLAM code
 		PointTriple xyzPositionNew = xyzPositionOld.plus(vOld.times(deltaTime));
