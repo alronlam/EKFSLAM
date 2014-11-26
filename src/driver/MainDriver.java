@@ -10,6 +10,9 @@ import org.opencv.core.Mat;
 import stepbasedins.INSController;
 import util.FileLog;
 import vins.VINSController;
+
+import commondata.Constants;
+
 import desktop.img.ImgLogReader;
 import desktop.imu.IMULogReader;
 import desktop.imu.IMUReadingsBatch;
@@ -30,18 +33,25 @@ public class MainDriver {
 	private static String idpLogFileName = "idp.csv";
 
 	public static void main(String[] args) {
+
+		String micohouse36mFolder = "data/" + Constants.FOLDER_MICOHOUSE_36M;
+		String straight7mFolder = "data/" + Constants.FOLDER_STRAIGHT_7M;
+		String standing30sFolder = "data/" + Constants.FOLDER_STANDING_30S;
+
+		String targetFolder = straight7mFolder;
+
 		/* Load IMU Dataset */
-		IMULogReader imuLogReader = new IMULogReader("data/imu");
+		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
 		List<IMUReadingsBatch> imuDataset = imuLogReader.readSensorEntries();
 
 		/* Load Images Dataset */
-		ImgLogReader imgLogReader = new ImgLogReader("data/img");
+		ImgLogReader imgLogReader = new ImgLogReader(targetFolder + "/img");
 		List<Mat> imgDataset = imgLogReader.readImages();
 
-		// runINS(imuDataset, imgDataset);
+		runINS(imuDataset, imgDataset);
 		// runVINS(imuDataset, imgDataset);
 		// runBreadcrumbDummies(imuDataset, imgDataset);
-		runIDP(imuDataset, imgDataset);
+		// runIDP(imuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 	}
 
