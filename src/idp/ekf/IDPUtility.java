@@ -29,8 +29,9 @@ public class IDPUtility {
 
 		// implying i care about cartesian coords
 		Matrix hi = hi_inverse_depth(f, t_wc, r_wc, cam, features_info);
-		if (hi != null)
-			features_info.get(featureIndex).h = hi.transpose();
+		if (hi != null) {
+			features_info.get(featureIndex).h = hi;
+		}
 	}
 
 	private static Matrix hi_inverse_depth(IDPFeature yinit, Matrix t_wc, Matrix r_wc, Camera cam,
@@ -59,9 +60,8 @@ public class IDPUtility {
 		// image coordinates
 		Matrix uv_u = hu(hrl, cam);
 		// add distortion
-		Matrix uv_d = distort_fm(uv_u, cam);
+		Matrix uv_d = distort_fm(uv_u, cam).transpose();
 		
-		System.out.println(uv_d.getRowDimension() + " " + uv_d.getColumnDimension());
 		if (uv_d.get(0, 0) > 0 && uv_d.get(0, 0) < cam.nCols && uv_d.get(1, 0) > 0 && uv_d.get(1, 0) < cam.nRows)
 			return uv_d;
 		else
@@ -115,10 +115,10 @@ public class IDPUtility {
 			int featureIndex) {
 		Matrix x = x_k_km1.toMatrix();
 		Matrix x_v = x.getMatrix(0, 12, 0, 0);
-		Matrix x_features = x.getMatrix(13, x.getRowDimension() - 1, 0, 0);
+		//Matrix x_features = x.getMatrix(13, x.getRowDimension() - 1, 0, 0);
 
 		if (features_info.get(featureIndex).h != null) {
-			Matrix y = x_features.getMatrix(0, 5, 0, 0);
+			Matrix y = x.getMatrix(13, 13+6, 0, 0);
 			features_info.get(featureIndex).H = calculate_Hi_inverse_depth(x_v, y, cam, featureIndex, features_info);
 		}
 	}
