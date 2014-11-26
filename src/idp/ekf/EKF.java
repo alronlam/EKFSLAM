@@ -207,7 +207,9 @@ public class EKF {
 		A_Matrix = Helper.setSubMatrixValues(A_Matrix, _3x3Identity, 10, 10);
 
 		/* Initialize 3x3 deltaTime */
-		Matrix deltaTimeMatrix = Helper.createSameValuedMatrix(deltaTime, 3, 3);
+
+		// Matrix deltaTimeMatrix = Helper.createSameValuedMatrix(deltaTime, 3, 3); this is wrong
+		Matrix deltaTimeMatrix = Helper.createIdentityMatrix(3).times(deltaTime);
 		A_Matrix = Helper.setSubMatrixValues(A_Matrix, deltaTimeMatrix, 0, 7);
 
 		/* Initialize 4x4 dqnew_by_domega */

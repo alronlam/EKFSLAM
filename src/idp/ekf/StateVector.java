@@ -18,8 +18,15 @@ public class StateVector {
 		this.numFeatures = 0;
 
 		X = new ArrayList<Double>();
+		for (int i = 0; i < 10; i++)
+			X.add(0.0);
+		for (int i = 10; i <= 12; i++)
+			X.add(Helper.EPS);
+		
+		/*
 		for (int i = 0; i < stateVarsOfInterest; i++)
 			X.add(Helper.EPS);
+		*/
 		
 		// set quaternion to 1
 		X.set(3, 1.0);
@@ -113,10 +120,10 @@ public class StateVector {
 	}
 
 	public Quaternion getCurrentQuaternion() {
-		double x = X.get(3);
-		double y = X.get(4);
-		double z = X.get(5);
-		double r = X.get(6);
+		double r = X.get(3);
+		double x = X.get(4);
+		double y = X.get(5);
+		double z = X.get(6);
 
 		Quaternion quaternion = new Quaternion(x, y, z, r);
 		return quaternion;

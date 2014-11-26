@@ -5,15 +5,19 @@ import Jama.Matrix;
 public class QuaternionHelper {
 
 	public static Matrix dq3_by_dq1(Quaternion q) {
-		double[][] arr = { { q.getR(), -q.getX(), -q.getY(), -q.getZ() }, { q.getX(), q.getR(), -q.getZ(), q.getY() },
-				{ q.getY(), q.getZ(), q.getR(), -q.getX() }, { q.getZ(), -q.getY(), q.getX(), q.getR() } };
+		double[][] arr = { { q.getR(), -q.getX(), -q.getY(), -q.getZ() }, 
+				{ q.getX(), q.getR(), -q.getZ(), q.getY() },
+				{ q.getY(), q.getZ(), q.getR(), -q.getX() }, 
+				{ q.getZ(), -q.getY(), q.getX(), q.getR() } };
 
 		return new Matrix(arr);
 	}
 
 	public static Matrix dq3_by_dq2(Quaternion q) {
-		double[][] arr = { { q.getR(), -q.getX(), -q.getY(), -q.getZ() }, { q.getX(), q.getR(), q.getZ(), -q.getY() },
-				{ q.getY(), -q.getZ(), q.getR(), q.getX() }, { q.getZ(), q.getY(), -q.getX(), q.getR() } };
+		double[][] arr = { 	{ q.getR(), -q.getX(), -q.getY(), -q.getZ() }, 
+							{ q.getX(), q.getR(), q.getZ(), -q.getY() },
+							{ q.getY(), -q.getZ(), q.getR(), q.getX() }, 
+							{ q.getZ(), q.getY(), -q.getX(), q.getR() } };
 
 		return new Matrix(arr);
 	}
@@ -23,12 +27,12 @@ public class QuaternionHelper {
 		w = w.times(deltaTime);
 
 		double theta = w.getNorm();
-		// if (theta < 1)// eps)
-		// return new Quaternion(1, 0, 0, 0);
-		// else {
-		PointTriple w_n = w.divide(theta);
-		return new Quaternion(w_n, theta);
-		// }
+		if (theta < Helper.EPS)
+			return new Quaternion(1, 0, 0, 0);
+		else {
+			PointTriple w_n = w.divide(theta);
+			return new Quaternion(w_n, theta);
+		}
 	}
 
 	public static Matrix dqomegadt_by_domega(PointTriple omega, double deltaTime) {
@@ -42,12 +46,15 @@ public class QuaternionHelper {
 		dqomegadt_by_domega.set(0, 0, dq0_by_domegaA(omega.getX(), omegamod, deltaTime));
 		dqomegadt_by_domega.set(0, 1, dq0_by_domegaA(omega.getY(), omegamod, deltaTime));
 		dqomegadt_by_domega.set(0, 2, dq0_by_domegaA(omega.getZ(), omegamod, deltaTime));
+
 		dqomegadt_by_domega.set(1, 0, dqA_by_domegaA(omega.getX(), omegamod, deltaTime));
 		dqomegadt_by_domega.set(1, 1, dqA_by_domegaB(omega.getX(), omega.getY(), omegamod, deltaTime));
 		dqomegadt_by_domega.set(1, 2, dqA_by_domegaB(omega.getX(), omega.getZ(), omegamod, deltaTime));
+
 		dqomegadt_by_domega.set(2, 0, dqA_by_domegaB(omega.getY(), omega.getX(), omegamod, deltaTime));
 		dqomegadt_by_domega.set(2, 1, dqA_by_domegaA(omega.getY(), omegamod, deltaTime));
 		dqomegadt_by_domega.set(2, 2, dqA_by_domegaB(omega.getY(), omega.getZ(), omegamod, deltaTime));
+
 		dqomegadt_by_domega.set(3, 0, dqA_by_domegaB(omega.getZ(), omega.getX(), omegamod, deltaTime));
 		dqomegadt_by_domega.set(3, 1, dqA_by_domegaB(omega.getZ(), omega.getY(), omegamod, deltaTime));
 		dqomegadt_by_domega.set(3, 2, dqA_by_domegaA(omega.getZ(), omegamod, deltaTime));
