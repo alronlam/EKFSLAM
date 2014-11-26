@@ -131,7 +131,8 @@ public class IDPUtility {
 		// all features in feature_info are inverse depth features
 		Matrix Hi = new Matrix(2, 13 + 6 * number_of_features);
 
-		Hi.setMatrix(0, 1, 0, 12, dh_dxv(cam, Xv_km1_k, yi, zi));
+		Matrix toSet = dh_dxv(cam, Xv_km1_k, yi, zi);
+		Hi.setMatrix(0, 1, 0, 11, toSet);
 
 		int insert = 13 + 6 * index;
 		Hi.setMatrix(0, 1, insert - 1, insert + 4, dh_dy(cam, Xv_km1_k, yi, zi));
@@ -140,7 +141,7 @@ public class IDPUtility {
 	}
 
 	private static Matrix dh_dy(Camera cam, Matrix Xv_km1_k, Matrix yi, Matrix zi) {
-		return dh_dhrl(cam, Xv_km1_k, yi, zi).times(dhrl_dy(Xv_km1_k, yi));
+		return dh_dhrl(cam, Xv_km1_k, yi, zi).times(dhrl_dy(Xv_km1_k, yi).transpose());
 	}
 
 	private static Matrix dhrl_dy(Matrix Xv_km1_k, Matrix yi) {
@@ -157,17 +158,19 @@ public class IDPUtility {
 		double[][] d1 = { { Math.cos(phi) * Math.cos(theta), 0, -Math.cos(phi) * Math.sin(theta) } };
 		double[][] d2 = { { -Math.sin(phi) * Math.sin(theta), -Math.cos(phi), -Math.sin(phi) * Math.cos(theta) } };
 
-		Matrix dmi_dthetai = Rrw.times(new Matrix(d1).transpose());
-		Matrix dmi_dphii = Rrw.times(new Matrix(d2).transpose());
+		Matrix dmi_dthetai = Rrw.times(new Matrix(d1).transpose()).transpose();
+		Matrix dmi_dphii = Rrw.times(new Matrix(d2).transpose()).transpose();
 
 		Matrix out = new Matrix(6, 3);
 
 		// a = [lambda*Rrw dmi_dthetai dmi_dphii Rrw*(yi(1:3)-rw) ];
-
-		out.setMatrix(0, 2, 0, 2, Rrw.times(lambda));
+		
+		Matrix toSet = Rrw.times(yi.getMatrix(0, 2, 0, 0).minus(rw)).transpose();
+		
+		out.setMatrix(0, 2, 0, 2, Rrw.times(lambda).transpose());
 		out.setMatrix(3, 3, 0, 2, dmi_dthetai);
 		out.setMatrix(4, 4, 0, 2, dmi_dphii);
-		out.setMatrix(5, 5, 0, 2, Rrw.times(yi.getMatrix(0, 2, 0, 0).minus(rw)));
+		out.setMatrix(5, 5, 0, 2, toSet);
 
 		return out;
 	}
