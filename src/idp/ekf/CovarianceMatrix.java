@@ -140,12 +140,13 @@ public class CovarianceMatrix {
 	public void deleteFeature(int featureIndex) {
 
 		int targetIndexStart = this.getStartingIndexInStateVector(featureIndex);
-		P.remove(targetIndexStart);
-		P.remove(targetIndexStart);
+		
+		for(int i=0; i<EKF.FEATURE_SIZE;i++)
+			P.remove(targetIndexStart);
 
 		for (ArrayList<Double> row : P) {
-			row.remove(targetIndexStart);
-			row.remove(targetIndexStart);
+			for(int i=0; i<EKF.FEATURE_SIZE;i++)	
+				row.remove(targetIndexStart);
 		}
 
 		numFeatures--;

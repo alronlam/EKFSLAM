@@ -50,9 +50,9 @@ public class MainDriver {
 		List<Mat> imgDataset = imgLogReader.readImages();
 
 		// runINS(imuDataset, imgDataset);
-		runVINS(imuDataset, imgDataset);
+		// runVINS(imuDataset, imgDataset);
 		// runBreadcrumbDummies(imuDataset, imgDataset);
-		// runIDP(imuDataset, imgDataset);
+		runIDP(imuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 	}
 

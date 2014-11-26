@@ -14,7 +14,11 @@ public class Helper {
 			for (int j = startCol; j < matrix.getColumnDimension(); j++)
 				list.get(i).set(j, matrix.get(i, j));
 	}
-
+	
+	public static String getMatrixBounds(Matrix m) {
+		return m.getRowDimension() + " " + m.getColumnDimension();
+	}
+	
 	public static Matrix convertToMatrix(ArrayList<ArrayList<Double>> list) {
 
 		int rows = list.size();

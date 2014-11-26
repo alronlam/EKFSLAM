@@ -129,10 +129,10 @@ public class EKF {
 		double predictedU = cam.Cx - cam.f*h_cam.get(0,0)/cam.dx/h_cam.get(2, 0);
 		double predictedV = cam.Cy - cam.f*h_cam.get(1,0)/cam.dy/h_cam.get(2, 0);
 		
-		Matrix hMatrix = features_info.get(featureIndex).h;
+		Matrix hMatrix = features_info.get(featureIndex).H;
 		if (hMatrix == null)
 			return;
-
+		
 		Matrix pMatrix = P.toMatrix();
 		Matrix hphMatrix = hMatrix.times(pMatrix).times(hMatrix.transpose());
 		
@@ -140,8 +140,6 @@ public class EKF {
 		Matrix innovationMatrix = hphMatrix.plus(vrvMatrix);
 		Matrix kalmanGainMatrix = pMatrix.times(hMatrix.transpose()).times(innovationMatrix.inverse());
 
-		// Still need to add measurement noise to these two variables
-		
 		double[][] differenceVector = new double[2][1];
 		differenceVector[0][0] = observedU - predictedU;
 		differenceVector[1][0] = observedV - predictedV;
@@ -167,7 +165,7 @@ public class EKF {
 	public void deleteFeature(int featureIndex) {
 		X.deleteFeature(featureIndex);
 		P.deleteFeature(featureIndex);
-		
+
 		// remove from feature_info
 		features_info.remove(featureIndex);
 	}
