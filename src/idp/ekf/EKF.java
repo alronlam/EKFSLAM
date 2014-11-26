@@ -2,9 +2,9 @@ package idp.ekf;
 
 import java.util.ArrayList;
 
-import commondata.PointDouble;
-
 import Jama.Matrix;
+
+import commondata.PointDouble;
 
 public class EKF {
 
@@ -12,11 +12,11 @@ public class EKF {
 	private StateVector X;
 	private CovarianceMatrix Pm1;
 	private CovarianceMatrix P;
-	
+
 	// camera classes
 	private ArrayList<FeatureInfo> features_info;
 	private Camera cam;
-	
+
 	/* Constants */
 	public static final int FEATURE_SIZE = 6;
 	public static final int STATE_VARS_OF_INTEREST = 13;
@@ -40,7 +40,7 @@ public class EKF {
 	public EKF() {
 		X = createInitialX();
 		P = createInitialP();
-		
+
 		cam = new Camera();
 		features_info = new ArrayList<FeatureInfo>();
 	}
@@ -87,7 +87,7 @@ public class EKF {
 		Quaternion quaternionOld = X.getCurrentQuaternion();
 		PointTriple vOld = X.getCurrentV();
 		PointTriple omegaOld = X.getCurrentOmega();
-		
+
 		// Not sure if correct, but this is what's written in MonoSLAM code
 		PointTriple xyzPositionNew = xyzPositionOld.plus(vOld.times(deltaTime));
 		Quaternion qwt = QuaternionHelper.calculateQWT(omegaOld, deltaTime);
@@ -117,45 +117,48 @@ public class EKF {
 	/********** V-INS Update **********/
 
 	// Method for correcting the state vector based on re-observed features.
-	
-	public void updateFromReobservedFeatureThroughImageCoords(int featureIndex, double observedU,
-			double observedV) {
-		
+
+	public void updateFromReobservedFeatureThroughImageCoords(int featureIndex, double observedU, double observedV) {
+
 		IDPUtility.predict_camera_measurements(X, cam, features_info, featureIndex);
 		IDPUtility.calculate_derivatives(X, cam, features_info, featureIndex);
-		
+
 		Matrix h_cam = Helper.inverseDepthToCartesian(X.getFeature(featureIndex));
-		
-		double predictedU = cam.Cx - cam.f*h_cam.get(0,0)/cam.dx/h_cam.get(2, 0);
-		double predictedV = cam.Cy - cam.f*h_cam.get(1,0)/cam.dy/h_cam.get(2, 0);
-		
+
+		double predictedU = cam.Cx - cam.f * h_cam.get(0, 0) / cam.dx / h_cam.get(2, 0);
+		double predictedV = cam.Cy - cam.f * h_cam.get(1, 0) / cam.dy / h_cam.get(2, 0);
+
 		Matrix hMatrix = features_info.get(featureIndex).H;
 		if (hMatrix == null)
 			return;
-		
+
 		Matrix pMatrix = P.toMatrix();
 		Matrix hphMatrix = hMatrix.times(pMatrix).times(hMatrix.transpose());
-		
+
 		Matrix vrvMatrix = this.createVRVMatrix();
 		Matrix innovationMatrix = hphMatrix.plus(vrvMatrix);
-		Matrix kalmanGainMatrix = pMatrix.times(hMatrix.transpose()).times(innovationMatrix.inverse());
 
-		double[][] differenceVector = new double[2][1];
-		differenceVector[0][0] = observedU - predictedU;
-		differenceVector[1][0] = observedV - predictedV;
-		Matrix zMinusHMatrix = new Matrix(differenceVector);
-		
-		/* Adjust state vector based on prediction */
-		Matrix xMatrix = X.toMatrix();
-		xMatrix = xMatrix.plus(kalmanGainMatrix.times(zMinusHMatrix));
+		try {
+			Matrix kalmanGainMatrix = pMatrix.times(hMatrix.transpose()).times(innovationMatrix.inverse());
 
-		// re-populate the state vector based on the result
-		X.setXBasedOnMatrix(xMatrix);
+			double[][] differenceVector = new double[2][1];
+			differenceVector[0][0] = observedU - predictedU;
+			differenceVector[1][0] = observedV - predictedV;
+			Matrix zMinusHMatrix = new Matrix(differenceVector);
 
-		// Update covariance
-		pMatrix = pMatrix.minus(kalmanGainMatrix.times(innovationMatrix).times(kalmanGainMatrix.transpose()));
-		P.set(pMatrix);
+			/* Adjust state vector based on prediction */
+			Matrix xMatrix = X.toMatrix();
+			xMatrix = xMatrix.plus(kalmanGainMatrix.times(zMinusHMatrix));
 
+			// re-populate the state vector based on the result
+			X.setXBasedOnMatrix(xMatrix);
+
+			// Update covariance
+			pMatrix = pMatrix.minus(kalmanGainMatrix.times(innovationMatrix).times(kalmanGainMatrix.transpose()));
+			P.set(pMatrix);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		// Log.d("EKFTests", "State Vector: " + X.toString());
 	}
 
@@ -174,19 +177,19 @@ public class EKF {
 	public void addFeature(int ud, int vd, Camera camera) {
 		IDPFeature newFeature = FeatureInitializationHelper.createFeature(X.getCurrentXYZPosition(),
 				X.getCurrentQuaternion(), ud, vd, INITIAL_RHO);
-		
-		double[][] uv = {{ud,vd}};
+
+		double[][] uv = { { ud, vd } };
 		FeatureInfo f = new FeatureInfo(new Matrix(uv), X.toMatrix(), newFeature);
 		features_info.add(f);
-		
+
 		X.addFeature(newFeature);
 		P.addFeature(X, ud, vd, STDDEV_PXL, STDDEV_RHO, camera);
-		
-		//features_info.add(new FeatureInfo());
+
+		// features_info.add(new FeatureInfo());
 	}
 
 	/********** Methods for Creating Matrices **********/
-	
+
 	// Initializes the state vector
 	private StateVector createInitialX() {
 		return new StateVector(STATE_VARS_OF_INTEREST, FEATURE_SIZE);
