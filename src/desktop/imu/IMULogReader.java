@@ -37,6 +37,8 @@ public class IMULogReader {
 					String[] tokens = currLine.split(",");
 					SensorEntry currEntry = Helper.createSensorEntryFromStringTokens(tokens);
 					currBatch.addEntry(currEntry);
+					currBatch.setEntries(IMUOrientationRemapper.remap(currBatch.getEntries()));
+
 				}
 				dataset.add(currBatch);
 				scanner.close();

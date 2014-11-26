@@ -16,6 +16,10 @@ public class IMUReadingsBatch {
 		entries.add(se);
 	}
 
+	public void setEntries(ArrayList<SensorEntry> entries) {
+		this.entries = entries;
+	}
+
 	@SuppressWarnings("unchecked")
 	public ArrayList<SensorEntry> getEntries() {
 		return (ArrayList<SensorEntry>) entries.clone();
