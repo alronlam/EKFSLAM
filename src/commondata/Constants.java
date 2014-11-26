@@ -16,6 +16,11 @@ public class Constants {
 	public static final int MS_INS_SAMPLING_FREQUENCY = 10;
 	public static final int MS_FREQUENCY_FOR_CAMERA_CAPTURE = 350;
 
+	// Log related
+	public static final String FOLDER_STRAIGHT_7M = "straight7m";
+	public static final String FOLDER_STANDING_30S = "standing30s";
+	public static final String FOLDER_MICOHOUSE_36M = "micohouse36m";
+
 	// Others
 	public static final String INS_DATA_HEADER = "Acc_x,Acc_y,Acc_z,Gyro_x,Gyro_y,Gyro_z,Orient_x,Orient_y,Orient_z,Time\n";
 

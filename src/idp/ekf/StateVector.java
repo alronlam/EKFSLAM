@@ -51,9 +51,9 @@ public class StateVector {
 	public void deleteFeature(int featureIndex) {
 		int targetIndexStart = this.getStartingIndexInStateVector(featureIndex);
 
-		X.remove(targetIndexStart);
-		X.remove(targetIndexStart);
-
+		for(int i=0; i<EKF.FEATURE_SIZE;i++)
+			X.remove(targetIndexStart);
+		
 		numFeatures--;
 	}
 
