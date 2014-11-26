@@ -134,10 +134,6 @@ public class EKF {
 			return;
 		
 		Matrix pMatrix = P.toMatrix();
-		
-		System.out.println(Helper.getMatrixBounds(hMatrix));
-		System.out.println(Helper.getMatrixBounds(pMatrix));
-		
 		Matrix hphMatrix = hMatrix.times(pMatrix).times(hMatrix.transpose());
 		
 		Matrix vrvMatrix = this.createVRVMatrix();
