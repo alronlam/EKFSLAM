@@ -59,9 +59,9 @@ public class MainDriver {
 		// }
 
 		//
-		// runINS(imuDataset, imgDataset);
+		runINS(imuDataset, imgDataset);
 		runVINS(cimuDataset, imgDataset);
-		// runBreadcrumbDummies(imuDataset, imgDataset);
+		runBreadcrumbDummies(imuDataset, imgDataset);
 		// runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 	}
