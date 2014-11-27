@@ -35,25 +35,23 @@ public class MainDriver {
 
 	public static void main(String[] args) {
 
-		String micohouse36mFolder = "data/" + Constants.FOLDER_MICOHOUSE_36M;
-		String straight7mFolder = "data/" + Constants.FOLDER_STRAIGHT_7M;
-		String standing30sFolder = "data/" + Constants.FOLDER_STANDING_30S;
-		String straightGox49mFolder = "data/" + Constants.FOLDER_GOX_49M;
-
-		String targetFolder = micohouse36mFolder;
+		String targetFolder = "data/" + Constants.FOLDER_MIGUEL_STRAIGHT;
 
 		/* Load IMU Dataset */
 		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
 		List<IMUReadingsBatch> imuDataset = imuLogReader.readSensorEntries();
 
+		IMULogReader cimuLogReader = new IMULogReader(targetFolder + "/cimu");
+		List<IMUReadingsBatch> cimuDataset = imuLogReader.readSensorEntries();
+
 		/* Load Images Dataset */
 		ImgLogReader imgLogReader = new ImgLogReader(targetFolder + "/img");
 		List<Mat> imgDataset = imgLogReader.readImages();
 
-		// runINS(imuDataset, imgDataset);
-		// runVINS(imuDataset, imgDataset);
-		// runBreadcrumbDummies(imuDataset, imgDataset);
-		runIDP(imuDataset, imgDataset);
+		runINS(imuDataset, imgDataset);
+		runVINS(cimuDataset, imgDataset);
+		runBreadcrumbDummies(imuDataset, imgDataset);
+		// runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 	}
 
@@ -144,9 +142,9 @@ public class MainDriver {
 			// System.out.println("Finished updating.");
 
 			/* Update the logs per controller */
-			vinsIDPLog.append((vinsIDP.getDeviceCoords().getX() / 100000) + ","
-					+ (vinsIDP.getDeviceCoords().getY() / 100000) + "\n");
-			// vinsIDPLog.append(vinsIDP.getDeviceCoords() + "\n");
+//			vinsIDPLog.append((vinsIDP.getDeviceCoords().getX() / 100000) + ","
+//					+ (vinsIDP.getDeviceCoords().getY() / 100000) + "\n");
+			vinsIDPLog.append(vinsIDP.getDeviceCoords() + "\n");
 		}
 
 		System.out
