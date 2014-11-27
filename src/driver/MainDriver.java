@@ -35,12 +35,7 @@ public class MainDriver {
 
 	public static void main(String[] args) {
 
-		String micohouse36mFolder = "data/" + Constants.FOLDER_MICOHOUSE_36M;
-		String straight7mFolder = "data/" + Constants.FOLDER_STRAIGHT_7M;
-		String standing30sFolder = "data/" + Constants.FOLDER_STANDING_30S;
-		String straightGox49mFolder = "data/" + Constants.FOLDER_GOX_49M;
-
-		String targetFolder = micohouse36mFolder;
+		String targetFolder = "data/" + Constants.FOLDER_MIGUEL_STRAIGHT;
 
 		/* Load IMU Dataset */
 		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
@@ -50,10 +45,10 @@ public class MainDriver {
 		ImgLogReader imgLogReader = new ImgLogReader(targetFolder + "/img");
 		List<Mat> imgDataset = imgLogReader.readImages();
 
-		runINS(imuDataset, imgDataset);
-		runVINS(imuDataset, imgDataset);
-		runBreadcrumbDummies(imuDataset, imgDataset);
-		// runIDP(imuDataset, imgDataset);
+		// runINS(imuDataset, imgDataset);
+		// runVINS(imuDataset, imgDataset);
+		// runBreadcrumbDummies(imuDataset, imgDataset);
+		runIDP(imuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 	}
 

@@ -21,6 +21,8 @@ public class Constants {
 	public static final String FOLDER_STANDING_30S = "standing30s";
 	public static final String FOLDER_MICOHOUSE_36M = "micohouse36m";
 	public static final String FOLDER_GOX_49M = "dataset_48.6m_45s_80_straight";
+	public static final String FOLDER_MIGUEL_STRAIGHT = "miguel_straight_30_19.8m";
+	public static final String FOLDER_MIGEL_RECTANGLE = "miguel_rect_136_90.3m";
 
 	// Others
 	public static final String INS_DATA_HEADER = "Acc_x,Acc_y,Acc_z,Gyro_x,Gyro_y,Gyro_z,Orient_x,Orient_y,Orient_z,Time\n";

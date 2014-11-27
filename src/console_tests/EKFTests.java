@@ -141,7 +141,7 @@ public class EKFTests extends TestCase {
 	 * Case where everything is perfect (prediction + correction). Actual
 	 * movement is sqrt(2) units 45deg, then one unit 90deg
 	 */
-	public void testPerfectCase() {
+	public void testPerfectINSPerfectVINS() {
 
 		// Log.d(TAG, "TestPerfectCase Start: " +
 		// ekf.getCurrDevicePose().toString());
