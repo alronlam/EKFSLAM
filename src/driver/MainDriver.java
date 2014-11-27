@@ -41,14 +41,17 @@ public class MainDriver {
 		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
 		List<IMUReadingsBatch> imuDataset = imuLogReader.readSensorEntries();
 
+		IMULogReader cimuLogReader = new IMULogReader(targetFolder + "/cimu");
+		List<IMUReadingsBatch> cimuDataset = imuLogReader.readSensorEntries();
+
 		/* Load Images Dataset */
 		ImgLogReader imgLogReader = new ImgLogReader(targetFolder + "/img");
 		List<Mat> imgDataset = imgLogReader.readImages();
 
-		// runINS(imuDataset, imgDataset);
-		// runVINS(imuDataset, imgDataset);
-		// runBreadcrumbDummies(imuDataset, imgDataset);
-		runIDP(imuDataset, imgDataset);
+		runINS(imuDataset, imgDataset);
+		runVINS(cimuDataset, imgDataset);
+		runBreadcrumbDummies(imuDataset, imgDataset);
+		// runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 	}
 
