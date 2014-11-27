@@ -20,9 +20,13 @@ public class VINSController {
 	private EKF ekf;
 	private MotionEstimation motionEstimator;
 
+	private List<PointDouble> coordinates;
+
 	public VINSController() {
 		this.ekf = new EKF();
 		this.motionEstimator = new IntegrateMotionEstimation();
+
+		this.coordinates = new ArrayList<PointDouble>();
 	}
 
 	public void predict(IMUReadingsBatch batch) {
@@ -33,7 +37,7 @@ public class VINSController {
 			DevicePose devicePose = motionEstimator.getHeadingAndDisplacement();
 
 			ekf.predictFromINS(devicePose.getXYDistance(), devicePose.getHeadingRadians());
-
+			coordinates.add(ekf.getDeviceCoords());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -57,6 +61,7 @@ public class VINSController {
 				ekf.updateFromReobservedFeatureCoords(i, currXY.getX(), currXY.getY());
 			}
 
+			coordinates.set(coordinates.size() - 1, ekf.getDeviceCoords());
 			/* Add new features */
 			List<PointDouble> toAdd = featureUpdate.getNewPoints();
 			for (PointDouble featpos : toAdd)
@@ -66,6 +71,16 @@ public class VINSController {
 
 	public PointDouble getDeviceCoords() {
 		return ekf.getDeviceCoords();
+	}
+
+	public double getTotalDistanceTraveled() {
+		double distance = 0;
+
+		for (int i = 1; i < coordinates.size(); i++) {
+			distance += coordinates.get(i - 1).computeDistanceTo(coordinates.get(i));
+		}
+
+		return distance;
 	}
 
 }

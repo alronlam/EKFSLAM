@@ -35,22 +35,33 @@ public class MainDriver {
 
 	public static void main(String[] args) {
 
-		String targetFolder = "data/" + Constants.FOLDER_MIGUEL_STRAIGHT;
+		String targetFolder = "data/" + Constants.FOLDER_MIGUEL_RECTANGLE;
 
 		/* Load IMU Dataset */
 		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
 		List<IMUReadingsBatch> imuDataset = imuLogReader.readSensorEntries();
 
 		IMULogReader cimuLogReader = new IMULogReader(targetFolder + "/cimu");
-		List<IMUReadingsBatch> cimuDataset = imuLogReader.readSensorEntries();
+		List<IMUReadingsBatch> cimuDataset = cimuLogReader.readSensorEntries();
 
 		/* Load Images Dataset */
 		ImgLogReader imgLogReader = new ImgLogReader(targetFolder + "/img");
 		List<Mat> imgDataset = imgLogReader.readImages();
 
-		runINS(imuDataset, imgDataset);
+		// for (int i = 0; i < imuDataset.size(); i++) {
+		// ArrayList<SensorEntry> newEntries = imuDataset.get(i).getEntries();
+		// ArrayList<SensorEntry> cimuEntries = cimuDataset.get(i).getEntries();
+		// for (int j = 0; j < cimuEntries.size(); j++) {
+		// System.out.println(newEntries.get(j).getOrient_x() -
+		// cimuEntries.get(j).getOrient_x());
+		// newEntries.get(j).setOrient_x(cimuEntries.get(j).getOrient_x());
+		// }
+		// }
+
+		//
+		// runINS(imuDataset, imgDataset);
 		runVINS(cimuDataset, imgDataset);
-		runBreadcrumbDummies(imuDataset, imgDataset);
+		// runBreadcrumbDummies(imuDataset, imgDataset);
 		// runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 	}
@@ -188,7 +199,7 @@ public class MainDriver {
 		}
 
 		System.out.println("Total steps detected " + breadcrumb.totalStepsDetected);
-		System.out.println("Total distance traveled " + breadcrumb.totalDistanceTraveled);
+		System.out.println("Total distance traveled " + breadcrumb.getTotalDistanceTraveled());
 		System.out.println("Total Displacement = "
 				+ breadcrumb.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)));
 
@@ -226,6 +237,7 @@ public class MainDriver {
 			/* Update the logs */
 			vinsLog.append(vins.getDeviceCoords() + "\n");
 		}
+		System.out.println("Total distance traveled " + vins.getTotalDistanceTraveled());
 		System.out.println("Total Displacement = " + vins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)));
 
 		/* Log - Write to File */

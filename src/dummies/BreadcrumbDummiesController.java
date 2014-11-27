@@ -1,5 +1,6 @@
 package dummies;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -20,11 +21,13 @@ public class BreadcrumbDummiesController {
 	private int featureUpdateNullCount = 0;
 	private int updateCount = 0;
 	public int totalStepsDetected;
-	public double totalDistanceTraveled = 0;
+
+	private List<PointDouble> coordinates;
 
 	public BreadcrumbDummiesController() {
 		this.ekf = new EKF();
 		this.ins = new StepBasedINSController();
+		this.coordinates = new ArrayList<PointDouble>();
 	}
 
 	public PointDouble getDeviceCoords() {
@@ -34,8 +37,8 @@ public class BreadcrumbDummiesController {
 	public void predict(IMUReadingsBatch imuBatch) {
 		BatchProcessingResults result = this.ins.processSensorEntryBatch(imuBatch.getEntries());
 		totalStepsDetected += result.getDetectedSteps();
-		totalDistanceTraveled += result.getStrideLength();
 		ekf.predictFromINS(result.getStrideLength(), Math.toRadians(result.getHeadingAngle()));
+		coordinates.add(ekf.getDeviceCoords());
 	}
 
 	public void update(FeatureUpdate featureUpdate) {
@@ -76,6 +79,8 @@ public class BreadcrumbDummiesController {
 				ekf.updateFromReobservedFeatureCoords(i, currXY.getX(), currXY.getY());
 			}
 
+			coordinates.set(coordinates.size() - 1, ekf.getDeviceCoords());
+
 			/* Add new features */
 			for (PointDouble featpos : toAdd)
 				ekf.addFeature(featpos.getX(), featpos.getY());
@@ -84,5 +89,15 @@ public class BreadcrumbDummiesController {
 			if (featureUpdateNullCount == 3)
 				ekf.deleteAllFeatures();
 		}
+	}
+
+	public double getTotalDistanceTraveled() {
+		double distance = 0;
+
+		for (int i = 1; i < coordinates.size(); i++) {
+			distance += coordinates.get(i - 1).computeDistanceTo(coordinates.get(i));
+		}
+
+		return distance;
 	}
 }
