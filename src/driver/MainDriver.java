@@ -48,17 +48,10 @@ public class MainDriver {
 		ImgLogReader imgLogReader = new ImgLogReader(targetFolder + "/img");
 		List<Mat> imgDataset = imgLogReader.readImages();
 
-<<<<<<< HEAD
 		runINS(imuDataset, imgDataset);
 		runVINS(cimuDataset, imgDataset);
 		runBreadcrumbDummies(imuDataset, imgDataset);
 		// runIDP(cimuDataset, imgDataset);
-=======
-		// runINS(imuDataset, imgDataset);
-		// runVINS(imuDataset, imgDataset);
-		// runBreadcrumbDummies(imuDataset, imgDataset);
-		runIDP(imuDataset, imgDataset);
->>>>>>> 613f4d3cd9b56ec26e04f822f1b0c25ef45e8a2c
 		// runAltogether(imuDataset, imgDataset);
 	}
 
