@@ -121,17 +121,32 @@ public class EKF {
 	public void updateFromReobservedFeatureThroughImageCoords(int featureIndex, double observedU, double observedV) {
 
 		IDPUtility.predict_camera_measurements(X, cam, features_info, featureIndex);
+		
+		System.out.println(X.getCurrentQuaternion());
+		Quaternion q = X.getCurrentQuaternion();
+		
+		if(q.getR() == 0 && q.getX() == 0 && q.getY() == 0 && q.getZ() == 0)
+			return;
+		
 		IDPUtility.calculate_derivatives(X, cam, features_info, featureIndex);
 		
 		Matrix h_cam = Helper.inverseDepthToCartesian(X.getFeature(featureIndex));
 
 		double predictedU = cam.Cx - cam.f * h_cam.get(0, 0) / cam.dx / h_cam.get(2, 0);
 		double predictedV = cam.Cy - cam.f * h_cam.get(1, 0) / cam.dy / h_cam.get(2, 0);
-
+		//System.out.println(predictedU + " " + predictedV);
+		
+		/*
+		if (predictedU < 0 || predictedU > 240 || predictedV < 0 || predictedV > 320) {
+			//System.out.println("far predict");
+			return;
+		}
+		*/
+		
 		Matrix hMatrix = features_info.get(featureIndex).H;
 		if (hMatrix == null)
 			return;
-
+		
 		Matrix pMatrix = P.toMatrix();
 		FeatureInfo f = features_info.get(featureIndex);
 		
@@ -151,8 +166,6 @@ public class EKF {
 			differenceVector[0][0] = observedU - predictedU;
 			differenceVector[1][0] = observedV - predictedV;
 			Matrix zMinusHMatrix = new Matrix(differenceVector);
-			System.out.println(observedU + " " + observedV);
-			System.out.println(predictedU + " " + predictedV);
 
 			// Adjust state vector based on prediction
 			Matrix xMatrix = X.toMatrix();
@@ -160,13 +173,15 @@ public class EKF {
 
 			// re-populate the state vector based on the result
 			X.setXBasedOnMatrix(xMatrix);
+			Quaternion norm = QuaternionHelper.normalize(X.getCurrentQuaternion());
+			X.setQuaternion(norm);
 
 			// Update covariance
 			pMatrix = pMatrix.minus(kalmanGainMatrix.times(innovationMatrix).times(kalmanGainMatrix.transpose()));
 			pMatrix = pMatrix.times(0.5).plus(pMatrix.transpose().times(0.5));
 			
-			Matrix jNorm = QuaternionHelper.normJac(X.getCurrentQuaternion()).transpose();
-			
+			Matrix jNorm = QuaternionHelper.normJac(X.getCurrentQuaternion());
+
 			int pSize = pMatrix.getColumnDimension() - 1;
 			
 			pMatrix.setMatrix(3, 6, 0, 2, jNorm.times(pMatrix.getMatrix(3, 6, 0, 2)));
@@ -175,9 +190,6 @@ public class EKF {
 			pMatrix.setMatrix(3, 6, 7, pSize, jNorm.times(pMatrix.getMatrix(3, 6, 7, pSize)));
 			pMatrix.setMatrix(7, pSize, 3, 6, pMatrix.getMatrix(7, pSize, 3, 6).times(jNorm.transpose()));
 			P.set(pMatrix);
-			
-			Quaternion norm = QuaternionHelper.normalize(X.getCurrentQuaternion());
-			X.setQuaternion(norm);
 		} catch (Exception e) {
 			System.out.println(X);
 			//e.printStackTrace();
@@ -200,7 +212,7 @@ public class EKF {
 	// Method for adding a feature to the sate vector and covariance matrix.
 	public void addFeature(int ud, int vd, Camera camera) {
 		IDPFeature newFeature = FeatureInitializationHelper.createFeature(X.getCurrentXYZPosition(),
-				X.getCurrentQuaternion(), ud, vd, INITIAL_RHO);
+				X.getCurrentQuaternion(), ud, vd, INITIAL_RHO, camera);
 
 		double[][] uv = { { ud, vd } };
 		FeatureInfo f = new FeatureInfo(new Matrix(uv), X.toMatrix(), newFeature);

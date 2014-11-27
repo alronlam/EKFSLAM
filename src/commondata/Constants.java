@@ -20,6 +20,7 @@ public class Constants {
 	public static final String FOLDER_STRAIGHT_7M = "straight7m";
 	public static final String FOLDER_STANDING_30S = "standing30s";
 	public static final String FOLDER_MICOHOUSE_36M = "micohouse36m";
+	public static final String FOLDER_TWOTIMESTEP = "twotimestep";
 	public static final String FOLDER_GOX_49M = "dataset_48.6m_45s_80_straight";
 
 	// Others

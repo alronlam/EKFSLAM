@@ -72,7 +72,7 @@ public class StateVector {
 		sn.append("[" + X.get(0));
 		
 		for (int i = 1; i < X.size(); i++) {
-			sn.append(", " + i + " - ");
+			sn.append(", ");
 			
 			if (Double.isNaN(X.get(i)))
 				sn.append("x");
