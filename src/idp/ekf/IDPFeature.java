@@ -76,5 +76,9 @@ public class IDPFeature {
 	public void setP(double p) {
 		this.p = p;
 	}
+	
+	public String toString() {
+		return "(" + x + ", " + y + ", " + z + ", " + azimuth + ", " + elevation + ", " + p + ")";
+	}
 
 }

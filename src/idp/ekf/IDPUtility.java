@@ -20,15 +20,12 @@ public class IDPUtility {
 		// Pinhole Model (whatever that means)
 		// t_wc = x_k_k(1:3);
 		Matrix t_wc = x.getMatrix(0, 2, 0, 0);
-
+		
 		// r_wc = q2r(x_k_k(4:7));
-		//Quaternion q = new Quaternion(x.get(4, 0), x.get(5, 0), x.get(6, 0), x.get(3, 0));
 		Quaternion q = x_k_k.getCurrentQuaternion();
 		Matrix r_wc = Helper.quaternionToRotationMatrix(q);
 		
-		// features = x_k_k(14:end);
 		IDPFeature f = x_k_k.getFeature(featureIndex);
-
 		// implying i care about cartesian coords
 		Matrix hi = hi_inverse_depth(f, t_wc, r_wc, cam, features_info);
 		if (hi != null) {
@@ -53,11 +50,13 @@ public class IDPUtility {
 		Matrix hrl = r_cw.times(yi.minus(t_wc).times(rho).plus(mi));
 		
 		// is in front of camera? [sic]
+		/*
 		double a13 = Math.atan2(hrl.get(0, 0), hrl.get(2, 0)) * 180 / Math.PI;
 		double a23 = Math.atan2(hrl.get(1, 0), hrl.get(2, 0)) * 180 / Math.PI;
 
 		if (a13 < -60 || a13 > 60 || a23 < -60 || a23 < 60)
 			return null;
+		*/
 
 		// image coordinates
 		Matrix uv_u = hu(hrl, cam);
@@ -111,6 +110,23 @@ public class IDPUtility {
 
 		return new Matrix(out);
 	}
+	
+	public static Matrix undistort_fm(double u, double v, Camera cam) {
+		double xd = (u - cam.Cx) * cam.dx;
+		double yd = (v - cam.Cy) * cam.dy;
+		
+		double rd = xd * xd + yd * yd;
+		
+		double D = 1 + cam.k1 * rd + cam.k2 * rd * rd;
+		
+		double xu = xd * D;
+		double yu = yd * D;
+		
+		double[][] out = {	{xu / cam.dx + cam.Cx},
+							{yu / cam.dy + cam.Cy}};
+		
+		return new Matrix(out);
+	}
 
 	public static void calculate_derivatives(StateVector x_k_km1, Camera cam, ArrayList<FeatureInfo> features_info,
 			int featureIndex) {
@@ -119,7 +135,7 @@ public class IDPUtility {
 		//Matrix x_features = x.getMatrix(13, x.getRowDimension() - 1, 0, 0);
 
 		if (features_info.get(featureIndex).h != null) {
-			Matrix y = x.getMatrix(13, 13+6, 0, 0);
+			Matrix y = x.getMatrix(13, 13+5, 0, 0);
 			features_info.get(featureIndex).H = calculate_Hi_inverse_depth(x_v, y, cam, featureIndex, features_info);
 		}
 	}

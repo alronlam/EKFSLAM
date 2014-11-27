@@ -153,9 +153,9 @@ public class MainDriver {
 			// System.out.println("Finished updating.");
 
 			/* Update the logs per controller */
-			vinsIDPLog.append((vinsIDP.getDeviceCoords().getX() / 100000) + ","
-					+ (vinsIDP.getDeviceCoords().getY() / 100000) + "\n");
-			// vinsIDPLog.append(vinsIDP.getDeviceCoords() + "\n");
+//			vinsIDPLog.append((vinsIDP.getDeviceCoords().getX() / 100000) + ","
+//					+ (vinsIDP.getDeviceCoords().getY() / 100000) + "\n");
+			vinsIDPLog.append(vinsIDP.getDeviceCoords() + "\n");
 		}
 
 		System.out
