@@ -87,4 +87,31 @@ public class QuaternionHelper {
 		
 		return new Matrix(out);
 	}
+	
+	public static Matrix normJac(Quaternion q) {
+		double r = q.getR();
+		double x = q.getX();
+		double y = q.getY();
+		double z = q.getZ();
+		
+		double c = Math.pow(r*r + x*x + y*y + z*z, -1.5);
+		
+		double[][] mat = {	{x*x+y*y+z*z, -r*x, -r*y, -r*z},
+							{-x*r, r*r+y*y+z*z, -x*y, -x*z},
+							{-y*r, -y*x, r*r+x*x+z*z, -y*z},
+							{-z*r, -z*x, -z*y, r*r+x*x+y*y}};
+		
+		return new Matrix(mat).times(c);
+	}
+	
+	public static Quaternion normalize(Quaternion q) {
+		double r = q.getR();
+		double x = q.getX();
+		double y = q.getY();
+		double z = q.getZ();
+		
+		double d = Math.pow(r*r+x*x+y*y+z*z, 0.5);
+		
+		return new Quaternion(x/d,y/d,z/d,r/d);
+	}
 }
