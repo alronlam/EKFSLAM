@@ -20,20 +20,35 @@ public class Camera {
 		// we have to replace these with our own camera values
 		// what these values are, though, is beyond me
 		
-		d = dx = dy = 0.0112;
-		nRows = 320;
-		nCols = 240;
-		Cx = 1.7945 / d;
-		Cy = 1.4433 / d;
-		k1 = 6.333e-2;
-		k2 = 1.390e-2;
-		f = 2.1735;
-		
 		K = new double[3][3];
 		
-		K[0][0] = K[1][1] = f/d;
-		K[0][2] = Cx;
-		K[1][2] = Cy;
+		K[0][0] = K[1][1] = 287.484405747163;
+		K[0][2] = Cx = 159.5;
+		K[1][2] = Cy = 119.5;
 		K[2][2] = 1;
+		
+		nRows = 320;
+		nCols = 240;
+		f = 4.2;
+		d = dx = dy = f/K[0][0];
+		// TODO: change this using boof app
+		k1 = 6.333e-2;
+		k2 = 1.390e-2;
+		
+//		d = dx = dy = 0.0112;
+//		nRows = 320;
+//		nCols = 240;
+//		Cx = 1.7945 / d;
+//		Cy = 1.4433 / d;
+//		k1 = 6.333e-2;
+//		k2 = 1.390e-2;
+//		f = 2.1735;
+//		
+//		K = new double[3][3];
+//		
+//		K[0][0] = K[1][1] = f/d;
+//		K[0][2] = Cx;
+//		K[1][2] = Cy;
+//		K[2][2] = 1;
 	}
 }

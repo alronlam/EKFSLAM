@@ -82,12 +82,12 @@ public class EKF {
 		// time step
 		Xm1 = X.clone();
 		Pm1 = P.clone();
-
+		
 		PointTriple xyzPositionOld = X.getCurrentXYZPosition();
 		Quaternion quaternionOld = X.getCurrentQuaternion();
 		PointTriple vOld = X.getCurrentV();
 		PointTriple omegaOld = X.getCurrentOmega();
-
+		
 		// Not sure if correct, but this is what's written in MonoSLAM code
 		PointTriple xyzPositionNew = xyzPositionOld.plus(vOld.times(deltaTime));
 		Quaternion qwt = QuaternionHelper.calculateQWT(omegaOld, deltaTime);
@@ -122,7 +122,7 @@ public class EKF {
 
 		IDPUtility.predict_camera_measurements(X, cam, features_info, featureIndex);
 		IDPUtility.calculate_derivatives(X, cam, features_info, featureIndex);
-
+		
 		Matrix h_cam = Helper.inverseDepthToCartesian(X.getFeature(featureIndex));
 
 		double predictedU = cam.Cx - cam.f * h_cam.get(0, 0) / cam.dx / h_cam.get(2, 0);
@@ -133,11 +133,17 @@ public class EKF {
 			return;
 
 		Matrix pMatrix = P.toMatrix();
+		FeatureInfo f = features_info.get(featureIndex);
+		
+		/*
 		Matrix hphMatrix = hMatrix.times(pMatrix).times(hMatrix.transpose());
-
+		
 		Matrix vrvMatrix = this.createVRVMatrix();
 		Matrix innovationMatrix = hphMatrix.plus(vrvMatrix);
-
+		*/
+		
+		f.S = hMatrix.times(pMatrix).times(hMatrix.transpose()).plus(f.R);
+		Matrix innovationMatrix = f.S;
 		try {
 			Matrix kalmanGainMatrix = pMatrix.times(hMatrix.transpose()).times(innovationMatrix.inverse());
 
@@ -145,8 +151,10 @@ public class EKF {
 			differenceVector[0][0] = observedU - predictedU;
 			differenceVector[1][0] = observedV - predictedV;
 			Matrix zMinusHMatrix = new Matrix(differenceVector);
+			System.out.println(observedU + " " + observedV);
+			System.out.println(predictedU + " " + predictedV);
 
-			/* Adjust state vector based on prediction */
+			// Adjust state vector based on prediction
 			Matrix xMatrix = X.toMatrix();
 			xMatrix = xMatrix.plus(kalmanGainMatrix.times(zMinusHMatrix));
 
@@ -155,10 +163,26 @@ public class EKF {
 
 			// Update covariance
 			pMatrix = pMatrix.minus(kalmanGainMatrix.times(innovationMatrix).times(kalmanGainMatrix.transpose()));
+			pMatrix = pMatrix.times(0.5).plus(pMatrix.transpose().times(0.5));
+			
+			Matrix jNorm = QuaternionHelper.normJac(X.getCurrentQuaternion()).transpose();
+			
+			int pSize = pMatrix.getColumnDimension() - 1;
+			
+			pMatrix.setMatrix(3, 6, 0, 2, jNorm.times(pMatrix.getMatrix(3, 6, 0, 2)));
+			pMatrix.setMatrix(0, 2, 3, 6, pMatrix.getMatrix(0, 2, 3, 6).times(jNorm.transpose()));
+			pMatrix.setMatrix(3, 6, 3, 6, jNorm.times(pMatrix.getMatrix(3, 6, 3, 6)).times(jNorm.transpose()));
+			pMatrix.setMatrix(3, 6, 7, pSize, jNorm.times(pMatrix.getMatrix(3, 6, 7, pSize)));
+			pMatrix.setMatrix(7, pSize, 3, 6, pMatrix.getMatrix(7, pSize, 3, 6).times(jNorm.transpose()));
 			P.set(pMatrix);
+			
+			Quaternion norm = QuaternionHelper.normalize(X.getCurrentQuaternion());
+			X.setQuaternion(norm);
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println(X);
+			//e.printStackTrace();
 		}
+		
 		// Log.d("EKFTests", "State Vector: " + X.toString());
 	}
 
@@ -180,6 +204,7 @@ public class EKF {
 
 		double[][] uv = { { ud, vd } };
 		FeatureInfo f = new FeatureInfo(new Matrix(uv), X.toMatrix(), newFeature);
+		
 		features_info.add(f);
 
 		X.addFeature(newFeature);
@@ -210,7 +235,9 @@ public class EKF {
 		A_Matrix = Helper.setSubMatrixValues(A_Matrix, _3x3Identity, 10, 10);
 
 		/* Initialize 3x3 deltaTime */
-		Matrix deltaTimeMatrix = Helper.createSameValuedMatrix(deltaTime, 3, 3);
+
+		// Matrix deltaTimeMatrix = Helper.createSameValuedMatrix(deltaTime, 3, 3); this is wrong
+		Matrix deltaTimeMatrix = Helper.createIdentityMatrix(3).times(deltaTime);
 		A_Matrix = Helper.setSubMatrixValues(A_Matrix, deltaTimeMatrix, 0, 7);
 
 		/* Initialize 4x4 dqnew_by_domega */

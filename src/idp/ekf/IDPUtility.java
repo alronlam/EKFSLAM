@@ -1,6 +1,7 @@
 package idp.ekf;
 
 import java.util.ArrayList;
+import java.util.Scanner;
 
 import Jama.Matrix;
 
@@ -21,7 +22,8 @@ public class IDPUtility {
 		Matrix t_wc = x.getMatrix(0, 2, 0, 0);
 
 		// r_wc = q2r(x_k_k(4:7));
-		Quaternion q = new Quaternion(x.get(3, 0), x.get(4, 0), x.get(5, 0), x.get(6, 0));
+		//Quaternion q = new Quaternion(x.get(4, 0), x.get(5, 0), x.get(6, 0), x.get(3, 0));
+		Quaternion q = x_k_k.getCurrentQuaternion();
 		Matrix r_wc = Helper.quaternionToRotationMatrix(q);
 		
 		// features = x_k_k(14:end);
@@ -49,7 +51,7 @@ public class IDPUtility {
 
 		// hrl = r_cw*( (yi - t_wc)*rho + mi);
 		Matrix hrl = r_cw.times(yi.minus(t_wc).times(rho).plus(mi));
-
+		
 		// is in front of camera? [sic]
 		double a13 = Math.atan2(hrl.get(0, 0), hrl.get(2, 0)) * 180 / Math.PI;
 		double a23 = Math.atan2(hrl.get(1, 0), hrl.get(2, 0)) * 180 / Math.PI;
@@ -88,7 +90,6 @@ public class IDPUtility {
 	private static Matrix distort_fm(Matrix uv, Camera cam) {
 		double xu = (uv.get(0, 0) - cam.Cx) * cam.dx;
 		double yu = (uv.get(1, 0) - cam.Cy) * cam.dy;
-
 		// ru=sqrt(xu.*xu+yu.*yu);
 		// rd=ru./(1+k1*ru.^2+k2*ru.^4);
 		double ru = xu * xu + yu * yu;
