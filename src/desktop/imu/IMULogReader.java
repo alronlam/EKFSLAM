@@ -28,9 +28,6 @@ public class IMULogReader {
 			for (File csvFile : csvFiles) {
 				scanner = new Scanner(csvFile);
 
-				// Ignore the header file
-				scanner.nextLine();
-
 				IMUReadingsBatch currBatch = new IMUReadingsBatch();
 				while (scanner.hasNext()) {
 					String currLine = scanner.nextLine();
