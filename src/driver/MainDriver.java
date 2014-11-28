@@ -9,6 +9,7 @@ import org.opencv.core.Mat;
 
 import stepbasedins.INSController;
 import util.FileLog;
+import vins.DoubleIntegrationController;
 import vins.VINSController;
 
 import commondata.Constants;
@@ -32,14 +33,15 @@ public class MainDriver {
 	private static String insLogFileName = "ins.csv";
 	private static String vinsLogFileName = "vins.csv";
 	private static String idpLogFileName = "vinsidp.csv";
+	private static String doubleIntegrationLogFileName = "doubleintegration.csv";
 
 	public static void main(String[] args) {
 
-		String targetFolder = "data/" + Constants.FOLDER_MIGUEL_RECTANGLE;
+		String targetFolder = "data/" + Constants.FOLDER_MIGUEL_RECTANGLE_ALRON;
 
 		/* Load IMU Dataset */
-		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
-		List<IMUReadingsBatch> imuDataset = imuLogReader.readSensorEntries();
+		// IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
+		// List<IMUReadingsBatch> imuDataset = imuLogReader.readSensorEntries();
 
 		IMULogReader cimuLogReader = new IMULogReader(targetFolder + "/cimu");
 		List<IMUReadingsBatch> cimuDataset = cimuLogReader.readSensorEntries();
@@ -58,12 +60,44 @@ public class MainDriver {
 		// }
 		// }
 
-		//
-		runINS(imuDataset, imgDataset);
-		runVINS(cimuDataset, imgDataset);
-		runBreadcrumbDummies(imuDataset, imgDataset);
+		runDoubleIntegration(cimuDataset, imgDataset);
+		// runINS(imuDataset, imgDataset);
+		// runVINS(cimuDataset, imgDataset);
+		// runBreadcrumbDummies(imuDataset, imgDataset);
 		// runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
+	}
+
+	private static void runDoubleIntegration(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset) {
+		DoubleIntegrationController doubleIntegration = new DoubleIntegrationController();
+
+		/* Initialize the logs for all three techniques */
+		FileLog doubleIntegrationLog = new FileLog(logFolder + "/" + doubleIntegrationLogFileName);
+		doubleIntegrationLog.append(doubleIntegration.getDeviceCoords() + "\n");
+
+		/* Their sizes may not match due to logging problems */
+		int datasetSize = Math.min(imuDataset.size(), imgDataset.size());
+		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
+
+		for (int i = 0; i < datasetSize; i++) {
+
+			System.out.println("\n\nTime Step " + (i + 1));
+
+			/* IMU Predict */
+			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
+			doubleIntegration.predict(currIMUBatch);
+			// System.out.println("Finished predicting.");
+
+			doubleIntegrationLog.append(doubleIntegration.getDeviceCoords() + "\n");
+		}
+
+		System.out.println("Total distance traveled " + doubleIntegration.getTotalDistanceTraveled());
+		System.out.println("Total Displacement = "
+				+ doubleIntegration.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)));
+
+		/* Log - Write to File */
+		doubleIntegrationLog.writeToFile();
+
 	}
 
 	private static void runAltogether(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset) {
@@ -153,8 +187,9 @@ public class MainDriver {
 			// System.out.println("Finished updating.");
 
 			/* Update the logs per controller */
-//			vinsIDPLog.append((vinsIDP.getDeviceCoords().getX() / 100000) + ","
-//					+ (vinsIDP.getDeviceCoords().getY() / 100000) + "\n");
+			// vinsIDPLog.append((vinsIDP.getDeviceCoords().getX() / 100000) +
+			// ","
+			// + (vinsIDP.getDeviceCoords().getY() / 100000) + "\n");
 			vinsIDPLog.append(vinsIDP.getDeviceCoords() + "\n");
 		}
 
