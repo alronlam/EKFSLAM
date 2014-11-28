@@ -8,6 +8,12 @@ load ins.csv;
 ins_X = ins(:,1);   
 ins_Y = ins(:,2);   
 
+% INS With Cimu Heading
+load insCimuHeading.csv;    
+insCimuHeading_X = insCimuHeading(:,1);   
+insCimuHeading_Y = insCimuHeading(:,2);   
+
+
 % VINS
 load vins.csv;    
 vins_X = vins(:,1);   
@@ -34,7 +40,10 @@ plot(doubleintegration_X,doubleintegration_Y, '-xm', 'DisplayName', 'Double Inte
 plot(vins_X,vins_Y, ':xr', 'DisplayName', 'V-INS');
 
 %INS
-%plot(ins_X,ins_Y, ':xb', 'DisplayName', 'INS');
+plot(ins_X,ins_Y, ':xb', 'DisplayName', 'INS');
+
+%INS with Cimu Heading
+plot(insCimuHeading_X,insCimuHeading_Y, ':xc', 'DisplayName', 'INS w/ Cimu Heading');
 
 %Breadcrumb
 %plot(breadcrumb_X,breadcrumb_Y, ':og', 'DisplayName', 'Breadcrumb');

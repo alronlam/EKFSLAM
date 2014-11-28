@@ -204,4 +204,21 @@ public class SensorEntry {
 		return Math.sqrt(Math.pow(gyro_x, 2) + Math.pow(gyro_y, 2) + Math.pow(gyro_z, 2));
 	}
 
+	public SensorEntry getCopy() {
+		SensorEntry copy = new SensorEntry();
+		copy.setAcc_norm(acc_norm);
+		copy.setAcc_x(acc_x);
+		copy.setAcc_y(acc_y);
+		copy.setAcc_z(acc_z);
+		copy.setGyro_x(gyro_x);
+		copy.setGyro_y(gyro_y);
+		copy.setGyro_z(gyro_z);
+		copy.setOrient_x(orient_x);
+		copy.setOrient_y(orient_y);
+		copy.setOrient_z(orient_z);
+		copy.setTimeRecorded(timeRecorded);
+		copy.buildSensorList();
+		return copy;
+	}
+
 }

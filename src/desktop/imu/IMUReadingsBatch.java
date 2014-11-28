@@ -24,4 +24,17 @@ public class IMUReadingsBatch {
 	public ArrayList<SensorEntry> getEntries() {
 		return (ArrayList<SensorEntry>) entries.clone();
 	}
+
+	public IMUReadingsBatch getCopy() {
+		IMUReadingsBatch copy = new IMUReadingsBatch();
+
+		ArrayList<SensorEntry> entriesCopy = new ArrayList<SensorEntry>();
+		for (SensorEntry se : this.entries) {
+			entriesCopy.add(se.getCopy());
+		}
+
+		copy.setEntries(entriesCopy);
+
+		return copy;
+	}
 }

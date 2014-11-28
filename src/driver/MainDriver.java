@@ -33,13 +33,14 @@ public class MainDriver {
 	private static String logFolder = "results";
 	private static String breadcrumbLogFileName = "breadcrumb.csv";
 	private static String insLogFileName = "ins.csv";
+	private static String insCimuHeadingLogFileName = "insCimuHeading.csv";
 	private static String vinsLogFileName = "vins.csv";
 	private static String idpLogFileName = "vinsidp.csv";
 	private static String doubleIntegrationLogFileName = "doubleintegration.csv";
 
 	public static void main(String[] args) {
 
-		String targetFolder = "data/" + Constants.FOLDER_MIGUEL_RECTANGLE_ALRON;
+		String targetFolder = "data/" + Constants.FOLDER_YUCH_LOBBY_RECTANGLE;
 
 		/* Load IMU Dataset */
 		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
@@ -52,22 +53,39 @@ public class MainDriver {
 		ImgLogReader imgLogReader = new ImgLogReader(targetFolder + "/img");
 		List<Mat> imgDataset = imgLogReader.readImages();
 
-		for (int i = 0; i < imuDataset.size(); i++) {
-			ArrayList<SensorEntry> newEntries = imuDataset.get(i).getEntries();
-			ArrayList<SensorEntry> cimuEntries = cimuDataset.get(i).getEntries();
-			for (int j = 0; j < cimuEntries.size(); j++) {
-				// System.out.println(newEntries.get(j).getOrient_x() -
-				// cimuEntries.get(j).getOrient_x());
-				newEntries.get(j).setOrient_x(cimuEntries.get(j).getOrient_x());
-			}
-		}
+		/* Change IMU Dataset with Camera Heading */
+		List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
 
-		runDoubleIntegration(cimuDataset, imgDataset);
-		// runINS(imuDataset, imgDataset);
+		// runDoubleIntegration(cimuDataset, imgDataset);
+		runINS(imuDataset, imgDataset, insLogFileName);
+		runINS(imuDatasetWithCimuHeading, imgDataset, insCimuHeadingLogFileName);
 		// runVINS(cimuDataset, imgDataset);
 		// runBreadcrumbDummies(imuDataset, imgDataset);
 		// runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
+	}
+
+	private static List<IMUReadingsBatch> changeHeading(List<IMUReadingsBatch> originalIMUDataset,
+			List<IMUReadingsBatch> cimuDataset) {
+
+		List<IMUReadingsBatch> newIMUDataset = new ArrayList<IMUReadingsBatch>();
+
+		for (int i = 0; i < originalIMUDataset.size(); i++) {
+
+			IMUReadingsBatch imuBatchCopy = originalIMUDataset.get(i).getCopy();
+
+			ArrayList<SensorEntry> newEntries = imuBatchCopy.getEntries();
+			ArrayList<SensorEntry> cimuEntries = cimuDataset.get(i).getEntries();
+
+			for (int j = 0; j < cimuEntries.size(); j++) {
+				newEntries.get(j).setOrient_x(cimuEntries.get(j).getOrient_x());
+			}
+
+			newIMUDataset.add(imuBatchCopy);
+		}
+
+		return newIMUDataset;
+
 	}
 
 	private static void runDoubleIntegration(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset) {
@@ -281,12 +299,12 @@ public class MainDriver {
 		vinsLog.writeToFile();
 	}
 
-	private static void runINS(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset) {
+	private static void runINS(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String logFileName) {
 		/* Initialize the controller */
 		INSController ins = new INSController();
 
 		/* Initialize the logs */
-		FileLog insLog = new FileLog(logFolder + "/" + insLogFileName);
+		FileLog insLog = new FileLog(logFolder + "/" + logFileName);
 		insLog.append(ins.getDeviceCoords() + "\n");
 
 		/* Their sizes may not match due to logging problems */
