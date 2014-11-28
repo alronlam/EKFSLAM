@@ -32,15 +32,18 @@ public class MainDriver {
 
 	private static String logFolder = "results";
 	private static String breadcrumbLogFileName = "breadcrumb.csv";
+	private static String breadcrumbWithCimuHeadingLogFileName = "breadcrumbCimuHeading.csv";
 	private static String insLogFileName = "ins.csv";
 	private static String insCimuHeadingLogFileName = "insCimuHeading.csv";
 	private static String vinsLogFileName = "vins.csv";
 	private static String idpLogFileName = "vinsidp.csv";
 	private static String doubleIntegrationLogFileName = "doubleintegration.csv";
 
+	private static StringBuilder finalResultsStringBuilder = new StringBuilder();
+
 	public static void main(String[] args) {
 
-		String targetFolder = "data/" + Constants.FOLDER_YUCH_LOBBY_RECTANGLE;
+		String targetFolder = "data/" + Constants.FOLDER_LS_STRAIGHT;
 
 		/* Load IMU Dataset */
 		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
@@ -56,13 +59,16 @@ public class MainDriver {
 		/* Change IMU Dataset with Camera Heading */
 		List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
 
-		// runDoubleIntegration(cimuDataset, imgDataset);
+		runDoubleIntegration(cimuDataset, imgDataset);
+		runVINS(cimuDataset, imgDataset);
 		runINS(imuDataset, imgDataset, insLogFileName);
 		runINS(imuDatasetWithCimuHeading, imgDataset, insCimuHeadingLogFileName);
-		// runVINS(cimuDataset, imgDataset);
-		// runBreadcrumbDummies(imuDataset, imgDataset);
+		runBreadcrumbDummies(imuDataset, imgDataset, breadcrumbLogFileName);
+		runBreadcrumbDummies(imuDatasetWithCimuHeading, imgDataset, breadcrumbWithCimuHeadingLogFileName);
 		// runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
+
+		System.out.println(finalResultsStringBuilder.toString());
 	}
 
 	private static List<IMUReadingsBatch> changeHeading(List<IMUReadingsBatch> originalIMUDataset,
@@ -111,9 +117,10 @@ public class MainDriver {
 			doubleIntegrationLog.append(doubleIntegration.getDeviceCoords() + "\n");
 		}
 
-		System.out.println("Total distance traveled " + doubleIntegration.getTotalDistanceTraveled());
-		System.out.println("Total Displacement = "
-				+ doubleIntegration.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)));
+		finalResultsStringBuilder.append("Total distance traveled " + doubleIntegration.getTotalDistanceTraveled()
+				+ "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = "
+				+ doubleIntegration.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		/* Log - Write to File */
 		doubleIntegrationLog.writeToFile();
@@ -213,20 +220,20 @@ public class MainDriver {
 			vinsIDPLog.append(vinsIDP.getDeviceCoords() + "\n");
 		}
 
-		System.out
-				.println("Total Displacement = " + vinsIDP.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)));
+		finalResultsStringBuilder.append("Total Displacement = "
+				+ vinsIDP.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		/* Log - Write to File */
 		vinsIDPLog.writeToFile();
 	}
 
-	private static void runBreadcrumbDummies(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset) {
+	private static void runBreadcrumbDummies(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String logFileName) {
 		/* Initialize the controller and manager */
 		BreadcrumbDummiesController breadcrumb = new BreadcrumbDummiesController();
 		FeatureManager featureManager = new FeatureManager();
 
 		/* Initialize the logs */
-		FileLog breadcrumbLog = new FileLog(logFolder + "/" + breadcrumbLogFileName);
+		FileLog breadcrumbLog = new FileLog(logFolder + "/" + logFileName);
 		breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
 
 		/* Their sizes may not match due to logging problems */
@@ -253,10 +260,10 @@ public class MainDriver {
 			breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
 		}
 
-		System.out.println("Total steps detected " + breadcrumb.totalStepsDetected);
-		System.out.println("Total distance traveled " + breadcrumb.getTotalDistanceTraveled());
-		System.out.println("Total Displacement = "
-				+ breadcrumb.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)));
+		finalResultsStringBuilder.append("Total steps detected " + breadcrumb.totalStepsDetected + "\r\n");
+		finalResultsStringBuilder.append("Total distance traveled " + breadcrumb.getTotalDistanceTraveled() + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = "
+				+ breadcrumb.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		/* Log - Write to File */
 		breadcrumbLog.writeToFile();
@@ -292,8 +299,9 @@ public class MainDriver {
 			/* Update the logs */
 			vinsLog.append(vins.getDeviceCoords() + "\n");
 		}
-		System.out.println("Total distance traveled " + vins.getTotalDistanceTraveled());
-		System.out.println("Total Displacement = " + vins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)));
+		finalResultsStringBuilder.append("Total distance traveled " + vins.getTotalDistanceTraveled() + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = "
+				+ vins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		/* Log - Write to File */
 		vinsLog.writeToFile();
@@ -323,9 +331,10 @@ public class MainDriver {
 
 		}
 
-		System.out.println("Total steps detected: " + ins.totalStepsDetected);
-		System.out.println("Total distance traveled: " + ins.totalDistanceTraveled);
-		System.out.println("Total Displacement = " + ins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)));
+		finalResultsStringBuilder.append("Total steps detected: " + ins.totalStepsDetected + "\r\n");
+		finalResultsStringBuilder.append("Total distance traveled: " + ins.totalDistanceTraveled + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = "
+				+ ins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		/* Log - Write to File */
 		insLog.writeToFile();

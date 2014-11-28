@@ -1,7 +1,12 @@
-% INS + VINS Dummies
+% Breadcrumb: INS + VINS Dummies
 load breadcrumb.csv;
 breadcrumb_X = breadcrumb(:,1);
 breadcrumb_Y = breadcrumb(:,2);
+
+% Breadcrumb: INS (with Cimu heading) + VINS Dummies
+load breadcrumbCimuHeading.csv;
+breadcrumbCimuHeading_X = breadcrumbCimuHeading(:,1);
+breadcrumbCimuHeading_Y = breadcrumbCimuHeading(:,2);
 
 % INS
 load ins.csv;    
@@ -13,6 +18,10 @@ load insCimuHeading.csv;
 insCimuHeading_X = insCimuHeading(:,1);   
 insCimuHeading_Y = insCimuHeading(:,2);   
 
+% Double Integration
+load doubleintegration.csv;    
+doubleintegration_X = doubleintegration(:,1);   
+doubleintegration_Y = doubleintegration(:,2);
 
 % VINS
 load vins.csv;    
@@ -24,10 +33,6 @@ load vinsidp.csv;
 vinsidp_X = vinsidp(:,1);   
 vinsidp_Y = vinsidp(:,2);
 
-% Double Integration
-load doubleintegration.csv;    
-doubleintegration_X = doubleintegration(:,1);   
-doubleintegration_Y = doubleintegration(:,2);
 
 
 figure
@@ -46,7 +51,11 @@ plot(ins_X,ins_Y, ':xb', 'DisplayName', 'INS');
 plot(insCimuHeading_X,insCimuHeading_Y, ':xc', 'DisplayName', 'INS w/ Cimu Heading');
 
 %Breadcrumb
-%plot(breadcrumb_X,breadcrumb_Y, ':og', 'DisplayName', 'Breadcrumb');
+plot(breadcrumb_X,breadcrumb_Y, ':og', 'DisplayName', 'Breadcrumb');
+
+%Breadcrumb with Cimu Heading
+plot(breadcrumbCimuHeading_X,breadcrumbCimuHeading_Y, ':oy', 'DisplayName', 'Breadcrumb w/ Cimu Heading');
+
 
 %V-INS IDP
 %plot(vinsidp_X,vinsidp_Y, ':oc', 'DisplayName', 'IDP');
