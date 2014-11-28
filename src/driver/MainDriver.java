@@ -2,12 +2,14 @@ package driver;
 
 import idp.VINSIDPController;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 
 import stepbasedins.INSController;
+import stepbasedins.data.SensorEntry;
 import util.FileLog;
 import vins.DoubleIntegrationController;
 import vins.VINSController;
@@ -40,8 +42,8 @@ public class MainDriver {
 		String targetFolder = "data/" + Constants.FOLDER_MIGUEL_RECTANGLE_ALRON;
 
 		/* Load IMU Dataset */
-		// IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
-		// List<IMUReadingsBatch> imuDataset = imuLogReader.readSensorEntries();
+		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
+		List<IMUReadingsBatch> imuDataset = imuLogReader.readSensorEntries();
 
 		IMULogReader cimuLogReader = new IMULogReader(targetFolder + "/cimu");
 		List<IMUReadingsBatch> cimuDataset = cimuLogReader.readSensorEntries();
@@ -50,15 +52,15 @@ public class MainDriver {
 		ImgLogReader imgLogReader = new ImgLogReader(targetFolder + "/img");
 		List<Mat> imgDataset = imgLogReader.readImages();
 
-		// for (int i = 0; i < imuDataset.size(); i++) {
-		// ArrayList<SensorEntry> newEntries = imuDataset.get(i).getEntries();
-		// ArrayList<SensorEntry> cimuEntries = cimuDataset.get(i).getEntries();
-		// for (int j = 0; j < cimuEntries.size(); j++) {
-		// System.out.println(newEntries.get(j).getOrient_x() -
-		// cimuEntries.get(j).getOrient_x());
-		// newEntries.get(j).setOrient_x(cimuEntries.get(j).getOrient_x());
-		// }
-		// }
+		for (int i = 0; i < imuDataset.size(); i++) {
+			ArrayList<SensorEntry> newEntries = imuDataset.get(i).getEntries();
+			ArrayList<SensorEntry> cimuEntries = cimuDataset.get(i).getEntries();
+			for (int j = 0; j < cimuEntries.size(); j++) {
+				// System.out.println(newEntries.get(j).getOrient_x() -
+				// cimuEntries.get(j).getOrient_x());
+				newEntries.get(j).setOrient_x(cimuEntries.get(j).getOrient_x());
+			}
+		}
 
 		runDoubleIntegration(cimuDataset, imgDataset);
 		// runINS(imuDataset, imgDataset);
