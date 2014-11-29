@@ -42,6 +42,14 @@ public class FeatureManager {
 	private Mat F, E, W;
 	private Mat u, w, vt;
 	private Mat nullMatF, tempMat;
+	
+	public static int MSG_NO_ERROR = 0;
+	public static int MSG_IMAGE_CAPTURE = 1;
+	public static int MSG_OPTICAL_FLOW = 2;
+	public static int MSG_ESSENTIAL_MATRIX = 3;
+	public static int MSG_TRIANGULATION = 4;
+	
+	public static int error;
 
 	// DANGER Gets assigned in triangulatePoints(). Too lazy to return properly.
 	private double reprojErr1, reprojErr2;
@@ -96,11 +104,16 @@ public class FeatureManager {
 
 	static boolean firstImg = true;
 
-	/** For Opencv has failed us yet again**/ // TODO:
+	/** For Opencv has failed us yet again**/ //
 	private List<KeyPoint> convertMatOfPoint2fToListOfKeyPoints(MatOfPoint2f ps){
-		List<KeyPoint> kps;
+		List<KeyPoint> kps = new ArrayList<>();
 		
-		return null;
+		for(int i = 0; i < ps.rows(); ++i){
+			double pt[] = ps.get(i, 0);
+			kps.add(new KeyPoint((float)pt[0],(float)pt[1],1.0f));
+		}
+		
+		return kps;
 	}
 	
 	public FeatureUpdate getFeatureUpdate(Mat currentImage) {
@@ -114,8 +127,10 @@ public class FeatureManager {
 				framesReady = true;
 			}
 			frames++;
+			error = this.MSG_IMAGE_CAPTURE;
 			return null;
 		}
+		error = this.MSG_OPTICAL_FLOW;
 
 		Mat nearImage = new Mat();
 		images.get(0).copyTo(nearImage);
@@ -139,12 +154,11 @@ public class FeatureManager {
 
 			// TODO: Get fundamental matrix
 			List<KeyPoint> kpGoodOld = new ArrayList<KeyPoint>(), kpGoodNew = new ArrayList<KeyPoint>();
-			System.out.println(goodOld.cols());
 			
-			
-			Converters.Mat_to_vector_KeyPoint(goodOld, kpGoodOld); 
-			Converters.Mat_to_vector_KeyPoint(goodNew, kpGoodNew);
+			kpGoodOld = convertMatOfPoint2fToListOfKeyPoints(goodOld);
+			kpGoodNew = convertMatOfPoint2fToListOfKeyPoints(goodNew);
 
+			error = this.MSG_ESSENTIAL_MATRIX;
 			F = getFundamentalMat(kpGoodOld, kpGoodNew, null);
 
 			// int tries = 0;
@@ -216,6 +230,8 @@ public class FeatureManager {
 				return null;
 			}
 
+			error = this.MSG_TRIANGULATION;
+			
 			// Combination 1
 			P2.put(0, 0, Rot1.get(0, 0)[0], Rot1.get(0, 1)[0], Rot1.get(0, 2)[0], T1.get(0, 0)[0]);
 			P2.put(1, 0, Rot1.get(1, 0)[0], Rot1.get(1, 1)[0], Rot1.get(1, 2)[0], T1.get(1, 0)[0]);
@@ -330,6 +346,15 @@ public class FeatureManager {
 			pt_set2.add(imgpts2.get(matches.get(i).trainIdx));
 		}
 	}
+	
+	/** Another converter because Opencv doesn't like us**/
+//	private MatOfPoint2f convertListOfPointsToMatOfPoint2f(List<Point> lp){
+//		MatOfPoint2f mp = new MatOfPoint2f(lp.size(),1);
+//		
+//		//mp.p
+//		
+//		return null;
+//	}
 
 	private Mat getFundamentalMat(List<KeyPoint> imgpts1, List<KeyPoint> imgpts2, List<DMatch> matches) {
 		// TODO Auto-generated method stub
@@ -349,15 +374,23 @@ public class FeatureManager {
 		pts1 = KeyPointsToPoints(imgpts1_tmp);
 		pts2 = KeyPointsToPoints(imgpts2_tmp);
 		// TODO: double check types
-		MatOfPoint2f pts1Mat = (MatOfPoint2f) Converters.vector_Point2f_to_Mat(pts1);
-		MatOfPoint2f pts2Mat = (MatOfPoint2f) Converters.vector_Point2f_to_Mat(pts2);
+		System.out.println(pts1.toString());
+		System.out.println(pts1.size());
 
+//		MatOfPoint2f pts1Mat = (MatOfPoint2f) Converters.vector_Point2f_to_Mat(pts1);
+//		MatOfPoint2f pts2Mat = (MatOfPoint2f) Converters.vector_Point2f_to_Mat(pts2);
+		MatOfPoint2f pts1Mat = new MatOfPoint2f();
+		MatOfPoint2f pts2Mat = new MatOfPoint2f();
+		pts1Mat.fromList(pts1);
+		pts2Mat.fromList(pts2);
+		
 		double minVal, maxVal;
 		// TODO: there is no minmaxIdx in java opencv
 		MinMaxLocResult res = Core.minMaxLoc(pts1Mat);
 
 		F = Calib3d.findFundamentalMat(pts1Mat, pts2Mat, Calib3d.FM_RANSAC, 0.006 * res.maxVal, 0.99, status); // threshold from [Snavely07 4.1]
 
+		// TODO: Point Filtering
 		// vector<DMatch> new_matches;
 		// cout << "F keeping " << countNonZero(status) << " / " << status.size() << endl;
 		// for (unsigned int i=0; i<status.size(); i++) {
