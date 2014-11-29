@@ -38,7 +38,7 @@ public class FeatureManager {
 	// DANGER Rot1, Rot2, T1, and T2 are modified in DecomposeEtoRandT()
 	private Mat cameraMatrix, distCoeffs, Rot2, Rot1, T2, T1;
 	private Mat R1, R2, P1, P2, Q;
-	private Mat points4D1,points4D2;
+	private Mat points4D1, points4D2;
 	private Mat F, E, W;
 	private Mat u, w, vt;
 	private Mat nullMatF, tempMat;
@@ -132,131 +132,132 @@ public class FeatureManager {
 
 			// TODO: Get fundamental matrix
 			List<KeyPoint> kpGoodOld = new ArrayList<KeyPoint>(), kpGoodNew = new ArrayList<KeyPoint>();
-			                        Converters.Mat_to_vector_KeyPoint(goodOld,kpGoodOld);
-				                        Converters.Mat_to_vector_KeyPoint(goodNew,kpGoodNew);
-				                        
-				                        F = getFundamentalMat(kpGoodOld, kpGoodNew, null);
-			
-//			int tries = 0;
-//
-//			do {
-//				// MAGIC NUMBERS
-//				switch (tries) {
-//				case 0:
-//					F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 1, 0.95);
-//					break;
-//				case 1:
-//					F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 2, 0.90);
-//					break;
-//				case 2:
-//					F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 3, 0.85);
-//					break;
-//				case 3:
-//					F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_8POINT, 3, 0.85);
-//					break;
-//				// case 4:
-//				// // gives a ridiculous shit
-//				// F = Calib3d.findFundamentalMat(goodOld, goodNew,
-//				// Calib3d.FM_8POINT, 5, 0.75);
-//				// System.out.println(F.size().toString());
-//				// break;
-//				case 4:
-//					F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 20, 0.0);
-//					break;
-//
-//				default:
-//					checkpointImage = new Mat();
-//					checkpointFeatures = new MatOfPoint2f();
-//					return null;
-//				}
-//				tries++;
+			System.out.println(goodOld.cols());
+			Converters.Mat_to_vector_KeyPoint(goodOld, kpGoodOld);
+			Converters.Mat_to_vector_KeyPoint(goodNew, kpGoodNew);
 
-				                        tempMat = nullMatF.clone();
-				            			E = nullMatF.clone();
+			F = getFundamentalMat(kpGoodOld, kpGoodNew, null);
 
-				            			// GETTING THE ESSENTIAL MATRIX
-				            			Core.gemm(cameraMatrix.t(), F, 1, nullMatF, 0, tempMat);
-				            			Core.gemm(tempMat, cameraMatrix, 1, nullMatF, 0, E);
+			// int tries = 0;
+			//
+			// do {
+			// // MAGIC NUMBERS
+			// switch (tries) {
+			// case 0:
+			// F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 1, 0.95);
+			// break;
+			// case 1:
+			// F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 2, 0.90);
+			// break;
+			// case 2:
+			// F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 3, 0.85);
+			// break;
+			// case 3:
+			// F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_8POINT, 3, 0.85);
+			// break;
+			// // case 4:
+			// // // gives a ridiculous shit
+			// // F = Calib3d.findFundamentalMat(goodOld, goodNew,
+			// // Calib3d.FM_8POINT, 5, 0.75);
+			// // System.out.println(F.size().toString());
+			// // break;
+			// case 4:
+			// F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 20, 0.0);
+			// break;
+			//
+			// default:
+			// checkpointImage = new Mat();
+			// checkpointFeatures = new MatOfPoint2f();
+			// return null;
+			// }
+			// tries++;
 
-				            			if (Math.abs(Core.determinant(E)) > 1e-07) {
-				            				// TODO: cout << "det(E) != 0 : " << determinant(E) << "\n";
-				            				P2 = Mat.zeros(3, 4, CvType.CV_64F); // TODO: Double check the type
-				            				return null;
-				            			}
+			tempMat = nullMatF.clone();
+			E = nullMatF.clone();
 
-				            			if (!decomposeEtoRandT(E))
-				            				return null;
+			// GETTING THE ESSENTIAL MATRIX
+			Core.gemm(cameraMatrix.t(), F, 1, nullMatF, 0, tempMat);
+			Core.gemm(tempMat, cameraMatrix, 1, nullMatF, 0, E);
 
-				            			if (Core.determinant(R1) + 1.0 < 1e-09) {
-				            				// according to http://en.wikipedia.org/wiki/Essential_matrix#Showing_that_it_is_valid
-				            				// TODO: cout << "det(R) == -1 ["<<determinant(R1)<<"]: flip E's sign" << endl;
+			if (Math.abs(Core.determinant(E)) > 1e-07) {
+				// TODO: cout << "det(E) != 0 : " << determinant(E) << "\n";
+				P2 = Mat.zeros(3, 4, CvType.CV_64F); // TODO: Double check the type
+				return null;
+			}
 
-				            				E = E.mul(Mat.ones(E.size(), E.type()), -1);
+			if (!decomposeEtoRandT(E))
+				return null;
 
-				            				if (!decomposeEtoRandT(E))
-				            					return null;
-				            			}
+			if (Core.determinant(R1) + 1.0 < 1e-09) {
+				// according to http://en.wikipedia.org/wiki/Essential_matrix#Showing_that_it_is_valid
+				// TODO: cout << "det(R) == -1 ["<<determinant(R1)<<"]: flip E's sign" << endl;
 
-				            			P1.put(0, 0, 1, 0, 0, 0);
-				            			P1.put(1, 0, 0, 1, 0, 0);
-				            			P1.put(2, 0, 0, 0, 1, 0);
+				E = E.mul(Mat.ones(E.size(), E.type()), -1);
 
-				            			if (!checkCoherentRotation(Rot1)) {
-				            				P2 = Mat.zeros(3, 4, CvType.CV_64F); // TODO: Double check the type
-				            				return null;
-				            			}
+				if (!decomposeEtoRandT(E))
+					return null;
+			}
 
-				            			// Combination 1
-				            			P2.put(0, 0, Rot1.get(0, 0)[0], Rot1.get(0, 1)[0], Rot1.get(0, 2)[0], T1.get(0, 0)[0]);
-				            			P2.put(1, 0, Rot1.get(1, 0)[0], Rot1.get(1, 1)[0], Rot1.get(1, 2)[0], T1.get(1, 0)[0]);
-				            			P2.put(2, 0, Rot1.get(2, 0)[0], Rot1.get(2, 1)[0], Rot1.get(2, 2)[0], T1.get(2, 0)[0]);
+			P1.put(0, 0, 1, 0, 0, 0);
+			P1.put(1, 0, 0, 1, 0, 0);
+			P1.put(2, 0, 0, 0, 1, 0);
 
-				            			points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
-				            			points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
+			if (!checkCoherentRotation(Rot1)) {
+				P2 = Mat.zeros(3, 4, CvType.CV_64F); // TODO: Double check the type
+				return null;
+			}
 
-				            			if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation, !testTriangulation(points4D1, P1) ||
+			// Combination 1
+			P2.put(0, 0, Rot1.get(0, 0)[0], Rot1.get(0, 1)[0], Rot1.get(0, 2)[0], T1.get(0, 0)[0]);
+			P2.put(1, 0, Rot1.get(1, 0)[0], Rot1.get(1, 1)[0], Rot1.get(1, 2)[0], T1.get(1, 0)[0]);
+			P2.put(2, 0, Rot1.get(2, 0)[0], Rot1.get(2, 1)[0], Rot1.get(2, 2)[0], T1.get(2, 0)[0]);
 
-				            				// Combination 2
-				            				P2.put(0, 0, Rot1.get(0, 0)[0], Rot1.get(0, 1)[0], Rot1.get(0, 2)[0], T2.get(0, 0)[0]);
-				            				P2.put(1, 0, Rot1.get(1, 0)[0], Rot1.get(1, 1)[0], Rot1.get(1, 2)[0], T2.get(1, 0)[0]);
-				            				P2.put(2, 0, Rot1.get(2, 0)[0], Rot1.get(2, 1)[0], Rot1.get(2, 2)[0], T2.get(2, 0)[0]);
+			points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
+			points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
 
-				            				points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
-				            				points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
+			if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation, !testTriangulation(points4D1, P1) ||
 
-				            				if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
-				            					if (!checkCoherentRotation(Rot2)) {
-				            						P2 = Mat.zeros(3, 4, CvType.CV_64F); // TODO: Double check the type
-				            						return null;
-				            					}
-				            					// Combination 3
-				            					P2.put(0, 0, Rot2.get(0, 0)[0], Rot2.get(0, 1)[0], Rot2.get(0, 2)[0], T1.get(0, 0)[0]);
-				            					P2.put(1, 0, Rot2.get(1, 0)[0], Rot2.get(1, 1)[0], Rot2.get(1, 2)[0], T1.get(1, 0)[0]);
-				            					P2.put(2, 0, Rot2.get(2, 0)[0], Rot2.get(2, 1)[0], Rot2.get(2, 2)[0], T1.get(2, 0)[0]);
+				// Combination 2
+				P2.put(0, 0, Rot1.get(0, 0)[0], Rot1.get(0, 1)[0], Rot1.get(0, 2)[0], T2.get(0, 0)[0]);
+				P2.put(1, 0, Rot1.get(1, 0)[0], Rot1.get(1, 1)[0], Rot1.get(1, 2)[0], T2.get(1, 0)[0]);
+				P2.put(2, 0, Rot1.get(2, 0)[0], Rot1.get(2, 1)[0], Rot1.get(2, 2)[0], T2.get(2, 0)[0]);
 
-				            					points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
-				            					points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
+				points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
+				points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
 
-				            					if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
+				if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
+					if (!checkCoherentRotation(Rot2)) {
+						P2 = Mat.zeros(3, 4, CvType.CV_64F); // TODO: Double check the type
+						return null;
+					}
+					// Combination 3
+					P2.put(0, 0, Rot2.get(0, 0)[0], Rot2.get(0, 1)[0], Rot2.get(0, 2)[0], T1.get(0, 0)[0]);
+					P2.put(1, 0, Rot2.get(1, 0)[0], Rot2.get(1, 1)[0], Rot2.get(1, 2)[0], T1.get(1, 0)[0]);
+					P2.put(2, 0, Rot2.get(2, 0)[0], Rot2.get(2, 1)[0], Rot2.get(2, 2)[0], T1.get(2, 0)[0]);
 
-				            						// Combination 4
-				            						P2.put(0, 0, Rot2.get(0, 0)[0], Rot2.get(0, 1)[0], Rot2.get(0, 2)[0], T2.get(0, 0)[0]);
-				            						P2.put(1, 0, Rot2.get(1, 0)[0], Rot2.get(1, 1)[0], Rot2.get(1, 2)[0], T2.get(1, 0)[0]);
-				            						P2.put(2, 0, Rot2.get(2, 0)[0], Rot2.get(2, 1)[0], Rot2.get(2, 2)[0], T2.get(2, 0)[0]);
+					points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
+					points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
 
-				            						points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
-				            						points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
+					if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
 
-				            						if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
-				            							// Triangulation failed.
-				            							return null;
-				            						}
-				            					}
-				            				}
-				            			}
-				            		}
+						// Combination 4
+						P2.put(0, 0, Rot2.get(0, 0)[0], Rot2.get(0, 1)[0], Rot2.get(0, 2)[0], T2.get(0, 0)[0]);
+						P2.put(1, 0, Rot2.get(1, 0)[0], Rot2.get(1, 1)[0], Rot2.get(1, 2)[0], T2.get(1, 0)[0]);
+						P2.put(2, 0, Rot2.get(2, 0)[0], Rot2.get(2, 1)[0], Rot2.get(2, 2)[0], T2.get(2, 0)[0]);
 
-				            		// TODO: Check
+						points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
+						points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
+
+						if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
+							// Triangulation failed.
+							return null;
+						}
+					}
+				}
+			}
+		}
+
+		// TODO: Check
 
 		FeatureUpdate update = new FeatureUpdate();
 		List<PointDouble> currentPoints = new ArrayList<>();
@@ -311,7 +312,9 @@ public class FeatureManager {
 		return kps;
 	}
 
-	private void GetAlignedPointsFromMatch(List<KeyPoint> imgpts1, List<KeyPoint> imgpts2, List<DMatch> matches, List<KeyPoint> pt_set1, List<KeyPoint> pt_set2) { // TODO: not even																																					// points or mat
+	private void GetAlignedPointsFromMatch(List<KeyPoint> imgpts1, List<KeyPoint> imgpts2, List<DMatch> matches, List<KeyPoint> pt_set1, List<KeyPoint> pt_set2) { // TODO: not even
+																																									// // points or
+																																									// mat
 		// TODO: Implement
 		for (int i = 0; i < matches.size(); ++i) {
 			pt_set1.add(imgpts1.get(matches.get(i).queryIdx));
@@ -326,11 +329,11 @@ public class FeatureManager {
 		Mat imgpts1_good = new Mat(), imgpts2_good = new Mat();
 		List<KeyPoint> imgpts1_tmp;
 		List<KeyPoint> imgpts2_tmp;
-//		if (matches.size() <= 0) { 
-			imgpts1_tmp = imgpts1;
-			imgpts2_tmp = imgpts2;
-//		} else
-//			;// TODO: GetAlignedPointsFromMatch
+		// if (matches.size() <= 0) {
+		imgpts1_tmp = imgpts1;
+		imgpts2_tmp = imgpts2;
+		// } else
+		// ;// TODO: GetAlignedPointsFromMatch
 
 		Mat F = null;
 		List<Point> pts1, pts2;
@@ -346,22 +349,21 @@ public class FeatureManager {
 
 		F = Calib3d.findFundamentalMat(pts1Mat, pts2Mat, Calib3d.FM_RANSAC, 0.006 * res.maxVal, 0.99, status); // threshold from [Snavely07 4.1]
 
-		
-//		vector<DMatch> new_matches;
-//		cout << "F keeping " << countNonZero(status) << " / " << status.size() << endl;	
-//		for (unsigned int i=0; i<status.size(); i++) {
-//			if (status[i]) 
-//			{
-//				imgpts1_good.push_back(imgpts1_tmp[i]);
-//				imgpts2_good.push_back(imgpts2_tmp[i]);
-//
-//				new_matches.push_back(matches[i]);
-//			}
-//		}	
-//		
-//		cout << matches.size() << " matches before, " << new_matches.size() << " new matches after Fundamental Matrix\n";
-//		matches = new_matches; //keep only those points who survived the fundamental matrix
-//		
+		// vector<DMatch> new_matches;
+		// cout << "F keeping " << countNonZero(status) << " / " << status.size() << endl;
+		// for (unsigned int i=0; i<status.size(); i++) {
+		// if (status[i])
+		// {
+		// imgpts1_good.push_back(imgpts1_tmp[i]);
+		// imgpts2_good.push_back(imgpts2_tmp[i]);
+		//
+		// new_matches.push_back(matches[i]);
+		// }
+		// }
+		//
+		// cout << matches.size() << " matches before, " << new_matches.size() << " new matches after Fundamental Matrix\n";
+		// matches = new_matches; //keep only those points who survived the fundamental matrix
+		//
 		return F;
 	}
 
@@ -401,7 +403,7 @@ public class FeatureManager {
 		}
 		return true;
 	}
-	
+
 	private int countNonZero(List<Integer> status) {
 		int nonzeros = 0;
 		for (int value : status) {
