@@ -60,13 +60,12 @@ public class MainDriver {
 		List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
 
 		// runDoubleIntegration(cimuDataset, imgDataset);
-		// runVINS(cimuDataset, imgDataset);
+		runVINS(cimuDataset, imgDataset);
 		// runINS(imuDataset, imgDataset, insLogFileName);
 		// runINS(imuDatasetWithCimuHeading, imgDataset,
 		// insCimuHeadingLogFileName);
 		// runBreadcrumbDummies(imuDataset, imgDataset, breadcrumbLogFileName);
-		// runBreadcrumbDummies(imuDatasetWithCimuHeading, imgDataset,
-		// breadcrumbWithCimuHeadingLogFileName);
+		runBreadcrumbDummies(imuDatasetWithCimuHeading, imgDataset, breadcrumbWithCimuHeadingLogFileName);
 		runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 

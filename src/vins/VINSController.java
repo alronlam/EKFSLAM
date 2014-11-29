@@ -71,8 +71,8 @@ public class VINSController {
 				ekf.addFeature(featpos.getX(), featpos.getY());
 		} else {
 			featureUpdateNullCount++;
-			if (featureUpdateNullCount == 3)
-				ekf.deleteAllFeatures();
+			// if (featureUpdateNullCount == 3)
+			ekf.deleteAllFeatures();
 		}
 	}
 
