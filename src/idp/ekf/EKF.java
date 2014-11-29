@@ -112,9 +112,6 @@ public class EKF {
 		// Update the first 3 columns of P (device to feature correlation) P_ri
 		// = A * P_ri
 		P.updatePri(A_Matrix);
-
-		IDPUtility.predict_camera_measurements(X, cam, features_info);
-		System.out.println(X);
 	}
 
 	/********** V-INS Update **********/
@@ -122,12 +119,12 @@ public class EKF {
 	// Method for correcting the state vector based on re-observed features.
 
 	public void updateFromReobservedFeatureThroughImageCoords(int featureIndex, double observedU, double observedV) {
+		IDPUtility.predict_camera_measurements(X, cam, features_info);
+		IDPUtility.calculate_derivatives(X, cam, features_info);
 		
 		Quaternion q = X.getCurrentQuaternion();
 		if(q.getR() == 0 && q.getX() == 0 && q.getY() == 0 && q.getZ() == 0)
 			return;
-		
-		IDPUtility.calculate_derivatives(X, cam, features_info, featureIndex);
 		
 		Matrix h_cam = Helper.inverseDepthToCartesian(X.getFeature(featureIndex));
 
@@ -142,12 +139,12 @@ public class EKF {
 		}
 		*/
 		
-		Matrix hMatrix = features_info.get(featureIndex).H;
+		FeatureInfo f = features_info.get(featureIndex);
+		Matrix hMatrix = f.H;
 		if (hMatrix == null)
 			return;
 		
 		Matrix pMatrix = P.toMatrix();
-		FeatureInfo f = features_info.get(featureIndex);
 		
 		/*
 		Matrix hphMatrix = hMatrix.times(pMatrix).times(hMatrix.transpose());

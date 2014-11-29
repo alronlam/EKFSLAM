@@ -81,4 +81,9 @@ public class IDPFeature {
 		return "(" + x + ", " + y + ", " + z + ", " + azimuth + ", " + elevation + ", " + p + ")";
 	}
 
+	public Matrix toMatrix() {
+		double[][] mat = {{x},{y},{z},{azimuth},{elevation},{p}};
+		
+		return new Matrix(mat);
+	}
 }
