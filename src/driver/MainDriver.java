@@ -277,7 +277,7 @@ public class MainDriver {
 		int datasetSize = Math.min(imuDataset.size(), imgDataset.size());
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
 
-		int error[] = new int[5];
+		int error[] = new int[6];
 		for (int i = 0; i < datasetSize; i++) {
 
 			System.out.println("\n\nTime Step " + (i + 1));
@@ -290,12 +290,16 @@ public class MainDriver {
 			/* Image Update */
 			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i));
 			error[FeatureManager.error]++;
-			System.out.println("Success: " + error[0]);
-			System.out.println("Failed due to image: " + error[1]);
+			error[5]++;
+			System.out.println("Dataset Size: " + datasetSize );
+			System.out.println("Initial Delay: " + error[1]);
 			System.out.println("Failed due to optical flow: " + error[2]);
 			System.out.println("Failed due to essential matrix: " + error[3]);
 			System.out.println("Failed due to triangulation: " + error[4]);
-			System.out.println("Failed/Total: " + (error[1] + error[2] + error[3] + error[4]) +"/"+ (datasetSize) );
+			System.out.println("Success/Processed: " + error[0] +"/"+ (error[5]-error[1]));
+			System.out.println("Failed/Processed: " + (error[2] + error[3] + error[4]) +"/"+ (error[5]-error[1]) );
+			System.out.printf("Success Rate: %.3f%%\n", error[0] * 100.0 / (datasetSize-error[1]) );
+			
 
 			vins.update(featureUpdate);
 			System.out.println("Finished updating.");
@@ -303,12 +307,14 @@ public class MainDriver {
 			/* Update the logs */
 			vinsLog.append(vins.getDeviceCoords() + "\n");
 		}
-		System.out.println("Success: " + error[0]);
-		System.out.println("Failed due to image: " + error[1]);
-		System.out.println("Failed due to optical flow: " + error[2]);
-		System.out.println("Failed due to essential matrix: " + error[3]);
-		System.out.println("Failed due to triangulation: " + error[4]);
-		System.out.println("Failed/Total: " + (error[1] + error[2] + error[3] + error[4]) +"/"+ (datasetSize) );
+//		System.out.println("Dataset Size: " + datasetSize );
+//		System.out.println("Initial Delay: " + error[1]);
+//		System.out.println("Failed due to optical flow: " + error[2]);
+//		System.out.println("Failed due to essential matrix: " + error[3]);
+//		System.out.println("Failed due to triangulation: " + error[4]);
+//		System.out.println("Success: " + error[0]);
+//		System.out.println("Failed/Processed]: " + (error[2] + error[3] + error[4]) +"/"+ error[5] );
+		
 		finalResultsStringBuilder.append("Total distance traveled " + vins.getTotalDistanceTraveled() + "\r\n");
 		finalResultsStringBuilder.append("Total Displacement = " + vins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 

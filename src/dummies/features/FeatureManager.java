@@ -22,7 +22,8 @@ import commondata.PointDouble;
 public class FeatureManager {
 
 	private static final String TAG = "Feature Manager";
-
+	private static boolean DEBUG_MODE = false;
+	
 	// Optical flow fields
 	private int frames = 0;
 	private final int FRAME_INTERVAL = 0;
@@ -204,7 +205,8 @@ public class FeatureManager {
 			Core.gemm(tempMat, cameraMatrix, 1, nullMatF, 0, E);
 
 			if (Math.abs(Core.determinant(E)) > 1e-07) {
-				// TODO: cout << "det(E) != 0 : " << determinant(E) << "\n";
+				if(this.DEBUG_MODE)
+					System.out.println( "det(E) != 0 : " + Core.determinant(E));
 				P2 = Mat.zeros(3, 4, CvType.CV_64F); // TODO: Double check the type
 				return null;
 			}
@@ -214,7 +216,10 @@ public class FeatureManager {
 
 			if (Core.determinant(R1) + 1.0 < 1e-09) {
 				// according to http://en.wikipedia.org/wiki/Essential_matrix#Showing_that_it_is_valid
-				// TODO: cout << "det(R) == -1 ["<<determinant(R1)<<"]: flip E's sign" << endl;
+				
+				if(this.DEBUG_MODE)
+					System.out.println("det(R) == -1 ["+Core.determinant(R1)+"]: flip E's sign");
+				// TODO: cout <<  << endl;
 
 				E = E.mul(Mat.ones(E.size(), E.type()), -1);
 
@@ -371,12 +376,12 @@ public class FeatureManager {
 	}
 
 	private Mat getFundamentalMat(List<KeyPoint> imgpts1, List<KeyPoint> imgpts2, List<DMatch> matches) {
-		// TODO Auto-generated method stub
-
 		Mat status = new Mat();
 		Mat imgpts1_good = new Mat(), imgpts2_good = new Mat();
+		
 		List<KeyPoint> imgpts1_tmp;
 		List<KeyPoint> imgpts2_tmp;
+		
 		// if (matches.size() <= 0) {
 		imgpts1_tmp = imgpts1;
 		imgpts2_tmp = imgpts2;
@@ -396,10 +401,11 @@ public class FeatureManager {
 		pts1Mat.fromList(pts1);
 		pts2Mat.fromList(pts2);
 
-		// TODO: there is no minmaxIdx in java opencv
+		// Note: There is no minmaxIdx in java opencv
 		MinMaxLocResult res = Core.minMaxLoc(convertMatOfPoint2fToMat(pts1Mat));
 
-		F = Calib3d.findFundamentalMat(pts1Mat, pts2Mat, Calib3d.FM_RANSAC, 0.006 * res.maxVal, 0.99, status); // threshold from [Snavely07 4.1]
+		// threshold from [Snavely07 4.1]
+		F = Calib3d.findFundamentalMat(pts1Mat, pts2Mat, Calib3d.FM_RANSAC, 0.006 * res.maxVal, 0.99, status); 
 
 		// TODO: Point Filtering
 		// vector<DMatch> new_matches;
@@ -416,7 +422,7 @@ public class FeatureManager {
 		//
 		// cout << matches.size() << " matches before, " << new_matches.size() << " new matches after Fundamental Matrix\n";
 		// matches = new_matches; //keep only those points who survived the fundamental matrix
-		//
+		
 		return F;
 	}
 
@@ -435,7 +441,9 @@ public class FeatureManager {
 		double singular_values_ratio = Math.abs(w.get(0, 0)[0]) / Math.abs(w.get(1, 0)[0]);
 		if (singular_values_ratio > 1.0)
 			singular_values_ratio = 1.0 / singular_values_ratio; // flip ratio to keep it [0,1]
-		if (singular_values_ratio < 0.7) { // TODO: singular values too far apart
+		if (singular_values_ratio < 0.7) {
+			if(this.DEBUG_MODE)
+				System.out.println("Singular values too far apart");
 			return false;
 		}
 
@@ -451,7 +459,9 @@ public class FeatureManager {
 	}
 
 	private boolean checkCoherentRotation(Mat R) {
-		if (Math.abs(Core.determinant(R)) - 1.0 > 1e-07) { // TODO: cout << "resulting rotation is not coherent\n";
+		if (Math.abs(Core.determinant(R)) - 1.0 > 1e-07) { 
+			if(this.DEBUG_MODE)
+				System.out.println( "resulting rotation is not coherent");
 			return false;
 		}
 		return true;
