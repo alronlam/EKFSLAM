@@ -67,6 +67,9 @@ public class VINSController {
 			for (PointDouble featpos : toAdd)
 				ekf.addFeature(featpos.getX(), featpos.getY());
 		}
+//		else { // TODO: please double check if what I'm doing is right
+//			ekf.deleteAllFeatures();
+//		}
 	}
 
 	public PointDouble getDeviceCoords() {

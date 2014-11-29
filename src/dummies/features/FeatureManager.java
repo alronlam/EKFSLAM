@@ -315,8 +315,9 @@ public class FeatureManager {
 		images.remove(0);
 		frames++;
 
-		// System.out.println(update);
-
+		System.out.println(update);
+		error = this.MSG_NO_ERROR;
+		
 		return update;
 	}
 

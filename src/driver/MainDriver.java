@@ -290,6 +290,12 @@ public class MainDriver {
 			/* Image Update */
 			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i));
 			error[FeatureManager.error]++;
+			System.out.println("Success: " + error[0]);
+			System.out.println("Failed due to image: " + error[1]);
+			System.out.println("Failed due to optical flow: " + error[2]);
+			System.out.println("Failed due to essential matrix: " + error[3]);
+			System.out.println("Failed due to triangulation: " + error[4]);
+			System.out.println("Failed/Total: " + (error[1] + error[2] + error[3] + error[4]) +"/"+ (datasetSize) );
 
 			vins.update(featureUpdate);
 			System.out.println("Finished updating.");
