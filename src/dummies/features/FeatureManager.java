@@ -568,14 +568,102 @@ public class FeatureManager {
 		return mat;
 	}
 
+	/*
+	 * template<typename T> static void
+perspectiveTransform_( const T* src, T* dst, const double* m, int len, int scn, int dcn )
+{
+    const double eps = FLT_EPSILON;
+    int i;
+
+    if( scn == 2 && dcn == 2 )
+    {
+        for( i = 0; i < len*2; i += 2 )
+        {
+            T x = src[i], y = src[i + 1];
+            double w = x*m[6] + y*m[7] + m[8];
+
+            if( fabs(w) > eps )
+            {
+                w = 1./w;
+                dst[i] = (T)((x*m[0] + y*m[1] + m[2])*w);
+                dst[i+1] = (T)((x*m[3] + y*m[4] + m[5])*w);
+            }
+            else
+                dst[i] = dst[i+1] = (T)0;
+        }
+    }
+    else if( scn == 3 && dcn == 3 )
+    {
+        for( i = 0; i < len*3; i += 3 )
+        {
+            T x = src[i], y = src[i + 1], z = src[i + 2];
+            double w = x*m[12] + y*m[13] + z*m[14] + m[15];
+
+            if( fabs(w) > eps )
+            {
+                w = 1./w;
+                dst[i] = (T)((x*m[0] + y*m[1] + z*m[2] + m[3]) * w);
+                dst[i+1] = (T)((x*m[4] + y*m[5] + z*m[6] + m[7]) * w);
+                dst[i+2] = (T)((x*m[8] + y*m[9] + z*m[10] + m[11]) * w);
+            }
+            else
+                dst[i] = dst[i+1] = dst[i+2] = (T)0;
+        }
+    }
+    else if( scn == 3 && dcn == 2 )
+    {
+        for( i = 0; i < len; i++, src += 3, dst += 2 )
+        {
+            T x = src[0], y = src[1], z = src[2];
+            double w = x*m[8] + y*m[9] + z*m[10] + m[11];
+
+            if( fabs(w) > eps )
+            {
+                w = 1./w;
+                dst[0] = (T)((x*m[0] + y*m[1] + z*m[2] + m[3])*w);
+                dst[1] = (T)((x*m[4] + y*m[5] + z*m[6] + m[7])*w);
+            }
+            else
+                dst[0] = dst[1] = (T)0;
+        }
+    }
+    else
+    {
+        for( i = 0; i < len; i++, src += scn, dst += dcn )
+        {
+            const double* _m = m + dcn*(scn + 1);
+            double w = _m[scn];
+            int j, k;
+            for( k = 0; k < scn; k++ )
+                w += _m[k]*src[k];
+            if( fabs(w) > eps )
+            {
+                _m = m;
+                for( j = 0; j < dcn; j++, _m += scn + 1 )
+                {
+                    double s = _m[scn];
+                    for( k = 0; k < scn; k++ )
+                        s += _m[k]*src[k];
+                    dst[j] = (T)(s*w);
+                }
+            }
+            else
+                for( j = 0; j < dcn; j++ )
+                    dst[j] = 0;
+        }
+    }
+}
+	 */
+	
 	/** Because OpenCv has failed us one more time **/
 	private Mat perspectiveTransform(Mat src, Mat mtx) {
 		Mat dst = new Mat(src.size(), src.type());
 		int depth = src.depth();
 		int scn = src.channels();
-		int dcn = mtx.rows() - 1;
+		int dcn = mtx.cols() - 1;
 
 		System.out.println("Assert: " + (scn + 1) + " == " + mtx.cols());
+		System.out.println("Assert: " + (dcn));
 		System.out.println("Assert: " + depth + " == " + CvType.CV_32F + " || " + depth + " == " + CvType.CV_64F);
 
 		int mtype = CvType.CV_64F;
@@ -587,7 +675,7 @@ public class FeatureManager {
 
 	private double[] singlePointPerspectiveTransform(Mat src, Mat mtx, int total, int scn, int dcn) {
 		double cell[] = new double[scn];
-// TODO: implement this
+		// TODO: implement this
 		return cell;
 	}
 
@@ -595,7 +683,7 @@ public class FeatureManager {
 		final int TYPE = points4d.type();
 
 		List<Point3> pcloud_pt3d = homogenizeToList(points4d); // CloudPointsToPoints(pcloud);
-		Mat pcloud_pt3d_projected = new Mat(0, 0, CvType.CV_32FC4);// points4d.rows(), points4d.cols() - 1, TYPE);
+		Mat pcloud_pt3d_projected = new Mat(0, 0, CvType.CV_32FC3);// points4d.rows(), points4d.cols() - 1, TYPE);
 
 		Mat P4x4 = P.clone();// Mat.eye(4, 4, TYPE);
 		// for (int i = 0; i < 12; i++) {
@@ -609,6 +697,8 @@ public class FeatureManager {
 		System.out.println(points4d.size());
 		System.out.println(points4d32F.size());
 
+		perspectiveTransform(convertHPointsToMat4Channel(points4d), P);
+		
 		Mat pcloud_mat = new Mat();
 
 		Calib3d.convertPointsFromHomogeneous(points4d32F, pcloud_mat);
@@ -617,6 +707,10 @@ public class FeatureManager {
 		System.out.println(convertHPointsToMat4Channel(points4d).size());
 		System.out.println(convertHPointsToMat4Channel(points4d).channels());
 		System.out.println(convertHPointsToMat4Channel(points4d).type());
+		System.out.println();
+		System.out.println(points4d32F.size());
+		System.out.println(points4d32F.channels());
+		System.out.println(points4d32F.type());
 		System.out.println();
 		System.out.println(points4d.size());
 		System.out.println(points4d.channels());
@@ -634,7 +728,7 @@ public class FeatureManager {
 		System.out.println(pcloud_pt3d_projected.size());
 		System.out.println(pcloud_pt3d_projected.channels());
 		System.out.println(pcloud_pt3d_projected.type());
-		Core.perspectiveTransform(points4d32F, pcloud_pt3d_projected, P4x4);
+		Core.perspectiveTransform(convertHPointsToMat4Channel(points4d), pcloud_pt3d_projected, P4x4);
 		System.out.println();
 		System.out.println(pcloud_pt3d_projected.size());
 		System.out.println(pcloud_pt3d_projected.channels());
@@ -642,7 +736,7 @@ public class FeatureManager {
 
 		List<Integer> status = new ArrayList<>(pcloud_pt3d.size());
 		for (int i = 0; i < pcloud_pt3d.size(); i++) {
-			double homogenizedValue = pcloud_pt3d_projected.get(i, 0)[2] / pcloud_pt3d_projected.get(i, 0)[3]; // z
+			double homogenizedValue = pcloud_pt3d_projected.get(i, 0)[2] ; // z
 			status.add(Integer.valueOf((homogenizedValue > 0) ? 1 : 0));
 		}
 		int count = countNonZero(status);
