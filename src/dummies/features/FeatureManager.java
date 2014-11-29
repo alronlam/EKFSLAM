@@ -26,9 +26,9 @@ import commondata.PointDouble;
 public class FeatureManager {
 
 	private static final String TAG = "Feature Manager";
-	
+
 	private static boolean DEBUG_MODE = false;
-	
+
 	// Boolean things (how does one even name this)
 	private final boolean USE_SCALE = false;
 	private final boolean SWAP_IMAGES = false;
@@ -62,7 +62,7 @@ public class FeatureManager {
 	public static int STEP_TRIANGULATION = 4;
 
 	public static int CURRENT_STEP;
-	
+
 	public static int ROT_1 = 0;
 	public static int ROT_2 = 1;
 	public static int TRAN_1 = 2;
@@ -238,7 +238,7 @@ public class FeatureManager {
 
 			this.VALID_ROTATION = this.ROT_1;
 			this.VALID_TRANSLATION = this.TRAN_1;
-			
+
 			// Combination 1
 			P2.put(0, 0, Rot1.get(0, 0)[0], Rot1.get(0, 1)[0], Rot1.get(0, 2)[0], T1.get(0, 0)[0]);
 			P2.put(1, 0, Rot1.get(1, 0)[0], Rot1.get(1, 1)[0], Rot1.get(1, 2)[0], T1.get(1, 0)[0]);
@@ -247,10 +247,10 @@ public class FeatureManager {
 			points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
 			points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
 
-			if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation, !testTriangulation(points4D1, P1) ||
+			if (!testTriangulation(points4D1, P1) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation,
 				this.VALID_ROTATION = this.ROT_1;
 				this.VALID_TRANSLATION = this.TRAN_2;
-				
+
 				// Combination 2
 				P2.put(0, 0, Rot1.get(0, 0)[0], Rot1.get(0, 1)[0], Rot1.get(0, 2)[0], T2.get(0, 0)[0]);
 				P2.put(1, 0, Rot1.get(1, 0)[0], Rot1.get(1, 1)[0], Rot1.get(1, 2)[0], T2.get(1, 0)[0]);
@@ -261,12 +261,12 @@ public class FeatureManager {
 
 				if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
 					if (!checkCoherentRotation(Rot2)) {
-						P2 = Mat.zeros(3, 4, CvType.CV_64F); 
+						P2 = Mat.zeros(3, 4, CvType.CV_64F);
 						return null;
 					}
 					this.VALID_ROTATION = this.ROT_2;
 					this.VALID_TRANSLATION = this.TRAN_1;
-					
+
 					// Combination 3
 					P2.put(0, 0, Rot2.get(0, 0)[0], Rot2.get(0, 1)[0], Rot2.get(0, 2)[0], T1.get(0, 0)[0]);
 					P2.put(1, 0, Rot2.get(1, 0)[0], Rot2.get(1, 1)[0], Rot2.get(1, 2)[0], T1.get(1, 0)[0]);
@@ -277,7 +277,7 @@ public class FeatureManager {
 					if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
 						this.VALID_ROTATION = this.ROT_2;
 						this.VALID_TRANSLATION = this.TRAN_2;
-						
+
 						// Combination 4
 						P2.put(0, 0, Rot2.get(0, 0)[0], Rot2.get(0, 1)[0], Rot2.get(0, 2)[0], T2.get(0, 0)[0]);
 						P2.put(1, 0, Rot2.get(1, 0)[0], Rot2.get(1, 1)[0], Rot2.get(1, 2)[0], T2.get(1, 0)[0]);
@@ -298,9 +298,8 @@ public class FeatureManager {
 		List<PointDouble> currentPoints = new ArrayList<>();
 		List<PointDouble> newPoints = new ArrayList<>();
 		int currentSize = (int) opflowresult.getCurrentSize() - fMatResult.additionalBadPoints.size();
-//		System.out.println(T1.dump());
-//		System.out.println(T2.dump());
-
+		// System.out.println(T1.dump());
+		// System.out.println(T2.dump());
 
 		if (this.VALID_ROTATION == this.ROT_1)
 			System.out.println("Rotation Matrix 1 is Valid.");
@@ -310,7 +309,7 @@ public class FeatureManager {
 			System.out.println("Translation Vector 1 is Valid.");
 		else
 			System.out.println("Translation Vector 2 is Valid.");
-		
+
 		Mat translationMatrix = T2;
 		if (this.VALID_TRANSLATION == this.TRAN_1)
 			translationMatrix = T1;
@@ -330,7 +329,7 @@ public class FeatureManager {
 			double z = points4D1.get(2, i)[0] * zScale / w;
 
 			PointDouble point = new PointDouble(x, z);
-			//System.out.println(point);
+			// System.out.println(point);
 			if (i < currentSize) {
 				currentPoints.add(point);
 			} else {
@@ -554,11 +553,49 @@ public class FeatureManager {
 		return mat4Chan;
 	}
 
+	private Mat convertHPointsToMat4Channel(Mat points4d) {
+		Mat mat = new Mat(points4d.cols(), 1, CvType.CV_32FC3);
+
+		double cell[] = new double[3];
+		for (int i = 0; i < points4d.cols(); i++) {
+
+			for (int j = 0; j < 3; ++j)
+				cell[j] = points4d.get(j, i)[0] / points4d.get(3, i)[0];
+
+			mat.put(i, 0, cell);
+
+		}
+		return mat;
+	}
+
+	/** Because OpenCv has failed us one more time **/
+	private Mat perspectiveTransform(Mat src, Mat mtx) {
+		Mat dst = new Mat(src.size(), src.type());
+		int depth = src.depth();
+		int scn = src.channels();
+		int dcn = mtx.rows() - 1;
+
+		System.out.println("Assert: " + (scn + 1) + " == " + mtx.cols());
+		System.out.println("Assert: " + depth + " == " + CvType.CV_32F + " || " + depth + " == " + CvType.CV_64F);
+
+		int mtype = CvType.CV_64F;
+		for (int i = 0; i < src.rows(); ++i)
+			dst.put(i, 0, singlePointPerspectiveTransform(src, mtx, src.rows(), scn, dcn));
+
+		return dst;
+	}
+
+	private double[] singlePointPerspectiveTransform(Mat src, Mat mtx, int total, int scn, int dcn) {
+		double cell[] = new double[scn];
+// TODO: implement this
+		return cell;
+	}
+
 	private boolean testTriangulation(final Mat points4d, final Mat P) {
 		final int TYPE = points4d.type();
 
 		List<Point3> pcloud_pt3d = homogenizeToList(points4d); // CloudPointsToPoints(pcloud);
-		Mat pcloud_pt3d_projected = new Mat();// points4d.rows(), points4d.cols() - 1, TYPE);
+		Mat pcloud_pt3d_projected = new Mat(0, 0, CvType.CV_32FC4);// points4d.rows(), points4d.cols() - 1, TYPE);
 
 		Mat P4x4 = P.clone();// Mat.eye(4, 4, TYPE);
 		// for (int i = 0; i < 12; i++) {
@@ -576,10 +613,29 @@ public class FeatureManager {
 
 		Calib3d.convertPointsFromHomogeneous(points4d32F, pcloud_mat);
 
-		Core.perspectiveTransform(pcloud_mat, pcloud_pt3d_projected, P4x4);
+		System.out.println();
+		System.out.println(convertHPointsToMat4Channel(points4d).size());
+		System.out.println(convertHPointsToMat4Channel(points4d).channels());
+		System.out.println(convertHPointsToMat4Channel(points4d).type());
+		System.out.println();
+		System.out.println(points4d.size());
+		System.out.println(points4d.channels());
+		System.out.println(points4d.type());
+		System.out.println();
 		System.out.println(pcloud_mat.size());
 		System.out.println(pcloud_mat.channels());
 		System.out.println(pcloud_mat.type());
+		System.out.println();
+		System.out.println(Converters.vector_Point3d_to_Mat(pcloud_pt3d).size());
+		System.out.println(Converters.vector_Point3d_to_Mat(pcloud_pt3d).channels());
+		System.out.println(Converters.vector_Point3d_to_Mat(pcloud_pt3d).type());
+		// System.out.println(pcloud_pt3d_projected.dump());
+		System.out.println();
+		System.out.println(pcloud_pt3d_projected.size());
+		System.out.println(pcloud_pt3d_projected.channels());
+		System.out.println(pcloud_pt3d_projected.type());
+		Core.perspectiveTransform(points4d32F, pcloud_pt3d_projected, P4x4);
+		System.out.println();
 		System.out.println(pcloud_pt3d_projected.size());
 		System.out.println(pcloud_pt3d_projected.channels());
 		System.out.println(pcloud_pt3d_projected.type());
