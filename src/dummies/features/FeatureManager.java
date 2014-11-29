@@ -31,7 +31,7 @@ public class FeatureManager {
 
 	// Boolean things (how does one even name this)
 	private final boolean USE_SCALE = false;
-	private final boolean SWAP_IMAGES = false;
+	private final boolean SWAP_IMAGES = true;
 
 	// Image Capture fields
 	private int frames = 0;
@@ -247,7 +247,7 @@ public class FeatureManager {
 			points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
 			points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
 
-			if (!testTriangulation(points4D1, P1) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation,
+			if (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation,
 				this.VALID_ROTATION = this.ROT_1;
 				this.VALID_TRANSLATION = this.TRAN_2;
 
@@ -259,7 +259,7 @@ public class FeatureManager {
 				points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
 				points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
 
-				if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
+				if (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
 					if (!checkCoherentRotation(Rot2)) {
 						P2 = Mat.zeros(3, 4, CvType.CV_64F);
 						return null;
@@ -274,7 +274,7 @@ public class FeatureManager {
 
 					points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
 					points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
-					if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
+					if (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
 						this.VALID_ROTATION = this.ROT_2;
 						this.VALID_TRANSLATION = this.TRAN_2;
 
@@ -285,7 +285,7 @@ public class FeatureManager {
 
 						points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
 						points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
-						if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
+						if (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
 							// Triangulation failed.
 							return null;
 						}
@@ -569,92 +569,23 @@ public class FeatureManager {
 	}
 
 	/*
-	 * template<typename T> static void
-perspectiveTransform_( const T* src, T* dst, const double* m, int len, int scn, int dcn )
-{
-    const double eps = FLT_EPSILON;
-    int i;
-
-    if( scn == 2 && dcn == 2 )
-    {
-        for( i = 0; i < len*2; i += 2 )
-        {
-            T x = src[i], y = src[i + 1];
-            double w = x*m[6] + y*m[7] + m[8];
-
-            if( fabs(w) > eps )
-            {
-                w = 1./w;
-                dst[i] = (T)((x*m[0] + y*m[1] + m[2])*w);
-                dst[i+1] = (T)((x*m[3] + y*m[4] + m[5])*w);
-            }
-            else
-                dst[i] = dst[i+1] = (T)0;
-        }
-    }
-    else if( scn == 3 && dcn == 3 )
-    {
-        for( i = 0; i < len*3; i += 3 )
-        {
-            T x = src[i], y = src[i + 1], z = src[i + 2];
-            double w = x*m[12] + y*m[13] + z*m[14] + m[15];
-
-            if( fabs(w) > eps )
-            {
-                w = 1./w;
-                dst[i] = (T)((x*m[0] + y*m[1] + z*m[2] + m[3]) * w);
-                dst[i+1] = (T)((x*m[4] + y*m[5] + z*m[6] + m[7]) * w);
-                dst[i+2] = (T)((x*m[8] + y*m[9] + z*m[10] + m[11]) * w);
-            }
-            else
-                dst[i] = dst[i+1] = dst[i+2] = (T)0;
-        }
-    }
-    else if( scn == 3 && dcn == 2 )
-    {
-        for( i = 0; i < len; i++, src += 3, dst += 2 )
-        {
-            T x = src[0], y = src[1], z = src[2];
-            double w = x*m[8] + y*m[9] + z*m[10] + m[11];
-
-            if( fabs(w) > eps )
-            {
-                w = 1./w;
-                dst[0] = (T)((x*m[0] + y*m[1] + z*m[2] + m[3])*w);
-                dst[1] = (T)((x*m[4] + y*m[5] + z*m[6] + m[7])*w);
-            }
-            else
-                dst[0] = dst[1] = (T)0;
-        }
-    }
-    else
-    {
-        for( i = 0; i < len; i++, src += scn, dst += dcn )
-        {
-            const double* _m = m + dcn*(scn + 1);
-            double w = _m[scn];
-            int j, k;
-            for( k = 0; k < scn; k++ )
-                w += _m[k]*src[k];
-            if( fabs(w) > eps )
-            {
-                _m = m;
-                for( j = 0; j < dcn; j++, _m += scn + 1 )
-                {
-                    double s = _m[scn];
-                    for( k = 0; k < scn; k++ )
-                        s += _m[k]*src[k];
-                    dst[j] = (T)(s*w);
-                }
-            }
-            else
-                for( j = 0; j < dcn; j++ )
-                    dst[j] = 0;
-        }
-    }
-}
+	 * template<typename T> static void perspectiveTransform_( const T* src, T* dst, const double* m, int len, int scn, int dcn ) { const double eps = FLT_EPSILON; int i;
+	 * 
+	 * if( scn == 2 && dcn == 2 ) { for( i = 0; i < len*2; i += 2 ) { T x = src[i], y = src[i + 1]; double w = x*m[6] + y*m[7] + m[8];
+	 * 
+	 * if( fabs(w) > eps ) { w = 1./w; dst[i] = (T)((x*m[0] + y*m[1] + m[2])*w); dst[i+1] = (T)((x*m[3] + y*m[4] + m[5])*w); } else dst[i] = dst[i+1] = (T)0; } } else if( scn == 3
+	 * && dcn == 3 ) { for( i = 0; i < len*3; i += 3 ) { T x = src[i], y = src[i + 1], z = src[i + 2]; double w = x*m[12] + y*m[13] + z*m[14] + m[15];
+	 * 
+	 * if( fabs(w) > eps ) { w = 1./w; dst[i] = (T)((x*m[0] + y*m[1] + z*m[2] + m[3]) * w); dst[i+1] = (T)((x*m[4] + y*m[5] + z*m[6] + m[7]) * w); dst[i+2] = (T)((x*m[8] + y*m[9] +
+	 * z*m[10] + m[11]) * w); } else dst[i] = dst[i+1] = dst[i+2] = (T)0; } } else if( scn == 3 && dcn == 2 ) { for( i = 0; i < len; i++, src += 3, dst += 2 ) { T x = src[0], y =
+	 * src[1], z = src[2]; double w = x*m[8] + y*m[9] + z*m[10] + m[11];
+	 * 
+	 * if( fabs(w) > eps ) { w = 1./w; dst[0] = (T)((x*m[0] + y*m[1] + z*m[2] + m[3])*w); dst[1] = (T)((x*m[4] + y*m[5] + z*m[6] + m[7])*w); } else dst[0] = dst[1] = (T)0; } } else
+	 * { for( i = 0; i < len; i++, src += scn, dst += dcn ) { const double* _m = m + dcn*(scn + 1); double w = _m[scn]; int j, k; for( k = 0; k < scn; k++ ) w += _m[k]*src[k]; if(
+	 * fabs(w) > eps ) { _m = m; for( j = 0; j < dcn; j++, _m += scn + 1 ) { double s = _m[scn]; for( k = 0; k < scn; k++ ) s += _m[k]*src[k]; dst[j] = (T)(s*w); } } else for( j =
+	 * 0; j < dcn; j++ ) dst[j] = 0; } } }
 	 */
-	
+
 	/** Because OpenCv has failed us one more time **/
 	private Mat perspectiveTransform(Mat src, Mat mtx) {
 		Mat dst = new Mat(src.size(), src.type());
@@ -673,9 +604,28 @@ perspectiveTransform_( const T* src, T* dst, const double* m, int len, int scn, 
 		return dst;
 	}
 
-	private double[] singlePointPerspectiveTransform(Mat src, Mat mtx, int total, int scn, int dcn) {
+	private double[] singlePointPerspectiveTransform(Mat src, Mat mtx, int len, int scn, int dcn) {
 		double cell[] = new double[scn];
 		// TODO: implement this
+
+		for (int i = 0; i < len * 3; i += 3) {
+			//
+			// x = src[i],
+			// y = src[i + 1]
+			// z = src[i + 2];
+			// double w = x*m[12] + y*m[13] + z*m[14] + m[15];
+			//
+			// if( fabs(w) > eps )
+			// {
+			// w = 1./w;
+			// dst[i] = (T)((x*m[0] + y*m[1] + z*m[2] + m[3]) * w);
+			// dst[i+1] = (T)((x*m[4] + y*m[5] + z*m[6] + m[7]) * w);
+			// dst[i+2] = (T)((x*m[8] + y*m[9] + z*m[10] + m[11]) * w);
+			// }
+			// else
+			// dst[i] = dst[i+1] = dst[i+2] = (T)0;
+		}
+
 		return cell;
 	}
 
@@ -685,12 +635,12 @@ perspectiveTransform_( const T* src, T* dst, const double* m, int len, int scn, 
 		List<Point3> pcloud_pt3d = homogenizeToList(points4d); // CloudPointsToPoints(pcloud);
 		Mat pcloud_pt3d_projected = new Mat(0, 0, CvType.CV_32FC3);// points4d.rows(), points4d.cols() - 1, TYPE);
 
-		Mat P4x4 = P.clone();// Mat.eye(4, 4, TYPE);
-		// for (int i = 0; i < 12; i++) {
-		// int row = i / 4;
-		// int col = i % 4;
-		// P4x4.put(row, col, P.get(row, col));
-		// }
+		Mat P4x4 = Mat.eye(4, 4, TYPE);
+		for (int i = 0; i < 12; i++) {
+			int row = i / 4;
+			int col = i % 4;
+			P4x4.put(row, col, P.get(row, col));
+		}
 
 		// perspectiveTransform() requires Mat, but source uses a vector.
 		Mat points4d32F = convert1ChannelMatTo4ChannelMat(points4d);
@@ -698,7 +648,7 @@ perspectiveTransform_( const T* src, T* dst, const double* m, int len, int scn, 
 		System.out.println(points4d32F.size());
 
 		perspectiveTransform(convertHPointsToMat4Channel(points4d), P);
-		
+
 		Mat pcloud_mat = new Mat();
 
 		Calib3d.convertPointsFromHomogeneous(points4d32F, pcloud_mat);
@@ -736,7 +686,7 @@ perspectiveTransform_( const T* src, T* dst, const double* m, int len, int scn, 
 
 		List<Integer> status = new ArrayList<>(pcloud_pt3d.size());
 		for (int i = 0; i < pcloud_pt3d.size(); i++) {
-			double homogenizedValue = pcloud_pt3d_projected.get(i, 0)[2] ; // z
+			double homogenizedValue = pcloud_pt3d_projected.get(i, 0)[2]; // z
 			status.add(Integer.valueOf((homogenizedValue > 0) ? 1 : 0));
 		}
 		int count = countNonZero(status);
