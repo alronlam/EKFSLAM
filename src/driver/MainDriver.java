@@ -43,7 +43,7 @@ public class MainDriver {
 
 	public static void main(String[] args) {
 
-		String targetFolder = "data/" + Constants.FOLDER_LS_STRAIGHT;
+		String targetFolder = "data/" + Constants.FOLDER_YUCH_LOBBY_RECTANGLE;
 
 		/* Load IMU Dataset */
 		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
@@ -152,10 +152,23 @@ public class MainDriver {
 		/* Their sizes may not match due to logging problems */
 		int datasetSize = Math.min(imuDataset.size(), imgDataset.size());
 		System.out.println("DATASET SIZE: " + imuDataset.size() + " and " + imgDataset.size());
+		
+		double prevX = 0;
+		double prevY = 0;
 		for (int i = 0; i < datasetSize; i++) {
 
 			System.out.println("\n\nTime Step " + (i + 1));
-
+			
+			// Get them fancy translations
+			// is this even correct
+			double transX = breadcrumb.getDeviceCoords().getX() - prevX;
+			double transY = breadcrumb.getDeviceCoords().getY() - prevY;
+			
+			prevX = breadcrumb.getDeviceCoords().getX();
+			prevY = breadcrumb.getDeviceCoords().getY();
+		
+			
+			
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
 			breadcrumb.predict(currIMUBatch);
@@ -164,7 +177,7 @@ public class MainDriver {
 			// vinsIDP.predict(currIMUBatch);
 			System.out.println("Finished predicting.");
 			/* Image Update */
-			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i));
+			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY);
 			breadcrumb.update(featureUpdate);
 			// vins.update(featureUpdate);
 
@@ -241,18 +254,29 @@ public class MainDriver {
 		/* Their sizes may not match due to logging problems */
 		int datasetSize = Math.min(imuDataset.size(), imgDataset.size());
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
-
+		
+		double prevX = 0;
+		double prevY = 0;
 		for (int i = 0; i < datasetSize; i++) {
 
 			System.out.println("Time Step " + (i + 1));
 
+			// Get them fancy translations
+			// is this even correct
+			double transX = breadcrumb.getDeviceCoords().getX() - prevX;
+			double transY = breadcrumb.getDeviceCoords().getY() - prevY;
+			
+			prevX = breadcrumb.getDeviceCoords().getX();
+			prevY = breadcrumb.getDeviceCoords().getY();
+		
+			
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
 			breadcrumb.predict(currIMUBatch);
 			// System.out.println("Finished predicting.");
 
 			/* Image Update */
-			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i));
+			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY);
 			breadcrumb.update(featureUpdate);
 			// System.out.println("Finished updating.");
 
@@ -270,7 +294,7 @@ public class MainDriver {
 		/* Log - Write to File */
 		breadcrumbLog.writeToFile();
 	}
-
+	
 	private static void runVINS(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset) {
 		/* Initialize the controller and manager */
 		VINSController vins = new VINSController();
@@ -285,23 +309,36 @@ public class MainDriver {
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
 
 		int state[] = new int[6];
+		double prevX = 0;
+		double prevY = 0;
 		for (int i = 0; i < datasetSize; i++) {
 
 			System.out.println("\n\nTime Step " + (i + 1));
-
+			
+			// Get them fancy translations
+			// is this even correct
+			double transX = vins.getDeviceCoords().getX() - prevX;
+			double transY = vins.getDeviceCoords().getY() - prevY;
+			
+			prevX = vins.getDeviceCoords().getX();
+			prevY = vins.getDeviceCoords().getY();
+			
+			
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
 			vins.predict(currIMUBatch);
 			// System.out.println("Finished predicting.");
-
+			
 			/* Image Update */
-			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i));
+			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY);
 			state[FeatureManager.CURRENT_STEP]++;
 			state[5]++;	
 			
 			vins.update(featureUpdate);
 			System.out.println("Finished updating.");
-
+			
+			
+			
 			/* Update the logs */
 			vinsLog.append(vins.getDeviceCoords() + "\n");
 		}

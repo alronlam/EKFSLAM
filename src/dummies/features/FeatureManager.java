@@ -27,6 +27,7 @@ public class FeatureManager {
 
 	private static final String TAG = "Feature Manager";
 	private static boolean DEBUG_MODE = true;
+	private final boolean USE_SCALE = false;
 
 	// Optical flow fields
 	private int frames = 0;
@@ -119,7 +120,7 @@ public class FeatureManager {
 		return kps;
 	}
 
-	public FeatureUpdate getFeatureUpdate(Mat currentImage) {
+	public FeatureUpdate getFeatureUpdate(Mat currentImage, double translationX, double translationZ) {
 		if (!framesReady) {
 			Mat toAdd = new Mat();
 			currentImage.copyTo(toAdd);
@@ -152,9 +153,15 @@ public class FeatureManager {
 
 		// Assures that returning null would clear out old features
 		checkpointFeatures = new MatOfPoint2f();
-
+		
+		boolean t1Valid = true;
 		if (!goodOld.empty() && !goodNew.empty()) {
-
+			
+			// does this work
+			MatOfPoint2f temp = goodOld;
+			goodOld = goodNew;
+			goodNew = temp;
+			
 			// SOLVING FOR THE ROTATION AND TRANSLATION MATRICES
 
 			// GETTING THE FUNDAMENTAL MATRIX
@@ -233,7 +240,8 @@ public class FeatureManager {
 
 				points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
 				points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
-
+				t1Valid= false;
+				
 				if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
 					if (!checkCoherentRotation(Rot2)) {
 						P2 = Mat.zeros(3, 4, CvType.CV_64F); // TODO: Double check the type
@@ -246,7 +254,7 @@ public class FeatureManager {
 
 					points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
 					points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
-
+					t1Valid = true;
 					if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
 
 						// Combination 4
@@ -256,7 +264,7 @@ public class FeatureManager {
 
 						points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
 						points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
-
+						t1Valid = false;
 						if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
 							// Triangulation failed.
 							return null;
@@ -270,14 +278,30 @@ public class FeatureManager {
 		List<PointDouble> currentPoints = new ArrayList<>();
 		List<PointDouble> newPoints = new ArrayList<>();
 		int currentSize = (int) opflowresult.getCurrentSize() - fMatResult.additionalBadPoints.size();
+		System.out.println(T1.dump());
+		System.out.println(T2.dump());
+		
+		
+		Mat translationMatrix = T2;
+		if (t1Valid)
+			translationMatrix = T1;
+		
+		double xScale = translationX / translationMatrix.get(0, 0)[0];
+		double zScale = translationZ / translationMatrix.get(2, 0)[0];
+		
+		if (!USE_SCALE) { // HAHA WOT.
+			xScale = 1;
+			zScale = 1; 
+		}
+		
 		for (int i = 0; i < points4D1.cols(); i++) {
 			double w = points4D1.get(3, i)[0];
-			double x = points4D1.get(0, i)[0] / w;
+			double x = points4D1.get(0, i)[0] * xScale / w;
 			double y = points4D1.get(1, i)[0] / w;
-			double z = points4D1.get(2, i)[0] / w;
+			double z = points4D1.get(2, i)[0] * zScale / w;
 
 			PointDouble point = new PointDouble(x, z);
-
+			System.out.println(point);
 			if (i < currentSize) {
 				currentPoints.add(point);
 			} else {
