@@ -222,6 +222,7 @@ public class MainDriver {
 			vinsIDPLog.append(vinsIDP.getDeviceCoords() + "\n");
 		}
 
+		finalResultsStringBuilder.append("Total Distance Traveled = " + vinsIDP.getTotalDistanceTraveled() + "\r\n");
 		finalResultsStringBuilder.append("Total Displacement = "
 				+ vinsIDP.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
