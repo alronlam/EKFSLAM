@@ -107,8 +107,6 @@ public class FeatureManager {
 		Q = Mat.zeros(4, 4, CvType.CV_64F);
 	}
 
-	static boolean firstImg = true;
-
 	/** For Opencv has failed us yet again **/
 	private List<KeyPoint> convertMatOfPoint2fToListOfKeyPoints(MatOfPoint2f ps) {
 		List<KeyPoint> kps = new ArrayList<>();
@@ -143,23 +141,20 @@ public class FeatureManager {
 		currentImage.copyTo(farImage);
 		images.add(farImage);
 		images.remove(0);
-		
-		
+
 		OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, farImage, checkpointFeatures);
 
 		MatOfPoint2f goodOld = opflowresult.getNearFeatures();
 		MatOfPoint2f goodNew = opflowresult.getFarFeatures();
-		
-		
-		
+
 		FMatResult fMatResult = null;
 		points4D1 = new Mat();
-		
+
 		// Assures that returning null would clear out old features
 		checkpointFeatures = new MatOfPoint2f();
-		
+
 		if (!goodOld.empty() && !goodNew.empty()) {
-			
+
 			// SOLVING FOR THE ROTATION AND TRANSLATION MATRICES
 
 			// GETTING THE FUNDAMENTAL MATRIX
@@ -175,12 +170,12 @@ public class FeatureManager {
 			CURRENT_STEP = this.STEP_ESSENTIAL_MATRIX;
 			fMatResult = getFundamentalMat(kpGoodOld, kpGoodNew, opflowresult.getBadPointsIndex(), opflowresult.getCurrentSize());
 			F = fMatResult.F;
-			
+
 			// SOBRANG HASSLE
 			// A bit scary
 			goodOld = fMatResult.superGoodPoints1;
 			goodNew = fMatResult.superGoodPoints2;
-			
+
 			tempMat = nullMatF.clone();
 			E = nullMatF.clone();
 
@@ -189,8 +184,8 @@ public class FeatureManager {
 			Core.gemm(tempMat, cameraMatrix, 1, nullMatF, 0, E);
 
 			if (Math.abs(Core.determinant(E)) > 1e-07) {
-				if(this.DEBUG_MODE)
-					System.out.println( "det(E) != 0 : " + Core.determinant(E));
+				if (this.DEBUG_MODE)
+					System.out.println("det(E) != 0 : " + Core.determinant(E));
 				P2 = Mat.zeros(3, 4, CvType.CV_64F); // TODO: Double check the type
 				return null;
 			}
@@ -200,10 +195,10 @@ public class FeatureManager {
 
 			if (Core.determinant(R1) + 1.0 < 1e-09) {
 				// according to http://en.wikipedia.org/wiki/Essential_matrix#Showing_that_it_is_valid
-				
-				if(this.DEBUG_MODE)
-					System.out.println("det(R) == -1 ["+Core.determinant(R1)+"]: flip E's sign");
-				// TODO: cout <<  << endl;
+
+				if (this.DEBUG_MODE)
+					System.out.println("det(R) == -1 [" + Core.determinant(R1) + "]: flip E's sign");
+				// TODO: cout << << endl;
 
 				E = E.mul(Mat.ones(E.size(), E.type()), -1);
 
@@ -230,7 +225,7 @@ public class FeatureManager {
 			points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
 			points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
 
-			if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation, !testTriangulation(points4D1, P1) ||
+			if (!testTriangulation(points4D1, P1) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation,
 
 				// Combination 2
 				P2.put(0, 0, Rot1.get(0, 0)[0], Rot1.get(0, 1)[0], Rot1.get(0, 2)[0], T2.get(0, 0)[0]);
@@ -291,13 +286,13 @@ public class FeatureManager {
 				newPoints.add(point);
 			}
 		}
-		
+
 		// Appending additional bad points from Fundamental Matrix calculation
 		List<Integer> badPoints = opflowresult.getBadPointsIndex();
 		List<Integer> additionalBadPoints = fMatResult.additionalBadPoints;
 		badPoints.addAll(additionalBadPoints);
 		Collections.sort(badPoints);
-		
+
 		update.setCurrentPoints(currentPoints);
 		update.setBadPointsIndex(badPoints);
 		update.setNewPoints(newPoints);
@@ -307,13 +302,15 @@ public class FeatureManager {
 		fMatResult.superGoodPoints1.copyTo(checkpointFeatures);
 		frames++;
 
-		System.out.println(update);
+		if (this.DEBUG_MODE)
+			System.out.println(update);
+
 		CURRENT_STEP = this.STEP_VALID_UPDATE;
 
 		return update;
 	}
 
-	private List<Point> KeyPointsToPoints(List<KeyPoint> kps) { // TODO: not even sure if it should be list of points or mat
+	private List<Point> KeyPointsToPoints(List<KeyPoint> kps) {
 		List<Point> ps = new ArrayList<>();
 
 		for (KeyPoint kp : kps)
@@ -322,7 +319,7 @@ public class FeatureManager {
 		return ps;
 	}
 
-	private List<KeyPoint> PointsToKeyPoints(List<Point> ps) { // TODO: not even sure if it should be list of points or mat
+	private List<KeyPoint> PointsToKeyPoints(List<Point> ps) {
 		List<KeyPoint> kps = new ArrayList<>();
 
 		for (Point p : ps)
@@ -331,24 +328,12 @@ public class FeatureManager {
 		return kps;
 	}
 
-	private void GetAlignedPointsFromMatch(List<KeyPoint> imgpts1, List<KeyPoint> imgpts2, List<DMatch> matches, List<KeyPoint> pt_set1, List<KeyPoint> pt_set2) { // TODO: not even
-																																									// // points or
-																																									// mat
-		// TODO: Implement
+	private void GetAlignedPointsFromMatch(List<KeyPoint> imgpts1, List<KeyPoint> imgpts2, List<DMatch> matches, List<KeyPoint> pt_set1, List<KeyPoint> pt_set2) {
 		for (int i = 0; i < matches.size(); ++i) {
 			pt_set1.add(imgpts1.get(matches.get(i).queryIdx));
 			pt_set2.add(imgpts2.get(matches.get(i).trainIdx));
 		}
 	}
-
-	/** Another converter because Opencv doesn't like us **/
-	// private MatOfPoint2f convertListOfPointsToMatOfPoint2f(List<Point> lp){
-	// MatOfPoint2f mp = new MatOfPoint2f(lp.size(),1);
-	//
-	// //mp.p
-	//
-	// return null;
-	// }
 
 	private Mat convertMatOfPoint2fToMat(MatOfPoint2f mpf) {
 		Mat mat = new Mat(mpf.rows(), mpf.cols() * mpf.channels(), CvType.CV_32F);
@@ -362,13 +347,12 @@ public class FeatureManager {
 		return mat;
 	}
 
-	private FMatResult getFundamentalMat(List<KeyPoint> imgpts1, List<KeyPoint> imgpts2, 
-			List<Integer> badpointsList, double currentSize) {
+	private FMatResult getFundamentalMat(List<KeyPoint> imgpts1, List<KeyPoint> imgpts2, List<Integer> badpointsList, double currentSize) {
 		Mat status = new Mat();
-		
+
 		List<KeyPoint> imgpts1_tmp;
 		List<KeyPoint> imgpts2_tmp;
-		
+
 		// if (matches.size() <= 0) {
 		imgpts1_tmp = imgpts1;
 		imgpts2_tmp = imgpts2;
@@ -387,31 +371,29 @@ public class FeatureManager {
 		MatOfPoint2f pts2Mat = new MatOfPoint2f();
 		pts1Mat.fromList(pts1);
 		pts2Mat.fromList(pts2);
-		
+
 		MatOfPoint2f veryGoodpts1 = new MatOfPoint2f();
 		MatOfPoint2f veryGoodpts2 = new MatOfPoint2f();
-		
+
 		// Note: There is no minmaxIdx in java opencv
 		MinMaxLocResult res = Core.minMaxLoc(convertMatOfPoint2fToMat(pts1Mat));
 
 		// threshold from [Snavely07 4.1]
 		F = Calib3d.findFundamentalMat(pts1Mat, pts2Mat, Calib3d.FM_RANSAC, 0.006 * res.maxVal, 0.99, status);
-		
+
 		// Point Filtering
 		int badpointsCompensation = 0;
 		List<Integer> additionaBadpoints = new ArrayList<>();
 		for (int statusIndex = 0; statusIndex < status.size().height; statusIndex++) {
-			if (!badpointsList.isEmpty() 
-					&& badpointsCompensation < badpointsList.size()
-					&& statusIndex == badpointsList.get(badpointsCompensation)) {
+			if (!badpointsList.isEmpty() && badpointsCompensation < badpointsList.size() && statusIndex == badpointsList.get(badpointsCompensation)) {
 				badpointsCompensation++;
-				
+
 			}
-			int actualStatus = (int) status.get(statusIndex,0)[0]; 
+			int actualStatus = (int) status.get(statusIndex, 0)[0];
 			if (actualStatus == 1) {
 				veryGoodpts1.push_back(pts1Mat.submat(statusIndex, statusIndex + 1, 0, 1));
 				veryGoodpts2.push_back(pts2Mat.submat(statusIndex, statusIndex + 1, 0, 1));
-			
+
 			} else if (statusIndex + badpointsCompensation < currentSize) {
 				Integer additionalBadpoint = statusIndex + badpointsCompensation;
 				additionaBadpoints.add(additionalBadpoint);
@@ -420,21 +402,21 @@ public class FeatureManager {
 		FMatResult result = new FMatResult(F, veryGoodpts1, veryGoodpts2, additionaBadpoints);
 		return result;
 	}
-	
+
 	private class FMatResult {
 		Mat F;
-		MatOfPoint2f  superGoodPoints1;
-		MatOfPoint2f  superGoodPoints2;
+		MatOfPoint2f superGoodPoints1;
+		MatOfPoint2f superGoodPoints2;
 		List<Integer> additionalBadPoints;
-		private FMatResult(Mat F, MatOfPoint2f imgpts1_good, 
-				MatOfPoint2f imgpts2_good, List<Integer> additionalBadPoints) {
+
+		private FMatResult(Mat F, MatOfPoint2f imgpts1_good, MatOfPoint2f imgpts2_good, List<Integer> additionalBadPoints) {
 			this.F = F;
 			this.superGoodPoints1 = imgpts1_good;
 			this.superGoodPoints2 = imgpts2_good;
 			this.additionalBadPoints = additionalBadPoints;
 		}
 	}
-	
+
 	// modifies Rot1, Rot2, T1, T2
 	private boolean decomposeEtoRandT(Mat E) {
 		W = Mat.zeros(3, 3, CvType.CV_64F);
@@ -509,22 +491,37 @@ public class FeatureManager {
 		return homogenized;
 	}
 
+	private Mat convert1ChannelMatTo4ChannelMat(Mat mat1Chan) {
+		Mat mat4Chan = new Mat(mat1Chan.rows() / 4, mat1Chan.cols(), CvType.CV_32FC4);
+
+		double cell[] = new double[4];
+		for (int i = 0; i < mat4Chan.rows(); ++i) {
+			for (int j = 0; j < mat4Chan.cols(); ++j) {
+				for (int k = 0; k < 4; ++k)
+					cell[k] = mat1Chan.get(i* 4 + k, j )[0];
+				mat4Chan.put(i, j, cell);
+			}
+		}
+		return mat4Chan;
+	}
+
 	private boolean testTriangulation(final Mat points4d, final Mat P) {
 		final int TYPE = points4d.type();
 
 		List<Point3> pcloud_pt3d = homogenizeToList(points4d); // CloudPointsToPoints(pcloud);
 		Mat pcloud_pt3d_projected = new Mat(points4d.rows(), points4d.cols() - 1, TYPE);
 
-		Mat P4x4 = Mat.eye(4, 4, TYPE);
-		for (int i = 0; i < 12; i++) {
-			int row = i / 4;
-			int col = i % 4;
-			P4x4.put(row, col, P.get(row, col));
-		}
+		Mat P4x4 = P.clone();//Mat.eye(4, 4, TYPE);
+//		for (int i = 0; i < 12; i++) {
+//			int row = i / 4;
+//			int col = i % 4;
+//			P4x4.put(row, col, P.get(row, col));
+//		}
 
 		// perspectiveTransform() requires Mat, but source uses a vector.
-		Mat points4d32F = new Mat();
-		points4d.convertTo(points4d32F, CvType.CV_32FC3);
+		Mat points4d32F = convert1ChannelMatTo4ChannelMat(points4d);
+		System.out.println(points4d.size());
+		System.out.println(points4d32F.size());
 
 		Mat pcloud_mat = new Mat();
 
