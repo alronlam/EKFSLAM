@@ -219,10 +219,10 @@ public class EKF {
 		Matrix xMatrix = createStateVectorMatrix();
 		xMatrix = xMatrix.plus(kalmanGainMatrix.times(zMinusHMatrix));
 
-		// Log.d("EKFTests", "observedDistance= " + observedDistance +
-		// ", predictedDistance " + predictedDistance
-		// + " observedHeading=" + observedHeading + " predictedHeadingDelta=" +
-		// predictedHeadingDelta);
+		// System.out.println("observedDistance = " + observedDistance +
+		// ", predictedDistance = " + predictedDistance
+		// + " observedHeading = " + observedHeading +
+		// ", predictedHeadingDelta = " + predictedHeadingDelta);
 
 		// re-populate the state vector based on the result
 		X.clear();
