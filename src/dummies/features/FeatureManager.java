@@ -96,6 +96,13 @@ public class FeatureManager {
 
 	static boolean firstImg = true;
 
+	/** For Opencv has failed us yet again**/ // TODO:
+	private List<KeyPoint> convertMatOfPoint2fToListOfKeyPoints(MatOfPoint2f ps){
+		List<KeyPoint> kps;
+		
+		return null;
+	}
+	
 	public FeatureUpdate getFeatureUpdate(Mat currentImage) {
 		if (!framesReady) {
 			Mat toAdd = new Mat();
@@ -133,7 +140,9 @@ public class FeatureManager {
 			// TODO: Get fundamental matrix
 			List<KeyPoint> kpGoodOld = new ArrayList<KeyPoint>(), kpGoodNew = new ArrayList<KeyPoint>();
 			System.out.println(goodOld.cols());
-			Converters.Mat_to_vector_KeyPoint(goodOld, kpGoodOld);
+			
+			
+			Converters.Mat_to_vector_KeyPoint(goodOld, kpGoodOld); 
 			Converters.Mat_to_vector_KeyPoint(goodNew, kpGoodNew);
 
 			F = getFundamentalMat(kpGoodOld, kpGoodNew, null);
