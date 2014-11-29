@@ -10,6 +10,7 @@ import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
@@ -142,15 +143,23 @@ public class FeatureManager {
 		currentImage.copyTo(farImage);
 		images.add(farImage);
 		images.remove(0);
-
+		
+		
 		OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, farImage, checkpointFeatures);
 
 		MatOfPoint2f goodOld = opflowresult.getNearFeatures();
 		MatOfPoint2f goodNew = opflowresult.getFarFeatures();
-
+		
+		
+		
 		FMatResult fMatResult = null;
 		points4D1 = new Mat();
+		
+		// Assures that returning null would clear out old features
+		checkpointFeatures = new MatOfPoint2f();
+		
 		if (!goodOld.empty() && !goodNew.empty()) {
+			
 			// SOLVING FOR THE ROTATION AND TRANSLATION MATRICES
 
 			// GETTING THE FUNDAMENTAL MATRIX
@@ -164,44 +173,14 @@ public class FeatureManager {
 			kpGoodNew = convertMatOfPoint2fToListOfKeyPoints(goodNew);
 
 			CURRENT_STEP = this.STEP_ESSENTIAL_MATRIX;
-			fMatResult = getFundamentalMat(kpGoodOld, kpGoodNew, opflowresult.getBadPointsIndex());
+			fMatResult = getFundamentalMat(kpGoodOld, kpGoodNew, opflowresult.getBadPointsIndex(), opflowresult.getCurrentSize());
 			F = fMatResult.F;
 			
+			// SOBRANG HASSLE
+			// A bit scary
+			goodOld = fMatResult.superGoodPoints1;
+			goodNew = fMatResult.superGoodPoints2;
 			
-			// int tries = 0;
-			//
-			// do {
-			// // MAGIC NUMBERS
-			// switch (tries) {
-			// case 0:
-			// F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 1, 0.95);
-			// break;
-			// case 1:
-			// F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 2, 0.90);
-			// break;
-			// case 2:
-			// F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 3, 0.85);
-			// break;
-			// case 3:
-			// F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_8POINT, 3, 0.85);
-			// break;
-			// // case 4:
-			// // // gives a ridiculous shit
-			// // F = Calib3d.findFundamentalMat(goodOld, goodNew,
-			// // Calib3d.FM_8POINT, 5, 0.75);
-			// // System.out.println(F.size().toString());
-			// // break;
-			// case 4:
-			// F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 20, 0.0);
-			// break;
-			//
-			// default:
-			// checkpointImage = new Mat();
-			// checkpointFeatures = new MatOfPoint2f();
-			// return null;
-			// }
-			// tries++;
-
 			tempMat = nullMatF.clone();
 			E = nullMatF.clone();
 
@@ -294,11 +273,10 @@ public class FeatureManager {
 		}
 
 		// TODO: Check
-
 		FeatureUpdate update = new FeatureUpdate();
 		List<PointDouble> currentPoints = new ArrayList<>();
 		List<PointDouble> newPoints = new ArrayList<>();
-		int currentSize = (int) opflowresult.getCurrentSize();
+		int currentSize = (int) opflowresult.getCurrentSize() - fMatResult.additionalBadPoints.size();
 		for (int i = 0; i < points4D1.cols(); i++) {
 			double w = points4D1.get(3, i)[0];
 			double x = points4D1.get(0, i)[0] / w * Camera.metersPerPixel;
@@ -308,10 +286,8 @@ public class FeatureManager {
 			PointDouble point = new PointDouble(x, z);
 
 			if (i < currentSize) {
-				// System.out.println("Current: " + i);
 				currentPoints.add(point);
 			} else {
-				// System.out.println("New: " + i);
 				newPoints.add(point);
 			}
 		}
@@ -328,8 +304,7 @@ public class FeatureManager {
 
 		// Assignment of values for next cycle
 		// Only gets called when nothing went wrong
-		opflowresult.getNearFeatures().copyTo(checkpointFeatures);
-		
+		fMatResult.superGoodPoints1.copyTo(checkpointFeatures);
 		frames++;
 
 		System.out.println(update);
@@ -388,10 +363,8 @@ public class FeatureManager {
 	}
 
 	private FMatResult getFundamentalMat(List<KeyPoint> imgpts1, List<KeyPoint> imgpts2, 
-			List<Integer> badpointsList) {
+			List<Integer> badpointsList, double currentSize) {
 		Mat status = new Mat();
-		List<KeyPoint> imgpts1_good = new ArrayList<>();
-		List<KeyPoint> imgpts2_good = new ArrayList<>();
 		
 		List<KeyPoint> imgpts1_tmp;
 		List<KeyPoint> imgpts2_tmp;
@@ -414,7 +387,10 @@ public class FeatureManager {
 		MatOfPoint2f pts2Mat = new MatOfPoint2f();
 		pts1Mat.fromList(pts1);
 		pts2Mat.fromList(pts2);
-
+		
+		MatOfPoint2f veryGoodpts1 = new MatOfPoint2f();
+		MatOfPoint2f veryGoodpts2 = new MatOfPoint2f();
+		
 		// Note: There is no minmaxIdx in java opencv
 		MinMaxLocResult res = Core.minMaxLoc(convertMatOfPoint2fToMat(pts1Mat));
 
@@ -429,28 +405,29 @@ public class FeatureManager {
 					&& badpointsCompensation < badpointsList.size()
 					&& statusIndex == badpointsList.get(badpointsCompensation)) {
 				badpointsCompensation++;
+				
 			}
 			int actualStatus = (int) status.get(statusIndex,0)[0]; 
 			if (actualStatus == 1) {
-				imgpts1_good.add(imgpts1_tmp.get(statusIndex));
-				imgpts2_good.add(imgpts2_tmp.get(statusIndex));
-			} else {
-				Integer additionalBadpoint = statusIndex + badpointsCompensation; 
+				veryGoodpts1.push_back(pts1Mat.submat(statusIndex, statusIndex + 1, 0, 1));
+				veryGoodpts2.push_back(pts2Mat.submat(statusIndex, statusIndex + 1, 0, 1));
+			
+			} else if (statusIndex + badpointsCompensation < currentSize) {
+				Integer additionalBadpoint = statusIndex + badpointsCompensation;
 				additionaBadpoints.add(additionalBadpoint);
 			}
 		}
-		System.out.println("Additional badpoints:" + additionaBadpoints.size());
-		FMatResult result = new FMatResult(F, imgpts1_good, imgpts2_good, additionaBadpoints);
+		FMatResult result = new FMatResult(F, veryGoodpts1, veryGoodpts2, additionaBadpoints);
 		return result;
 	}
 	
 	private class FMatResult {
 		Mat F;
-		List<KeyPoint> superGoodPoints1;
-		List<KeyPoint> superGoodPoints2;
+		MatOfPoint2f  superGoodPoints1;
+		MatOfPoint2f  superGoodPoints2;
 		List<Integer> additionalBadPoints;
-		private FMatResult(Mat F, List<KeyPoint> imgpts1_good, 
-				List<KeyPoint> imgpts2_good, List<Integer> additionalBadPoints) {
+		private FMatResult(Mat F, MatOfPoint2f imgpts1_good, 
+				MatOfPoint2f imgpts2_good, List<Integer> additionalBadPoints) {
 			this.F = F;
 			this.superGoodPoints1 = imgpts1_good;
 			this.superGoodPoints2 = imgpts2_good;
