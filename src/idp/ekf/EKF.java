@@ -82,12 +82,12 @@ public class EKF {
 		// time step
 		Xm1 = X.clone();
 		Pm1 = P.clone();
-		
+
 		PointTriple xyzPositionOld = X.getCurrentXYZPosition();
 		Quaternion quaternionOld = X.getCurrentQuaternion();
 		PointTriple vOld = X.getCurrentV();
 		PointTriple omegaOld = X.getCurrentOmega();
-		
+
 		// Not sure if correct, but this is what's written in MonoSLAM code
 		PointTriple xyzPositionNew = xyzPositionOld.plus(vOld.times(deltaTime));
 		Quaternion qwt = QuaternionHelper.calculateQWT(omegaOld, deltaTime);
@@ -100,7 +100,7 @@ public class EKF {
 		X.setQuaternion(quaternionNew);
 		X.setV(vNew);
 		X.setOmega(omegaNew);
-		
+
 		/* Update the covariance matrices based on this prediction */
 		Matrix A_Matrix = this.createA(vOld, omegaOld, deltaTime);
 		Matrix Q_Matrix = this.createQ(deltaTime, quaternionOld, omegaOld);
@@ -123,16 +123,17 @@ public class EKF {
 		IDPUtility.calculate_derivatives(X, cam, features_info);
 		
 		Quaternion q = X.getCurrentQuaternion();
-		if(q.getR() == 0 && q.getX() == 0 && q.getY() == 0 && q.getZ() == 0)
+		if (q.getR() == 0 && q.getX() == 0 && q.getY() == 0 && q.getZ() == 0)
 			return;
 		
 		Matrix h_cam = Helper.inverseDepthToCartesian(X.getFeature(featureIndex));
 
 		double predictedU = cam.Cx - cam.f * h_cam.get(0, 0) / cam.dx / h_cam.get(2, 0);
 		double predictedV = cam.Cy - cam.f * h_cam.get(1, 0) / cam.dy / h_cam.get(2, 0);
-		//System.out.println(predictedU + " " + predictedV);
-		
+		// System.out.println(predictedU + " " + predictedV);
+
 		/*
+<<<<<<< HEAD
 		if (predictedU < 0 || predictedU > 240 || predictedV < 0 || predictedV > 320) {
 			//System.out.println("far predict");
 			return;
@@ -143,16 +144,16 @@ public class EKF {
 		Matrix hMatrix = f.H;
 		if (hMatrix == null)
 			return;
-		
+
 		Matrix pMatrix = P.toMatrix();
-		
+
 		/*
-		Matrix hphMatrix = hMatrix.times(pMatrix).times(hMatrix.transpose());
-		
-		Matrix vrvMatrix = this.createVRVMatrix();
-		Matrix innovationMatrix = hphMatrix.plus(vrvMatrix);
-		*/
-		
+		 * Matrix hphMatrix = hMatrix.times(pMatrix).times(hMatrix.transpose());
+		 * 
+		 * Matrix vrvMatrix = this.createVRVMatrix(); Matrix innovationMatrix =
+		 * hphMatrix.plus(vrvMatrix);
+		 */
+
 		f.S = hMatrix.times(pMatrix).times(hMatrix.transpose()).plus(f.R);
 		Matrix innovationMatrix = f.S;
 		try {
@@ -175,11 +176,11 @@ public class EKF {
 			// Update covariance
 			pMatrix = pMatrix.minus(kalmanGainMatrix.times(innovationMatrix).times(kalmanGainMatrix.transpose()));
 			pMatrix = pMatrix.times(0.5).plus(pMatrix.transpose().times(0.5));
-			
+
 			Matrix jNorm = QuaternionHelper.normJac(X.getCurrentQuaternion());
 
 			int pSize = pMatrix.getColumnDimension() - 1;
-			
+
 			pMatrix.setMatrix(3, 6, 0, 2, jNorm.times(pMatrix.getMatrix(3, 6, 0, 2)));
 			pMatrix.setMatrix(0, 2, 3, 6, pMatrix.getMatrix(0, 2, 3, 6).times(jNorm.transpose()));
 			pMatrix.setMatrix(3, 6, 3, 6, jNorm.times(pMatrix.getMatrix(3, 6, 3, 6)).times(jNorm.transpose()));
@@ -188,9 +189,9 @@ public class EKF {
 			P.set(pMatrix);
 		} catch (Exception e) {
 			System.out.println(X);
-			//e.printStackTrace();
+			// e.printStackTrace();
 		}
-		
+
 		// Log.d("EKFTests", "State Vector: " + X.toString());
 	}
 
@@ -205,6 +206,11 @@ public class EKF {
 		features_info.remove(featureIndex);
 	}
 
+	public void deleteAllFeatures() {
+		X.deleteAllFeatures();
+		P.deleteAllFeatures();
+	}
+
 	// Method for adding a feature to the sate vector and covariance matrix.
 	public void addFeature(int ud, int vd, Camera camera) {
 		IDPFeature newFeature = FeatureInitializationHelper.createFeature(X.getCurrentXYZPosition(),
@@ -212,7 +218,7 @@ public class EKF {
 
 		double[][] uv = { { ud, vd } };
 		FeatureInfo f = new FeatureInfo(new Matrix(uv), X.toMatrix(), newFeature);
-		
+
 		features_info.add(f);
 
 		X.addFeature(newFeature);
@@ -244,7 +250,8 @@ public class EKF {
 
 		/* Initialize 3x3 deltaTime */
 
-		// Matrix deltaTimeMatrix = Helper.createSameValuedMatrix(deltaTime, 3, 3); this is wrong
+		// Matrix deltaTimeMatrix = Helper.createSameValuedMatrix(deltaTime, 3,
+		// 3); this is wrong
 		Matrix deltaTimeMatrix = Helper.createIdentityMatrix(3).times(deltaTime);
 		A_Matrix = Helper.setSubMatrixValues(A_Matrix, deltaTimeMatrix, 0, 7);
 

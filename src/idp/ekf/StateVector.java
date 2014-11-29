@@ -22,12 +22,11 @@ public class StateVector {
 			X.add(0.0);
 		for (int i = 10; i <= 12; i++)
 			X.add(Helper.EPS);
-		
+
 		/*
-		for (int i = 0; i < stateVarsOfInterest; i++)
-			X.add(Helper.EPS);
-		*/
-		
+		 * for (int i = 0; i < stateVarsOfInterest; i++) X.add(Helper.EPS);
+		 */
+
 		// set quaternion to 1
 		X.set(3, 1.0);
 	}
@@ -58,9 +57,9 @@ public class StateVector {
 	public void deleteFeature(int featureIndex) {
 		int targetIndexStart = this.getStartingIndexInStateVector(featureIndex);
 
-		for(int i=0; i<EKF.FEATURE_SIZE;i++)
+		for (int i = 0; i < EKF.FEATURE_SIZE; i++)
 			X.remove(targetIndexStart);
-		
+
 		numFeatures--;
 	}
 
@@ -68,22 +67,22 @@ public class StateVector {
 
 	public String toString() {
 		StringBuilder sn = new StringBuilder();
-		
+
 		sn.append("[" + X.get(0));
-		
+
 		for (int i = 1; i < X.size(); i++) {
 			sn.append(", ");
-			
+
 			if (Double.isNaN(X.get(i)))
 				sn.append("x");
 			else if (Math.abs(X.get(i)) > 1e-15)
 				sn.append(X.get(i));
-			else 
+			else
 				sn.append("0");
 		}
-		
+
 		sn.append("]");
-		
+
 		return sn.toString();
 	}
 
@@ -144,15 +143,22 @@ public class StateVector {
 
 		return new PointTriple(x, y, z);
 	}
-	
-	public IDPFeature getFeature(int index){
+
+	public IDPFeature getFeature(int index) {
 		int startIndex = this.getStartingIndexInStateVector(index);
-		IDPFeature f = new IDPFeature(X.get(startIndex),X.get(startIndex+1),X.get(startIndex+2),X.get(startIndex+3),X.get(startIndex+4),X.get(startIndex+5));
-		
+		IDPFeature f = new IDPFeature(X.get(startIndex), X.get(startIndex + 1), X.get(startIndex + 2),
+				X.get(startIndex + 3), X.get(startIndex + 4), X.get(startIndex + 5));
+
 		return f;
 	}
 
 	/*** Setters ***/
+
+	public void deleteAllFeatures() {
+		X = (ArrayList<Double>) X.subList(0, EKF.STATE_VARS_OF_INTEREST);
+		this.numFeatures = 0;
+	}
+
 	public void setXYZPosition(PointTriple newXYZ) {
 		X.set(0, newXYZ.getX());
 		X.set(1, newXYZ.getY());

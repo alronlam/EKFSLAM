@@ -17,7 +17,7 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.video.Video;
 
 class OpticalFlow {
-	private final int MAX_FEATURES = 60;
+	private final int MAX_FEATURES = 100;
 	private final double QUALITY_LEVEL = 0.01;
 	private final double MIN_DISTANCE = 20;
 	private final int BLOCK_SIZE = 3;

@@ -19,6 +19,7 @@ public class VINSController {
 
 	private EKF ekf;
 	private MotionEstimation motionEstimator;
+	private int featureUpdateNullCount = 0;
 
 	private List<PointDouble> coordinates;
 
@@ -48,6 +49,8 @@ public class VINSController {
 
 		if (featureUpdate != null) {
 
+			featureUpdateNullCount = 0;
+
 			/* Delete features that disappeared */
 			List<Integer> toDelete = featureUpdate.getBadPointsIndex();
 			Collections.reverse(toDelete);
@@ -66,6 +69,10 @@ public class VINSController {
 			List<PointDouble> toAdd = featureUpdate.getNewPoints();
 			for (PointDouble featpos : toAdd)
 				ekf.addFeature(featpos.getX(), featpos.getY());
+		} else {
+			featureUpdateNullCount++;
+			// if (featureUpdateNullCount == 3)
+			ekf.deleteAllFeatures();
 		}
 	}
 

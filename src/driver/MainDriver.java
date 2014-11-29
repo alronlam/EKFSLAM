@@ -59,13 +59,14 @@ public class MainDriver {
 		/* Change IMU Dataset with Camera Heading */
 		List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
 
-		runDoubleIntegration(cimuDataset, imgDataset);
+		// runDoubleIntegration(cimuDataset, imgDataset);
 		runVINS(cimuDataset, imgDataset);
-		runINS(imuDataset, imgDataset, insLogFileName);
-		runINS(imuDatasetWithCimuHeading, imgDataset, insCimuHeadingLogFileName);
-		runBreadcrumbDummies(imuDataset, imgDataset, breadcrumbLogFileName);
-		runBreadcrumbDummies(imuDatasetWithCimuHeading, imgDataset, breadcrumbWithCimuHeadingLogFileName);
-		// runIDP(cimuDataset, imgDataset);
+		// runINS(imuDataset, imgDataset, insLogFileName);
+		// runINS(imuDatasetWithCimuHeading, imgDataset,
+		// insCimuHeadingLogFileName);
+		// runBreadcrumbDummies(imuDataset, imgDataset, breadcrumbLogFileName);
+//		runBreadcrumbDummies(imuDatasetWithCimuHeading, imgDataset, breadcrumbWithCimuHeadingLogFileName);
+//		runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 
 		System.out.println(finalResultsStringBuilder.toString());
@@ -220,6 +221,7 @@ public class MainDriver {
 			vinsIDPLog.append(vinsIDP.getDeviceCoords() + "\n");
 		}
 
+		finalResultsStringBuilder.append("Total Distance Traveled = " + vinsIDP.getTotalDistanceTraveled() + "\r\n");
 		finalResultsStringBuilder.append("Total Displacement = "
 				+ vinsIDP.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
@@ -282,6 +284,7 @@ public class MainDriver {
 		int datasetSize = Math.min(imuDataset.size(), imgDataset.size());
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
 
+		int state[] = new int[6];
 		for (int i = 0; i < datasetSize; i++) {
 
 			System.out.println("\n\nTime Step " + (i + 1));
@@ -293,12 +296,24 @@ public class MainDriver {
 
 			/* Image Update */
 			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i));
+			state[FeatureManager.CURRENT_STEP]++;
+			state[5]++;	
+			
 			vins.update(featureUpdate);
 			System.out.println("Finished updating.");
 
 			/* Update the logs */
 			vinsLog.append(vins.getDeviceCoords() + "\n");
 		}
+		System.out.println("Dataset Size: " + datasetSize );
+		System.out.println("Initial Delay: " + state[1]);
+		System.out.println("Failed due to optical flow: " + state[2]);
+		System.out.println("Failed due to essential matrix: " + state[3]);
+		System.out.println("Failed due to triangulation: " + state[4]);
+		System.out.println("Success/Processed: " + state[0] +"/"+ (state[5]-state[1]));
+		System.out.println("Failed/Processed: " + (state[2] + state[3] + state[4]) +"/"+ (state[5]-state[1]) );
+		System.out.printf("Success Rate: %.3f%%\n", state[0] * 100.0 / (datasetSize-state[1]) );
+		
 		finalResultsStringBuilder.append("Total distance traveled " + vins.getTotalDistanceTraveled() + "\r\n");
 		finalResultsStringBuilder.append("Total Displacement = "
 				+ vins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
