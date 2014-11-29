@@ -112,9 +112,6 @@ public class EKF {
 		// Update the first 3 columns of P (device to feature correlation) P_ri
 		// = A * P_ri
 		P.updatePri(A_Matrix);
-
-		IDPUtility.predict_camera_measurements(X, cam, features_info);
-		System.out.println(X);
 	}
 
 	/********** V-INS Update **********/
@@ -122,13 +119,13 @@ public class EKF {
 	// Method for correcting the state vector based on re-observed features.
 
 	public void updateFromReobservedFeatureThroughImageCoords(int featureIndex, double observedU, double observedV) {
-
+		IDPUtility.predict_camera_measurements(X, cam, features_info);
+		IDPUtility.calculate_derivatives(X, cam, features_info);
+		
 		Quaternion q = X.getCurrentQuaternion();
 		if (q.getR() == 0 && q.getX() == 0 && q.getY() == 0 && q.getZ() == 0)
 			return;
-
-		IDPUtility.calculate_derivatives(X, cam, features_info, featureIndex);
-
+		
 		Matrix h_cam = Helper.inverseDepthToCartesian(X.getFeature(featureIndex));
 
 		double predictedU = cam.Cx - cam.f * h_cam.get(0, 0) / cam.dx / h_cam.get(2, 0);
@@ -136,16 +133,19 @@ public class EKF {
 		// System.out.println(predictedU + " " + predictedV);
 
 		/*
-		 * if (predictedU < 0 || predictedU > 240 || predictedV < 0 ||
-		 * predictedV > 320) { //System.out.println("far predict"); return; }
-		 */
-
-		Matrix hMatrix = features_info.get(featureIndex).H;
+<<<<<<< HEAD
+		if (predictedU < 0 || predictedU > 240 || predictedV < 0 || predictedV > 320) {
+			//System.out.println("far predict");
+			return;
+		}
+		*/
+		
+		FeatureInfo f = features_info.get(featureIndex);
+		Matrix hMatrix = f.H;
 		if (hMatrix == null)
 			return;
 
 		Matrix pMatrix = P.toMatrix();
-		FeatureInfo f = features_info.get(featureIndex);
 
 		/*
 		 * Matrix hphMatrix = hMatrix.times(pMatrix).times(hMatrix.transpose());

@@ -161,7 +161,6 @@ public class FeatureManager {
 
 			// There is a case that fundamental matrix is not found
 
-			// TODO: Get fundamental matrix
 			List<KeyPoint> kpGoodOld = new ArrayList<KeyPoint>(), kpGoodNew = new ArrayList<KeyPoint>();
 
 			kpGoodOld = convertMatOfPoint2fToListOfKeyPoints(goodOld);
@@ -186,7 +185,7 @@ public class FeatureManager {
 			if (Math.abs(Core.determinant(E)) > 1e-07) {
 				if (this.DEBUG_MODE)
 					System.out.println("det(E) != 0 : " + Core.determinant(E));
-				P2 = Mat.zeros(3, 4, CvType.CV_64F); // TODO: Double check the type
+				P2 = Mat.zeros(3, 4, CvType.CV_64F); 
 				return null;
 			}
 
@@ -211,7 +210,7 @@ public class FeatureManager {
 			P1.put(2, 0, 0, 0, 1, 0);
 
 			if (!checkCoherentRotation(Rot1)) {
-				P2 = Mat.zeros(3, 4, CvType.CV_64F); // TODO: Double check the type
+				P2 = Mat.zeros(3, 4, CvType.CV_64F); 
 				return null;
 			}
 
@@ -225,7 +224,7 @@ public class FeatureManager {
 			points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
 			points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
 
-			if (!testTriangulation(points4D1, P1) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation,
+			if (reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation, !testTriangulation(points4D1, P1) || 
 
 				// Combination 2
 				P2.put(0, 0, Rot1.get(0, 0)[0], Rot1.get(0, 1)[0], Rot1.get(0, 2)[0], T2.get(0, 0)[0]);
@@ -267,16 +266,15 @@ public class FeatureManager {
 			}
 		}
 
-		// TODO: Check
 		FeatureUpdate update = new FeatureUpdate();
 		List<PointDouble> currentPoints = new ArrayList<>();
 		List<PointDouble> newPoints = new ArrayList<>();
 		int currentSize = (int) opflowresult.getCurrentSize() - fMatResult.additionalBadPoints.size();
 		for (int i = 0; i < points4D1.cols(); i++) {
 			double w = points4D1.get(3, i)[0];
-			double x = points4D1.get(0, i)[0] / w * Camera.metersPerPixel;
-			double y = points4D1.get(1, i)[0] / w * Camera.metersPerPixel;
-			double z = points4D1.get(2, i)[0] / w * Camera.metersPerPixel;
+			double x = points4D1.get(0, i)[0] / w;
+			double y = points4D1.get(1, i)[0] / w;
+			double z = points4D1.get(2, i)[0] / w;
 
 			PointDouble point = new PointDouble(x, z);
 
@@ -322,8 +320,8 @@ public class FeatureManager {
 	private List<KeyPoint> PointsToKeyPoints(List<Point> ps) {
 		List<KeyPoint> kps = new ArrayList<>();
 
-		for (Point p : ps)
-			kps.add(new KeyPoint((float) p.x, (float) p.y, 1.0f)); // TODO: I assumed that the third parameter is size, but I'm not sure
+		for (Point p : ps) // Note: I assumed that the third parameter is size, but I'm not sure
+			kps.add(new KeyPoint((float) p.x, (float) p.y, 1.0f)); 
 
 		return kps;
 	}
@@ -363,10 +361,7 @@ public class FeatureManager {
 		List<Point> pts1, pts2;
 		pts1 = KeyPointsToPoints(imgpts1_tmp);
 		pts2 = KeyPointsToPoints(imgpts2_tmp);
-		// TODO: double check types
-
-		// MatOfPoint2f pts1Mat = (MatOfPoint2f) Converters.vector_Point2f_to_Mat(pts1);
-		// MatOfPoint2f pts2Mat = (MatOfPoint2f) Converters.vector_Point2f_to_Mat(pts2);
+		
 		MatOfPoint2f pts1Mat = new MatOfPoint2f();
 		MatOfPoint2f pts2Mat = new MatOfPoint2f();
 		pts1Mat.fromList(pts1);
@@ -498,7 +493,7 @@ public class FeatureManager {
 		for (int i = 0; i < mat4Chan.rows(); ++i) {
 			for (int j = 0; j < mat4Chan.cols(); ++j) {
 				for (int k = 0; k < 4; ++k)
-					cell[k] = mat1Chan.get(i* 4 + k, j )[0];
+					cell[k] = mat1Chan.get(i * 4 + k, j)[0];
 				mat4Chan.put(i, j, cell);
 			}
 		}
@@ -509,14 +504,14 @@ public class FeatureManager {
 		final int TYPE = points4d.type();
 
 		List<Point3> pcloud_pt3d = homogenizeToList(points4d); // CloudPointsToPoints(pcloud);
-		Mat pcloud_pt3d_projected = new Mat(points4d.rows(), points4d.cols() - 1, TYPE);
+		Mat pcloud_pt3d_projected = new Mat();//points4d.rows(), points4d.cols() - 1, TYPE);
 
-		Mat P4x4 = P.clone();//Mat.eye(4, 4, TYPE);
-//		for (int i = 0; i < 12; i++) {
-//			int row = i / 4;
-//			int col = i % 4;
-//			P4x4.put(row, col, P.get(row, col));
-//		}
+		Mat P4x4 = P.clone();// Mat.eye(4, 4, TYPE);
+		// for (int i = 0; i < 12; i++) {
+		// int row = i / 4;
+		// int col = i % 4;
+		// P4x4.put(row, col, P.get(row, col));
+		// }
 
 		// perspectiveTransform() requires Mat, but source uses a vector.
 		Mat points4d32F = convert1ChannelMatTo4ChannelMat(points4d);
@@ -526,11 +521,18 @@ public class FeatureManager {
 		Mat pcloud_mat = new Mat();
 
 		Calib3d.convertPointsFromHomogeneous(points4d32F, pcloud_mat);
+		
 		Core.perspectiveTransform(pcloud_mat, pcloud_pt3d_projected, P4x4);
-
+		System.out.println(pcloud_mat.size());
+		System.out.println(pcloud_mat.channels());
+		System.out.println(pcloud_mat.type());
+		System.out.println(pcloud_pt3d_projected.size());
+		System.out.println(pcloud_pt3d_projected.channels());
+		System.out.println(pcloud_pt3d_projected.type());
+		
 		List<Integer> status = new ArrayList<>(pcloud_pt3d.size());
 		for (int i = 0; i < pcloud_pt3d.size(); i++) {
-			double homogenizedValue = pcloud_pt3d_projected.get(i, 2)[0] / pcloud_pt3d_projected.get(i, 3)[0]; // z
+			double homogenizedValue = pcloud_pt3d_projected.get(i, 0)[2] / pcloud_pt3d_projected.get(i, 0)[3]; // z
 			status.add(Integer.valueOf((homogenizedValue > 0) ? 1 : 0));
 		}
 		int count = countNonZero(status);

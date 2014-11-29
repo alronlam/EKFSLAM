@@ -128,15 +128,17 @@ public class IDPUtility {
 		return new Matrix(out);
 	}
 
-	public static void calculate_derivatives(StateVector x_k_km1, Camera cam, ArrayList<FeatureInfo> features_info,
-			int featureIndex) {
+	public static void calculate_derivatives(StateVector x_k_km1, Camera cam, ArrayList<FeatureInfo> features_info) {
 		Matrix x = x_k_km1.toMatrix();
 		Matrix x_v = x.getMatrix(0, 12, 0, 0);
-		//Matrix x_features = x.getMatrix(13, x.getRowDimension() - 1, 0, 0);
-
-		if (features_info.get(featureIndex).h != null) {
-			Matrix y = x.getMatrix(13, 13+5, 0, 0);
-			features_info.get(featureIndex).H = calculate_Hi_inverse_depth(x_v, y, cam, featureIndex, features_info);
+		
+		for (int i = 0; i < features_info.size(); i++) {
+			FeatureInfo f = features_info.get(i);
+			if (f.h != null) {
+				//Matrix y = x.getMatrix(13, 13+5, 0, 0);
+				Matrix y = f.yi.toMatrix();
+				f.H = calculate_Hi_inverse_depth(x_v, y, cam, i, features_info);
+			}
 		}
 	}
 
