@@ -160,10 +160,10 @@ public class StateVector {
 	}
 
 	public void setQuaternion(Quaternion q) {
-		X.set(3, q.getX());
-		X.set(4, q.getY());
-		X.set(5, q.getZ());
-		X.set(6, q.getR());
+		X.set(3, q.getR());
+		X.set(4, q.getX());
+		X.set(5, q.getY());
+		X.set(6, q.getZ());
 	}
 
 	public void setV(PointTriple newV) {

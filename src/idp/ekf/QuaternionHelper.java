@@ -28,7 +28,7 @@ public class QuaternionHelper {
 
 		double theta = w.getNorm();
 		if (theta < Helper.EPS)
-			return new Quaternion(1, 0, 0, 0);
+			return new Quaternion(0, 0, 0, 1);
 		else {
 			PointTriple w_n = w.divide(theta);
 			return new Quaternion(w_n, theta);
