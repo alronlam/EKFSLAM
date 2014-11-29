@@ -26,6 +26,7 @@ public class Constants {
 	public static final String FOLDER_MIGUEL_RECTANGLE_ALRON = "miguel_alron_rect_93.6m_149";
 	public static final String FOLDER_LS_STRAIGHT = "LS Straight";
 	public static final String FOLDER_YUCH_LOBBY_RECTANGLE = "Yuch Big Rectangle";
+	public static final String FOLDER_TriTest = "TriTest";
 
 	// Others
 	public static final String INS_DATA_HEADER = "Acc_x,Acc_y,Acc_z,Gyro_x,Gyro_y,Gyro_z,Orient_x,Orient_y,Orient_z,Time\n";
