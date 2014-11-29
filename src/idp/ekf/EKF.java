@@ -100,7 +100,7 @@ public class EKF {
 		X.setQuaternion(quaternionNew);
 		X.setV(vNew);
 		X.setOmega(omegaNew);
-
+		
 		/* Update the covariance matrices based on this prediction */
 		Matrix A_Matrix = this.createA(vOld, omegaOld, deltaTime);
 		Matrix Q_Matrix = this.createQ(deltaTime, quaternionOld, omegaOld);
@@ -112,6 +112,9 @@ public class EKF {
 		// Update the first 3 columns of P (device to feature correlation) P_ri
 		// = A * P_ri
 		P.updatePri(A_Matrix);
+
+		IDPUtility.predict_camera_measurements(X, cam, features_info);
+		System.out.println(X);
 	}
 
 	/********** V-INS Update **********/
@@ -119,12 +122,8 @@ public class EKF {
 	// Method for correcting the state vector based on re-observed features.
 
 	public void updateFromReobservedFeatureThroughImageCoords(int featureIndex, double observedU, double observedV) {
-
-		IDPUtility.predict_camera_measurements(X, cam, features_info, featureIndex);
 		
-		System.out.println(X.getCurrentQuaternion());
 		Quaternion q = X.getCurrentQuaternion();
-		
 		if(q.getR() == 0 && q.getX() == 0 && q.getY() == 0 && q.getZ() == 0)
 			return;
 		

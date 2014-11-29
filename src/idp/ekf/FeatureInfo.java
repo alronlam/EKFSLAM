@@ -26,7 +26,7 @@ public class FeatureInfo {
 	public Matrix patch_when_matching;
 	public Matrix z, h, H, S, R;
 	
-	private IDPFeature yi;
+	public IDPFeature yi;
 	
 	
 	public FeatureInfo(Matrix uv, Matrix X_RES,	IDPFeature newFeature) {

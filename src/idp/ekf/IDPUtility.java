@@ -13,8 +13,7 @@ public class IDPUtility {
 	// https://svn.openslam.org/data/svn/ekfmonoslam/trunk/matlab_code
 	// thank you, monoslam :D
 
-	public static void predict_camera_measurements(StateVector x_k_k, Camera cam, ArrayList<FeatureInfo> features_info,
-			int featureIndex) {
+	public static void predict_camera_measurements(StateVector x_k_k, Camera cam, ArrayList<FeatureInfo> features_info) {
 		Matrix x = x_k_k.toMatrix();
 		
 		// Pinhole Model (whatever that means)
@@ -25,11 +24,14 @@ public class IDPUtility {
 		Quaternion q = x_k_k.getCurrentQuaternion();
 		Matrix r_wc = Helper.quaternionToRotationMatrix(q);
 		
-		IDPFeature f = x_k_k.getFeature(featureIndex);
 		// implying i care about cartesian coords
-		Matrix hi = hi_inverse_depth(f, t_wc, r_wc, cam, features_info);
-		if (hi != null) {
-			features_info.get(featureIndex).h = hi;
+		for (FeatureInfo ft : features_info) {
+			IDPFeature f = ft.yi;
+			
+			Matrix hi = hi_inverse_depth(f, t_wc, r_wc, cam, features_info);
+			if (hi != null) {
+				ft.h = hi.transpose();
+			}
 		}
 	}
 
@@ -50,13 +52,11 @@ public class IDPUtility {
 		Matrix hrl = r_cw.times(yi.minus(t_wc).times(rho).plus(mi));
 		
 		// is in front of camera? [sic]
-		/*
 		double a13 = Math.atan2(hrl.get(0, 0), hrl.get(2, 0)) * 180 / Math.PI;
 		double a23 = Math.atan2(hrl.get(1, 0), hrl.get(2, 0)) * 180 / Math.PI;
 
 		if (a13 < -60 || a13 > 60 || a23 < -60 || a23 < 60)
 			return null;
-		*/
 
 		// image coordinates
 		Matrix uv_u = hu(hrl, cam);
@@ -147,7 +147,7 @@ public class IDPUtility {
 		int number_of_features = features_info.size();
 		// all features in feature_info are inverse depth features
 		Matrix Hi = new Matrix(2, 13 + 6 * number_of_features);
-
+		
 		Matrix toSet = dh_dxv(cam, Xv_km1_k, yi, zi);
 		Hi.setMatrix(0, 1, 0, 11, toSet);
 
@@ -320,7 +320,7 @@ public class IDPUtility {
 
 	private static Matrix jacob_undistor_fm(Camera cam, Matrix uvd) {
 		double ud = uvd.get(0, 0);
-		double vd = uvd.get(1, 0);
+		double vd = uvd.get(0, 1);
 		double xd = (ud - cam.Cx) * cam.dx;
 		double yd = (vd - cam.Cy) * cam.dy;
 
