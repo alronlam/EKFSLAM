@@ -1,6 +1,7 @@
 package dummies.features;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.opencv.calib3d.Calib3d;
@@ -106,7 +107,6 @@ public class FeatureManager {
 	static boolean firstImg = true;
 
 	/** For Opencv has failed us yet again **/
-	//
 	private List<KeyPoint> convertMatOfPoint2fToListOfKeyPoints(MatOfPoint2f ps) {
 		List<KeyPoint> kps = new ArrayList<>();
 
@@ -147,6 +147,7 @@ public class FeatureManager {
 		MatOfPoint2f goodOld = opflowresult.getNearFeatures();
 		MatOfPoint2f goodNew = opflowresult.getFarFeatures();
 
+		FMatResult fMatResult = null;
 		points4D1 = new Mat();
 		if (!goodOld.empty() && !goodNew.empty()) {
 			// SOLVING FOR THE ROTATION AND TRANSLATION MATRICES
@@ -157,13 +158,15 @@ public class FeatureManager {
 
 			// TODO: Get fundamental matrix
 			List<KeyPoint> kpGoodOld = new ArrayList<KeyPoint>(), kpGoodNew = new ArrayList<KeyPoint>();
-
+			
 			kpGoodOld = convertMatOfPoint2fToListOfKeyPoints(goodOld);
 			kpGoodNew = convertMatOfPoint2fToListOfKeyPoints(goodNew);
 
 			error = this.MSG_ESSENTIAL_MATRIX;
-			F = getFundamentalMat(kpGoodOld, kpGoodNew, null);
-
+			fMatResult = getFundamentalMat(kpGoodOld, kpGoodNew, opflowresult.getBadPointsIndex());
+			F = fMatResult.F;
+			
+			
 			// int tries = 0;
 			//
 			// do {
@@ -311,16 +314,22 @@ public class FeatureManager {
 				newPoints.add(point);
 			}
 		}
-
+		
+		// Appending additional bad points from Fundamental Matrix calculation
+		List<Integer> badPoints = opflowresult.getBadPointsIndex();
+		List<Integer> additionalBadPoints = fMatResult.additionalBadPoints;
+		badPoints.addAll(additionalBadPoints);
+		Collections.sort(badPoints);
+		
 		update.setCurrentPoints(currentPoints);
-		update.setBadPointsIndex(opflowresult.getBadPointsIndex());
+		update.setBadPointsIndex(badPoints);
 		update.setNewPoints(newPoints);
 
 		// Assignment of values for next cycle
-		// Only gets caleld when nothing went wrong
+		// Only gets called when nothing went wrong
 		opflowresult.getNearFeatures().copyTo(checkpointFeatures);
-		
 		nearImage.copyTo(checkpointImage);
+		
 		frames++;
 
 		System.out.println(update);
@@ -378,9 +387,11 @@ public class FeatureManager {
 		return mat;
 	}
 
-	private Mat getFundamentalMat(List<KeyPoint> imgpts1, List<KeyPoint> imgpts2, List<DMatch> matches) {
+	private FMatResult getFundamentalMat(List<KeyPoint> imgpts1, List<KeyPoint> imgpts2, 
+			List<Integer> badpointsList) {
 		Mat status = new Mat();
-		Mat imgpts1_good = new Mat(), imgpts2_good = new Mat();
+		List<KeyPoint> imgpts1_good = new ArrayList<>();
+		List<KeyPoint> imgpts2_good = new ArrayList<>();
 		
 		List<KeyPoint> imgpts1_tmp;
 		List<KeyPoint> imgpts2_tmp;
@@ -409,26 +420,44 @@ public class FeatureManager {
 
 		// threshold from [Snavely07 4.1]
 		F = Calib3d.findFundamentalMat(pts1Mat, pts2Mat, Calib3d.FM_RANSAC, 0.006 * res.maxVal, 0.99, status); 
-
-		// TODO: Point Filtering
-		// vector<DMatch> new_matches;
-		// cout << "F keeping " << countNonZero(status) << " / " << status.size() << endl;
-		// for (unsigned int i=0; i<status.size(); i++) {
-		// if (status[i])
-		// {
-		// imgpts1_good.push_back(imgpts1_tmp[i]);
-		// imgpts2_good.push_back(imgpts2_tmp[i]);
-		//
-		// new_matches.push_back(matches[i]);
-		// }
-		// }
-		//
-		// cout << matches.size() << " matches before, " << new_matches.size() << " new matches after Fundamental Matrix\n";
-		// matches = new_matches; //keep only those points who survived the fundamental matrix
 		
-		return F;
+		// Point Filtering
+		int badpointsCompensation = 0;
+		List<Integer> additionaBadpoints = new ArrayList<>();
+		for (int statusIndex = 0; statusIndex < status.size().height; statusIndex++) {
+			if (!badpointsList.isEmpty() 
+					&& badpointsCompensation < badpointsList.size()
+					&& statusIndex == badpointsList.get(badpointsCompensation)) {
+				badpointsCompensation++;
+			}
+			int actualStatus = (int) status.get(statusIndex,0)[0]; 
+			if (actualStatus == 1) {
+				imgpts1_good.add(imgpts1_tmp.get(statusIndex));
+				imgpts2_good.add(imgpts2_tmp.get(statusIndex));
+			} else {
+				Integer additionalBadpoint = statusIndex + badpointsCompensation; 
+				additionaBadpoints.add(additionalBadpoint);
+			}
+		}
+		System.out.println("Additional badpoints:" + additionaBadpoints.size());
+		FMatResult result = new FMatResult(F, imgpts1_good, imgpts2_good, additionaBadpoints);
+		return result;
 	}
-
+	
+	private class FMatResult {
+		Mat F;
+		List<KeyPoint> superGoodPoints1;
+		List<KeyPoint> superGoodPoints2;
+		List<Integer> additionalBadPoints;
+		private FMatResult(Mat F, List<KeyPoint> imgpts1_good, 
+				List<KeyPoint> imgpts2_good, List<Integer> additionalBadPoints) {
+			this.F = F;
+			this.superGoodPoints1 = imgpts1_good;
+			this.superGoodPoints2 = imgpts2_good;
+			this.additionalBadPoints = additionalBadPoints;
+		}
+	}
+	
 	// modifies Rot1, Rot2, T1, T2
 	private boolean decomposeEtoRandT(Mat E) {
 		W = Mat.zeros(3, 3, CvType.CV_64F);
