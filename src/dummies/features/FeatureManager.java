@@ -1,5 +1,7 @@
 package dummies.features;
 
+import idp.ekf.Camera;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,8 +25,8 @@ import commondata.PointDouble;
 public class FeatureManager {
 
 	private static final String TAG = "Feature Manager";
-	private static boolean DEBUG_MODE = false;
-	
+	private static boolean DEBUG_MODE = true;
+
 	// Optical flow fields
 	private int frames = 0;
 	private final int FRAME_INTERVAL = 0;
@@ -45,13 +47,13 @@ public class FeatureManager {
 	private Mat u, w, vt;
 	private Mat nullMatF, tempMat;
 
-	public static int MSG_NO_ERROR = 0;
-	public static int MSG_IMAGE_CAPTURE = 1;
-	public static int MSG_OPTICAL_FLOW = 2;
-	public static int MSG_ESSENTIAL_MATRIX = 3;
-	public static int MSG_TRIANGULATION = 4;
+	public static int STEP_VALID_UPDATE = 0;
+	public static int STEP_IMAGE_CAPTURE = 1;
+	public static int STEP_OPTICAL_FLOW = 2;
+	public static int STEP_ESSENTIAL_MATRIX = 3;
+	public static int STEP_TRIANGULATION = 4;
 
-	public static int error;
+	public static int CURRENT_STEP;
 
 	// DANGER Gets assigned in triangulatePoints(). Too lazy to return properly.
 	private double reprojErr1, reprojErr2;
@@ -129,10 +131,10 @@ public class FeatureManager {
 				framesReady = true;
 			}
 			frames++;
-			error = this.MSG_IMAGE_CAPTURE;
+			CURRENT_STEP = this.STEP_IMAGE_CAPTURE;
 			return null;
 		}
-		error = this.MSG_OPTICAL_FLOW;
+		CURRENT_STEP = this.STEP_OPTICAL_FLOW;
 
 		Mat nearImage = new Mat();
 		images.get(0).copyTo(nearImage);
@@ -140,7 +142,6 @@ public class FeatureManager {
 		currentImage.copyTo(farImage);
 		images.add(farImage);
 		images.remove(0);
-		
 
 		OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, farImage, checkpointFeatures);
 
@@ -158,11 +159,11 @@ public class FeatureManager {
 
 			// TODO: Get fundamental matrix
 			List<KeyPoint> kpGoodOld = new ArrayList<KeyPoint>(), kpGoodNew = new ArrayList<KeyPoint>();
-			
+
 			kpGoodOld = convertMatOfPoint2fToListOfKeyPoints(goodOld);
 			kpGoodNew = convertMatOfPoint2fToListOfKeyPoints(goodNew);
 
-			error = this.MSG_ESSENTIAL_MATRIX;
+			CURRENT_STEP = this.STEP_ESSENTIAL_MATRIX;
 			fMatResult = getFundamentalMat(kpGoodOld, kpGoodNew, opflowresult.getBadPointsIndex());
 			F = fMatResult.F;
 			
@@ -240,7 +241,7 @@ public class FeatureManager {
 				return null;
 			}
 
-			error = this.MSG_TRIANGULATION;
+			CURRENT_STEP = this.STEP_TRIANGULATION;
 
 			// Combination 1
 			P2.put(0, 0, Rot1.get(0, 0)[0], Rot1.get(0, 1)[0], Rot1.get(0, 2)[0], T1.get(0, 0)[0]);
@@ -300,9 +301,9 @@ public class FeatureManager {
 		int currentSize = (int) opflowresult.getCurrentSize();
 		for (int i = 0; i < points4D1.cols(); i++) {
 			double w = points4D1.get(3, i)[0];
-			double x = points4D1.get(0, i)[0] / w;
-			double y = points4D1.get(1, i)[0] / w;
-			double z = points4D1.get(2, i)[0] / w;
+			double x = points4D1.get(0, i)[0] / w * Camera.metersPerPixel;
+			double y = points4D1.get(1, i)[0] / w * Camera.metersPerPixel;
+			double z = points4D1.get(2, i)[0] / w * Camera.metersPerPixel;
 
 			PointDouble point = new PointDouble(x, z);
 
@@ -328,13 +329,12 @@ public class FeatureManager {
 		// Assignment of values for next cycle
 		// Only gets called when nothing went wrong
 		opflowresult.getNearFeatures().copyTo(checkpointFeatures);
-		nearImage.copyTo(checkpointImage);
 		
 		frames++;
 
 		System.out.println(update);
-		error = this.MSG_NO_ERROR;
-		
+		CURRENT_STEP = this.STEP_VALID_UPDATE;
+
 		return update;
 	}
 
@@ -380,8 +380,8 @@ public class FeatureManager {
 
 		for (int i = 0; i < mpf.rows(); ++i) {
 			for (int j = 0; j < mpf.cols(); ++j) {
-				mat.put(i, j*2, mpf.get(i, j)[0]);
-				mat.put(i, j*2+1, mpf.get(i, j)[1]);
+				mat.put(i, j * 2, mpf.get(i, j)[0]);
+				mat.put(i, j * 2 + 1, mpf.get(i, j)[1]);
 			}
 		}
 		return mat;
@@ -419,7 +419,7 @@ public class FeatureManager {
 		MinMaxLocResult res = Core.minMaxLoc(convertMatOfPoint2fToMat(pts1Mat));
 
 		// threshold from [Snavely07 4.1]
-		F = Calib3d.findFundamentalMat(pts1Mat, pts2Mat, Calib3d.FM_RANSAC, 0.006 * res.maxVal, 0.99, status); 
+		F = Calib3d.findFundamentalMat(pts1Mat, pts2Mat, Calib3d.FM_RANSAC, 0.006 * res.maxVal, 0.99, status);
 		
 		// Point Filtering
 		int badpointsCompensation = 0;
@@ -474,7 +474,7 @@ public class FeatureManager {
 		if (singular_values_ratio > 1.0)
 			singular_values_ratio = 1.0 / singular_values_ratio; // flip ratio to keep it [0,1]
 		if (singular_values_ratio < 0.7) {
-			if(this.DEBUG_MODE)
+			if (this.DEBUG_MODE)
 				System.out.println("Singular values too far apart");
 			return false;
 		}
@@ -491,9 +491,9 @@ public class FeatureManager {
 	}
 
 	private boolean checkCoherentRotation(Mat R) {
-		if (Math.abs(Core.determinant(R)) - 1.0 > 1e-07) { 
-			if(this.DEBUG_MODE)
-				System.out.println( "resulting rotation is not coherent");
+		if (Math.abs(Core.determinant(R)) - 1.0 > 1e-07) {
+			if (this.DEBUG_MODE)
+				System.out.println("resulting rotation is not coherent");
 			return false;
 		}
 		return true;

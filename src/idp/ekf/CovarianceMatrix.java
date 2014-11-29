@@ -140,12 +140,12 @@ public class CovarianceMatrix {
 	public void deleteFeature(int featureIndex) {
 
 		int targetIndexStart = this.getStartingIndexInStateVector(featureIndex);
-		
-		for(int i=0; i<EKF.FEATURE_SIZE;i++)
+
+		for (int i = 0; i < EKF.FEATURE_SIZE; i++)
 			P.remove(targetIndexStart);
 
 		for (ArrayList<Double> row : P) {
-			for(int i=0; i<EKF.FEATURE_SIZE;i++)	
+			for (int i = 0; i < EKF.FEATURE_SIZE; i++)
 				row.remove(targetIndexStart);
 		}
 
@@ -205,6 +205,22 @@ public class CovarianceMatrix {
 	}
 
 	/********** Setters **********/
+
+	public void deleteAllFeatures() {
+		Matrix pxx = this.extractPxx();
+
+		ArrayList<ArrayList<Double>> newP = new ArrayList<ArrayList<Double>>();
+
+		for (int i = 0; i < pxx.getRowDimension(); i++) {
+			ArrayList<Double> row = new ArrayList<Double>();
+			for (int j = 0; j < pxx.getColumnDimension(); j++)
+				row.add(pxx.get(i, j));
+			newP.add(row);
+		}
+
+		this.P = newP;
+		this.numFeatures = 0;
+	}
 
 	public void updatePri(Matrix A_Matrix) {
 		for (int i = 0; i < numFeatures; i++) {

@@ -5,6 +5,7 @@ import idp.ekf.EKF;
 import idp.ekf.PointTriple;
 import idp.features.FeatureUpdate;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -20,11 +21,14 @@ public class VINSIDPController {
 	private Random random;
 	private Camera camera;
 
+	private List<PointDouble> coordinates;
+
 	public VINSIDPController() {
 		this.ekf = new EKF();
 		random = new Random();
 		camera = new Camera();
 
+		this.coordinates = new ArrayList<PointDouble>();
 	}
 
 	public PointDouble getDeviceCoords() {
@@ -43,6 +47,7 @@ public class VINSIDPController {
 		PointTriple wP = new PointTriple(wxP, wyP, wzP);
 
 		ekf.predict(vP, wP, Constants.MS_OVERALL_CYCLE_FREQUENCY / 1000.0);
+		coordinates.add(ekf.getDeviceCoords());
 	}
 
 	public void update(FeatureUpdate featureUpdate) {
@@ -71,6 +76,18 @@ public class VINSIDPController {
 		for (PointDouble featpos : toAdd)
 			ekf.addFeature((int) featpos.getX(), (int) featpos.getY(), camera);
 
+		coordinates.set(coordinates.size() - 1, ekf.getDeviceCoords());
+
+	}
+
+	public double getTotalDistanceTraveled() {
+		double distance = 0;
+
+		for (int i = 1; i < coordinates.size(); i++) {
+			distance += coordinates.get(i - 1).computeDistanceTo(coordinates.get(i));
+		}
+
+		return distance;
 	}
 
 }
