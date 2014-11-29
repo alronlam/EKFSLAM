@@ -247,12 +247,14 @@ public class EKF {
 
 	public void updateFromReobservedFeatureCoords(int featureIndex, double fX, double fY) {
 
-		PointDouble deviceCoords = this.getDeviceCoords();
+		// Using origin because the feature points are given with respect to an
+		// arbitrary origin
+		PointDouble originCoords = new PointDouble(0, 0);
 		PointDouble observedFeatureCoords = new PointDouble(fX, fY);
 
 		/* Calculate the observed distance and heading */
-		double observedDistance = deviceCoords.computeDistanceTo(observedFeatureCoords);
-		double observedHeading = deviceCoords.computeRadiansTo(observedFeatureCoords) - this.getHeadingRadians();
+		double observedDistance = originCoords.computeDistanceTo(observedFeatureCoords);
+		double observedHeading = originCoords.computeRadiansTo(observedFeatureCoords);
 
 		this.updateFromReobservedFeatureThroughDistanceHeading(featureIndex, observedDistance, observedHeading);
 	}
