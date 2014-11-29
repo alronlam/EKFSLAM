@@ -138,10 +138,11 @@ public class FeatureManager {
 		images.get(0).copyTo(nearImage);
 		Mat farImage = new Mat();
 		currentImage.copyTo(farImage);
+		images.add(farImage);
+		images.remove(0);
+		
 
 		OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, farImage, checkpointFeatures);
-
-		opflowresult.getNearFeatures().copyTo(checkpointFeatures);
 
 		MatOfPoint2f goodOld = opflowresult.getNearFeatures();
 		MatOfPoint2f goodNew = opflowresult.getFarFeatures();
@@ -315,9 +316,11 @@ public class FeatureManager {
 		update.setBadPointsIndex(opflowresult.getBadPointsIndex());
 		update.setNewPoints(newPoints);
 
-		images.add(farImage);
+		// Assignment of values for next cycle
+		// Only gets caleld when nothing went wrong
+		opflowresult.getNearFeatures().copyTo(checkpointFeatures);
+		
 		nearImage.copyTo(checkpointImage);
-		images.remove(0);
 		frames++;
 
 		System.out.println(update);
