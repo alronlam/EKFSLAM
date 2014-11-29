@@ -44,13 +44,13 @@ public class FeatureManager {
 	private Mat u, w, vt;
 	private Mat nullMatF, tempMat;
 
-	public static int MSG_NO_ERROR = 0;
-	public static int MSG_IMAGE_CAPTURE = 1;
-	public static int MSG_OPTICAL_FLOW = 2;
-	public static int MSG_ESSENTIAL_MATRIX = 3;
-	public static int MSG_TRIANGULATION = 4;
+	public static int STEP_VALID_UPDATE = 0;
+	public static int STEP_IMAGE_CAPTURE = 1;
+	public static int STEP_OPTICAL_FLOW = 2;
+	public static int STEP_ESSENTIAL_MATRIX = 3;
+	public static int STEP_TRIANGULATION = 4;
 
-	public static int error;
+	public static int CURRENT_STEP;
 
 	// DANGER Gets assigned in triangulatePoints(). Too lazy to return properly.
 	private double reprojErr1, reprojErr2;
@@ -103,10 +103,7 @@ public class FeatureManager {
 		Q = Mat.zeros(4, 4, CvType.CV_64F);
 	}
 
-	static boolean firstImg = true;
-
 	/** For Opencv has failed us yet again **/
-	//
 	private List<KeyPoint> convertMatOfPoint2fToListOfKeyPoints(MatOfPoint2f ps) {
 		List<KeyPoint> kps = new ArrayList<>();
 
@@ -129,10 +126,10 @@ public class FeatureManager {
 				framesReady = true;
 			}
 			frames++;
-			error = this.MSG_IMAGE_CAPTURE;
+			CURRENT_STEP = this.STEP_IMAGE_CAPTURE;
 			return null;
 		}
-		error = this.MSG_OPTICAL_FLOW;
+		CURRENT_STEP = this.STEP_OPTICAL_FLOW;
 
 		Mat nearImage = new Mat();
 		images.get(0).copyTo(nearImage);
@@ -151,53 +148,23 @@ public class FeatureManager {
 		if (!goodOld.empty() && !goodNew.empty()) {
 			// SOLVING FOR THE ROTATION AND TRANSLATION MATRICES
 
-			// GETTING THE FUNDAMENTAL MATRIX
 
-			// There is a case that fundamental matrix is not found
-
-			// TODO: Get fundamental matrix
 			List<KeyPoint> kpGoodOld = new ArrayList<KeyPoint>(), kpGoodNew = new ArrayList<KeyPoint>();
 
 			kpGoodOld = convertMatOfPoint2fToListOfKeyPoints(goodOld);
 			kpGoodNew = convertMatOfPoint2fToListOfKeyPoints(goodNew);
 
-			error = this.MSG_ESSENTIAL_MATRIX;
-			F = getFundamentalMat(kpGoodOld, kpGoodNew, null);
+			CURRENT_STEP = this.STEP_ESSENTIAL_MATRIX;
 
-			// int tries = 0;
-			//
-			// do {
-			// // MAGIC NUMBERS
-			// switch (tries) {
-			// case 0:
-			// F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 1, 0.95);
-			// break;
-			// case 1:
-			// F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 2, 0.90);
-			// break;
-			// case 2:
-			// F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 3, 0.85);
-			// break;
-			// case 3:
-			// F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_8POINT, 3, 0.85);
-			// break;
-			// // case 4:
-			// // // gives a ridiculous shit
-			// // F = Calib3d.findFundamentalMat(goodOld, goodNew,
-			// // Calib3d.FM_8POINT, 5, 0.75);
-			// // System.out.println(F.size().toString());
-			// // break;
-			// case 4:
-			// F = Calib3d.findFundamentalMat(goodOld, goodNew, Calib3d.FM_RANSAC, 20, 0.0);
-			// break;
-			//
-			// default:
-			// checkpointImage = new Mat();
-			// checkpointFeatures = new MatOfPoint2f();
-			// return null;
-			// }
-			// tries++;
+			List<DMatch> matches = new ArrayList<>();
 
+			// GETTING THE FUNDAMENTAL MATRIX
+			F = getFundamentalMat(kpGoodOld, kpGoodNew, matches);
+
+//			if(matches.size() < 100)
+//			// not enough inliers
+//			return null;
+			
 			tempMat = nullMatF.clone();
 			E = nullMatF.clone();
 
@@ -237,7 +204,7 @@ public class FeatureManager {
 				return null;
 			}
 
-			error = this.MSG_TRIANGULATION;
+			CURRENT_STEP = this.STEP_TRIANGULATION;
 
 			// Combination 1
 			P2.put(0, 0, Rot1.get(0, 0)[0], Rot1.get(0, 1)[0], Rot1.get(0, 2)[0], T1.get(0, 0)[0]);
@@ -324,7 +291,7 @@ public class FeatureManager {
 		frames++;
 
 		System.out.println(update);
-		error = this.MSG_NO_ERROR;
+		CURRENT_STEP = this.STEP_VALID_UPDATE;
 		
 		return update;
 	}
