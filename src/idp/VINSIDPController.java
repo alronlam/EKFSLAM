@@ -20,7 +20,6 @@ public class VINSIDPController {
 	private EKF ekf;
 	private Random random;
 	private Camera camera;
-	private int featureUpdateNullCount = 0;
 
 	private List<PointDouble> coordinates;
 
@@ -53,8 +52,6 @@ public class VINSIDPController {
 
 	public void update(FeatureUpdate featureUpdate) {
 
-		// if (featureUpdate != null) {
-		featureUpdateNullCount = 0;
 		/* Delete features that disappeared */
 		List<Integer> toDelete = featureUpdate.getBadPointsIndex();
 
@@ -80,11 +77,7 @@ public class VINSIDPController {
 			ekf.addFeature((int) featpos.getX(), (int) featpos.getY(), camera);
 
 		coordinates.set(coordinates.size() - 1, ekf.getDeviceCoords());
-		// } else {
-		// // featureUpdateNullCount++;
-		// // if (featureUpdateNullCount == 3)
-		// // ekf.deleteAllFeatures();
-		// }
+
 	}
 
 	public double getTotalDistanceTraveled() {

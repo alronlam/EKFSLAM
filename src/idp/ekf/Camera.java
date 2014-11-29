@@ -16,6 +16,8 @@ public class Camera {
 	public double dy;
 	public double[][] K;
 	
+	public static double metersPerPixel = 0.0000146094880836;//4.2 / (1000 * 287.484405747163);
+	
 	public Camera() {
 		// we have to replace these with our own camera values
 		// what these values are, though, is beyond me

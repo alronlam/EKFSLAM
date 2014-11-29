@@ -1,5 +1,7 @@
 package dummies.features;
 
+import idp.ekf.Camera;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,8 +24,8 @@ import commondata.PointDouble;
 public class FeatureManager {
 
 	private static final String TAG = "Feature Manager";
-	private static boolean DEBUG_MODE = false;
-	
+	private static boolean DEBUG_MODE = true;
+
 	// Optical flow fields
 	private int frames = 0;
 	private final int FRAME_INTERVAL = 0;
@@ -137,7 +139,6 @@ public class FeatureManager {
 		currentImage.copyTo(farImage);
 		images.add(farImage);
 		images.remove(0);
-		
 
 		OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, farImage, checkpointFeatures);
 
@@ -147,7 +148,6 @@ public class FeatureManager {
 		points4D1 = new Mat();
 		if (!goodOld.empty() && !goodNew.empty()) {
 			// SOLVING FOR THE ROTATION AND TRANSLATION MATRICES
-
 
 			List<KeyPoint> kpGoodOld = new ArrayList<KeyPoint>(), kpGoodNew = new ArrayList<KeyPoint>();
 
@@ -161,10 +161,10 @@ public class FeatureManager {
 			// GETTING THE FUNDAMENTAL MATRIX
 			F = getFundamentalMat(kpGoodOld, kpGoodNew, matches);
 
-//			if(matches.size() < 100)
-//			// not enough inliers
-//			return null;
-			
+			// if(matches.size() < 100)
+			// // not enough inliers
+			// return null;
+
 			tempMat = nullMatF.clone();
 			E = nullMatF.clone();
 
@@ -173,8 +173,8 @@ public class FeatureManager {
 			Core.gemm(tempMat, cameraMatrix, 1, nullMatF, 0, E);
 
 			if (Math.abs(Core.determinant(E)) > 1e-07) {
-				if(this.DEBUG_MODE)
-					System.out.println( "det(E) != 0 : " + Core.determinant(E));
+				if (this.DEBUG_MODE)
+					System.out.println("det(E) != 0 : " + Core.determinant(E));
 				P2 = Mat.zeros(3, 4, CvType.CV_64F); // TODO: Double check the type
 				return null;
 			}
@@ -184,10 +184,10 @@ public class FeatureManager {
 
 			if (Core.determinant(R1) + 1.0 < 1e-09) {
 				// according to http://en.wikipedia.org/wiki/Essential_matrix#Showing_that_it_is_valid
-				
-				if(this.DEBUG_MODE)
-					System.out.println("det(R) == -1 ["+Core.determinant(R1)+"]: flip E's sign");
-				// TODO: cout <<  << endl;
+
+				if (this.DEBUG_MODE)
+					System.out.println("det(R) == -1 [" + Core.determinant(R1) + "]: flip E's sign");
+				// TODO: cout << << endl;
 
 				E = E.mul(Mat.ones(E.size(), E.type()), -1);
 
@@ -264,9 +264,9 @@ public class FeatureManager {
 		int currentSize = (int) opflowresult.getCurrentSize();
 		for (int i = 0; i < points4D1.cols(); i++) {
 			double w = points4D1.get(3, i)[0];
-			double x = points4D1.get(0, i)[0] / w;
-			double y = points4D1.get(1, i)[0] / w;
-			double z = points4D1.get(2, i)[0] / w;
+			double x = points4D1.get(0, i)[0] / w * Camera.metersPerPixel;
+			double y = points4D1.get(1, i)[0] / w * Camera.metersPerPixel;
+			double z = points4D1.get(2, i)[0] / w * Camera.metersPerPixel;
 
 			PointDouble point = new PointDouble(x, z);
 
@@ -286,13 +286,13 @@ public class FeatureManager {
 		// Assignment of values for next cycle
 		// Only gets caleld when nothing went wrong
 		opflowresult.getNearFeatures().copyTo(checkpointFeatures);
-		
+
 		nearImage.copyTo(checkpointImage);
 		frames++;
 
 		System.out.println(update);
 		CURRENT_STEP = this.STEP_VALID_UPDATE;
-		
+
 		return update;
 	}
 
@@ -338,8 +338,8 @@ public class FeatureManager {
 
 		for (int i = 0; i < mpf.rows(); ++i) {
 			for (int j = 0; j < mpf.cols(); ++j) {
-				mat.put(i, j*2, mpf.get(i, j)[0]);
-				mat.put(i, j*2+1, mpf.get(i, j)[1]);
+				mat.put(i, j * 2, mpf.get(i, j)[0]);
+				mat.put(i, j * 2 + 1, mpf.get(i, j)[1]);
 			}
 		}
 		return mat;
@@ -348,10 +348,10 @@ public class FeatureManager {
 	private Mat getFundamentalMat(List<KeyPoint> imgpts1, List<KeyPoint> imgpts2, List<DMatch> matches) {
 		Mat status = new Mat();
 		Mat imgpts1_good = new Mat(), imgpts2_good = new Mat();
-		
+
 		List<KeyPoint> imgpts1_tmp;
 		List<KeyPoint> imgpts2_tmp;
-		
+
 		// if (matches.size() <= 0) {
 		imgpts1_tmp = imgpts1;
 		imgpts2_tmp = imgpts2;
@@ -375,7 +375,7 @@ public class FeatureManager {
 		MinMaxLocResult res = Core.minMaxLoc(convertMatOfPoint2fToMat(pts1Mat));
 
 		// threshold from [Snavely07 4.1]
-		F = Calib3d.findFundamentalMat(pts1Mat, pts2Mat, Calib3d.FM_RANSAC, 0.006 * res.maxVal, 0.99, status); 
+		F = Calib3d.findFundamentalMat(pts1Mat, pts2Mat, Calib3d.FM_RANSAC, 0.006 * res.maxVal, 0.99, status);
 
 		// TODO: Point Filtering
 		// vector<DMatch> new_matches;
@@ -392,7 +392,7 @@ public class FeatureManager {
 		//
 		// cout << matches.size() << " matches before, " << new_matches.size() << " new matches after Fundamental Matrix\n";
 		// matches = new_matches; //keep only those points who survived the fundamental matrix
-		
+
 		return F;
 	}
 
@@ -412,7 +412,7 @@ public class FeatureManager {
 		if (singular_values_ratio > 1.0)
 			singular_values_ratio = 1.0 / singular_values_ratio; // flip ratio to keep it [0,1]
 		if (singular_values_ratio < 0.7) {
-			if(this.DEBUG_MODE)
+			if (this.DEBUG_MODE)
 				System.out.println("Singular values too far apart");
 			return false;
 		}
@@ -429,9 +429,9 @@ public class FeatureManager {
 	}
 
 	private boolean checkCoherentRotation(Mat R) {
-		if (Math.abs(Core.determinant(R)) - 1.0 > 1e-07) { 
-			if(this.DEBUG_MODE)
-				System.out.println( "resulting rotation is not coherent");
+		if (Math.abs(Core.determinant(R)) - 1.0 > 1e-07) {
+			if (this.DEBUG_MODE)
+				System.out.println("resulting rotation is not coherent");
 			return false;
 		}
 		return true;
