@@ -2,6 +2,9 @@ package dummies.features;
 
 import idp.ekf.Camera;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -396,6 +399,100 @@ public class FeatureManager {
 		CURRENT_STEP = this.STEP_VALID_UPDATE;
 		System.out.println(update);
 		return update;
+	}
+
+	static boolean first = true;
+
+	private void logPoints4D() {
+		File dir = new File("trilogs");
+		File file = new File(dir + "\\points.csv");
+		File fileFirst = new File(dir + "\\firstSet.csv");
+		File fileTran = new File(dir + "\\trans.csv");
+		File fileScale = new File(dir + "\\pointsScaled.csv");
+
+		FileOutputStream outputStream = null;
+		FileOutputStream outputStream2 = null;
+		FileOutputStream outputStream3 = null;
+		FileOutputStream outputStream4 = null;
+
+		try {
+
+			if (!dir.exists())
+				if (!dir.mkdirs())
+					throw new IOException();
+
+			if (first) {
+				file.delete();
+				fileFirst.delete();
+				fileTran.delete();
+				fileScale.delete();
+			}
+
+			if (!file.exists())
+				file.createNewFile();
+			if (!fileTran.exists())
+				fileTran.createNewFile();
+			if (!fileScale.exists())
+				fileTran.createNewFile();
+
+			if (first) {
+				if (!fileFirst.exists())
+					fileFirst.createNewFile();
+			}
+
+			outputStream = new FileOutputStream(file, true);
+			outputStream3 = new FileOutputStream(fileTran, true);
+			outputStream4 = new FileOutputStream(fileScale, true);
+			if (first) {
+				outputStream2 = new FileOutputStream(fileFirst);
+			}
+
+			StringBuffer sb = new StringBuffer();
+			for (int i = 0; i < points4D1.cols(); i++) {
+				for (int j = 0; j < 4; j++)
+					sb.append(points4D1.get(j, i)[0] + (j != 3 ? "," : ""));
+				sb.append("\n");
+			}
+
+			StringBuffer sb2 = new StringBuffer();
+			for (int i = 0; i < points4D2.cols(); i++) {
+				for (int j = 0; j < 4; j++)
+					sb2.append(points4D2.get(j, i)[0] + (j != 3 ? "," : ""));
+				sb2.append("\n");
+			}
+
+			sb2.append("\n");
+
+			// System.out.println(sb.toString());
+
+			String str = validT.get(0, 0)[0] + "," + validT.get(1, 0)[0] + "," + validT.get(2, 0)[0];
+			str += "," + this.xScale + "," + this.zScale;
+			outputStream3.write((str + "\n").getBytes());
+
+			sb.append("\n");
+			outputStream.write((sb.toString()).getBytes());
+			outputStream4.write((sb2.toString()).getBytes());
+			if (first) {
+				outputStream2.write((sb.toString()).getBytes());
+				outputStream2.close();
+			}
+
+			outputStream.close();
+			outputStream3.close();
+			outputStream4.close();
+
+			first = false;
+		} catch (Exception e) {
+
+			System.out.println("called");
+		} finally {
+			if (outputStream != null)
+				try {
+					outputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		}
 	}
 
 	private List<Point> KeyPointsToPoints(List<KeyPoint> kps) {
