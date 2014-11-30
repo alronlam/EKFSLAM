@@ -42,7 +42,7 @@ public class FeatureManager {
 	// Optical flow fields
 	private Mat checkpointImage;
 	private MatOfPoint2f checkpointFeatures;
-	private OpticalFlow opticalFlow;
+	private OpticalFlowNoGap opticalFlow;
 
 	// Triangulation fields
 	private Size imageSize;
@@ -76,7 +76,7 @@ public class FeatureManager {
 
 	public FeatureManager() {
 
-		opticalFlow = new OpticalFlow();
+		opticalFlow = new OpticalFlowNoGap();
 		checkpointFeatures = new MatOfPoint2f();
 		checkpointImage = new Mat();
 		images = new ArrayList<>();
@@ -157,8 +157,8 @@ public class FeatureManager {
 		images.add(farImage);
 		images.remove(0);
 
-		OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, farImage, checkpointFeatures);
-		// OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, checkpointFeatures);
+		// OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, farImage, checkpointFeatures);
+		OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, checkpointFeatures);
 		
 		MatOfPoint2f goodOld = opflowresult.getNearFeatures();
 		MatOfPoint2f goodNew = opflowresult.getFarFeatures();
@@ -299,9 +299,7 @@ public class FeatureManager {
 		List<PointDouble> currentPoints = new ArrayList<>();
 		List<PointDouble> newPoints = new ArrayList<>();
 		int currentSize = (int) opflowresult.getCurrentSize() - fMatResult.additionalBadPoints.size();
-		// System.out.println(T1.dump());
-		// System.out.println(T2.dump());
-
+		
 		if (this.VALID_ROTATION == this.ROT_1)
 			System.out.println("Rotation Matrix 1 is Valid.");
 		else
@@ -357,7 +355,7 @@ public class FeatureManager {
 			System.out.println(update);
 
 		CURRENT_STEP = this.STEP_VALID_UPDATE;
-
+		System.out.println(update);
 		return update;
 	}
 
@@ -594,9 +592,9 @@ public class FeatureManager {
 		int scn = src.channels();
 		int dcn = mtx.cols() - 1;
 
-		System.out.println("Assert: " + (scn + 1) + " == " + mtx.cols());
-		System.out.println("Assert: " + (dcn));
-		System.out.println("Assert: " + depth + " == " + CvType.CV_32F + " || " + depth + " == " + CvType.CV_64F);
+		// System.out.println("Assert: " + (scn + 1) + " == " + mtx.cols());
+		// System.out.println("Assert: " + (dcn));
+		// System.out.println("Assert: " + depth + " == " + CvType.CV_32F + " || " + depth + " == " + CvType.CV_64F);
 
 		int mtype = CvType.CV_64F;
 		for (int i = 0; i < src.rows(); ++i)
@@ -645,45 +643,45 @@ public class FeatureManager {
 
 		// perspectiveTransform() requires Mat, but source uses a vector.
 		Mat points4d32F = convert1ChannelMatTo4ChannelMat(points4d);
-		System.out.println(points4d.size());
-		System.out.println(points4d32F.size());
+// 		System.out.println(points4d.size());
+// 		System.out.println(points4d32F.size());
 
-		perspectiveTransform(convertHPointsToMat4Channel(points4d), P);
+//		perspectiveTransform(convertHPointsToMat4Channel(points4d), P);
 
 		Mat pcloud_mat = new Mat();
 
-		Calib3d.convertPointsFromHomogeneous(points4d32F, pcloud_mat);
+//		Calib3d.convertPointsFromHomogeneous(points4d32F, pcloud_mat);
 
-		System.out.println();
-		System.out.println(convertHPointsToMat4Channel(points4d).size());
-		System.out.println(convertHPointsToMat4Channel(points4d).channels());
-		System.out.println(convertHPointsToMat4Channel(points4d).type());
-		System.out.println();
-		System.out.println(points4d32F.size());
-		System.out.println(points4d32F.channels());
-		System.out.println(points4d32F.type());
-		System.out.println();
-		System.out.println(points4d.size());
-		System.out.println(points4d.channels());
-		System.out.println(points4d.type());
-		System.out.println();
-		System.out.println(pcloud_mat.size());
-		System.out.println(pcloud_mat.channels());
-		System.out.println(pcloud_mat.type());
-		System.out.println();
-		System.out.println(Converters.vector_Point3d_to_Mat(pcloud_pt3d).size());
-		System.out.println(Converters.vector_Point3d_to_Mat(pcloud_pt3d).channels());
-		System.out.println(Converters.vector_Point3d_to_Mat(pcloud_pt3d).type());
-		// System.out.println(pcloud_pt3d_projected.dump());
-		System.out.println();
-		System.out.println(pcloud_pt3d_projected.size());
-		System.out.println(pcloud_pt3d_projected.channels());
-		System.out.println(pcloud_pt3d_projected.type());
+//		System.out.println();
+//		System.out.println(convertHPointsToMat4Channel(points4d).size());
+//		System.out.println(convertHPointsToMat4Channel(points4d).channels());
+//		System.out.println(convertHPointsToMat4Channel(points4d).type());
+//		System.out.println();
+//		System.out.println(points4d32F.size());
+//		System.out.println(points4d32F.channels());
+//		System.out.println(points4d32F.type());
+//		System.out.println();
+//		System.out.println(points4d.size());
+//		System.out.println(points4d.channels());
+//		System.out.println(points4d.type());
+//		System.out.println();
+//		System.out.println(pcloud_mat.size());
+//		System.out.println(pcloud_mat.channels());
+//		System.out.println(pcloud_mat.type());
+//		System.out.println();
+//		System.out.println(Converters.vector_Point3d_to_Mat(pcloud_pt3d).size());
+//		System.out.println(Converters.vector_Point3d_to_Mat(pcloud_pt3d).channels());
+//		System.out.println(Converters.vector_Point3d_to_Mat(pcloud_pt3d).type());
+//		System.out.println(pcloud_pt3d_projected.dump());
+//		System.out.println();
+//		System.out.println(pcloud_pt3d_projected.size());
+//		System.out.println(pcloud_pt3d_projected.channels());
+//		System.out.println(pcloud_pt3d_projected.type());
 		Core.perspectiveTransform(convertHPointsToMat4Channel(points4d), pcloud_pt3d_projected, P4x4);
-		System.out.println();
-		System.out.println(pcloud_pt3d_projected.size());
-		System.out.println(pcloud_pt3d_projected.channels());
-		System.out.println(pcloud_pt3d_projected.type());
+//		System.out.println();
+//		System.out.println(pcloud_pt3d_projected.size());
+//		System.out.println(pcloud_pt3d_projected.channels());
+//		System.out.println(pcloud_pt3d_projected.type());
 
 		List<Integer> status = new ArrayList<>(pcloud_pt3d.size());
 		for (int i = 0; i < pcloud_pt3d.size(); i++) {
