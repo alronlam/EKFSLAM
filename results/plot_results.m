@@ -45,13 +45,13 @@ plot(doubleintegration_X,doubleintegration_Y, '-xm', 'DisplayName', 'Double Inte
 plot(vins_X,vins_Y, ':xr', 'DisplayName', 'V-INS');
 
 %INS
-plot(ins_X,ins_Y, ':xb', 'DisplayName', 'INS');
+%plot(ins_X,ins_Y, ':xb', 'DisplayName', 'INS');
 
 %INS with Cimu Heading
 plot(insCimuHeading_X,insCimuHeading_Y, ':xc', 'DisplayName', 'INS w/ Cimu Heading');
 
 %Breadcrumb
-plot(breadcrumb_X,breadcrumb_Y, ':og', 'DisplayName', 'Breadcrumb');
+%plot(breadcrumb_X,breadcrumb_Y, ':og', 'DisplayName', 'Breadcrumb');
 
 %Breadcrumb with Cimu Heading
 plot(breadcrumbCimuHeading_X,breadcrumbCimuHeading_Y, ':oy', 'DisplayName', 'Breadcrumb w/ Cimu Heading');
