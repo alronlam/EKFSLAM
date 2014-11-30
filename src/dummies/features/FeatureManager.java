@@ -34,8 +34,8 @@ public class FeatureManager {
 	private final boolean SWAP_IMAGES = true;
 
 	// Image Capture fields
-	private int frames = 3;
-	private final int FRAME_INTERVAL = 3;
+	private int frames = 0;
+	private final int FRAME_INTERVAL = 0;
 	private boolean framesReady = false;
 	private List<Mat> images;
 
@@ -158,7 +158,8 @@ public class FeatureManager {
 		images.remove(0);
 
 		OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, farImage, checkpointFeatures);
-
+		// OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, checkpointFeatures);
+		
 		MatOfPoint2f goodOld = opflowresult.getNearFeatures();
 		MatOfPoint2f goodNew = opflowresult.getFarFeatures();
 

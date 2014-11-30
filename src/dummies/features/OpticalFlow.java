@@ -32,9 +32,10 @@ class OpticalFlow {
 	private final double k = 0.04;
 
 	// Optical flow fields
-	private final Size OPFLOW_WIN_SIZE = new Size(45, 45);
+	private final Size OPFLOW_WIN_SIZE = new Size(20, 20);
 	private final int MAX_LEVEL = 5;
-	private final double MIN_EIG_THRESHOLD = 1e-4;
+	private final double MIN_EIG_THRESHOLD = 1e-5;
+	private TermCriteria opflowcriteria; 
 	
 	// cornerSubPix fields
 	private final Size WIN_SIZE = new Size(15, 15);
@@ -43,8 +44,11 @@ class OpticalFlow {
 	private ImageIO io;
 	
 	OpticalFlow() {
+		opflowcriteria = new TermCriteria(TermCriteria.EPS + TermCriteria.MAX_ITER, 40, 0.001);
+		
 		io = new ImageIO();
 		io.deletePhotos();
+		
 	}
 	
 	OpticalFlowResult getFeatures(Mat checkpointImage, Mat nearImage, Mat farImage, MatOfPoint2f checkpointFeatures) {
@@ -67,10 +71,10 @@ class OpticalFlow {
 
 		if (checkpointFeatures.size().height > 0) {
 			hasCurrent = true;
-			Video.calcOpticalFlowPyrLK(checkpointImage, nearImage, checkpointFeatures, nearFeatures, cpNearStatus, cpNearError);
-			TermCriteria opflowcriteria = new TermCriteria(TermCriteria.EPS + TermCriteria.MAX_ITER, 40, 0.001);
-//			Video.calcOpticalFlowPyrLK(checkpointImage, nearImage, checkpointFeatures, nearFeatures, cpNearStatus, cpNearError, 
-//				OPFLOW_WIN_SIZE, MAX_LEVEL, opflowcriteria, Video.OPTFLOW_USE_INITIAL_FLOW, MIN_EIG_THRESHOLD);
+//			Video.calcOpticalFlowPyrLK(checkpointImage, nearImage, checkpointFeatures, nearFeatures, cpNearStatus, cpNearError);
+			
+			Video.calcOpticalFlowPyrLK(checkpointImage, nearImage, checkpointFeatures, nearFeatures, cpNearStatus, cpNearError, 
+				OPFLOW_WIN_SIZE, MAX_LEVEL, opflowcriteria, Video.OPTFLOW_LK_GET_MIN_EIGENVALS, MIN_EIG_THRESHOLD);
 			List<Point> checkpointFeaturesList = checkpointFeatures.toList();
 			nearFeaturesList = nearFeatures.toList();
 
@@ -119,6 +123,9 @@ class OpticalFlow {
 
 		if (nearFeatures.size().height > 0) {
 			Video.calcOpticalFlowPyrLK(nearImage, farImage, nearFeatures, farFeatures, nearFarStatus, nearFarError);
+			// Video.calcOpticalFlowPyrLK(nearImage, farImage, nearFeatures, farFeatures, nearFarStatus, nearFarError, 
+			//		OPFLOW_WIN_SIZE, MAX_LEVEL, opflowcriteria, Video.OPTFLOW_LK_GET_MIN_EIGENVALS, MIN_EIG_THRESHOLD);
+				
 		}
 
 		List<Point> farFeaturesList = farFeatures.toList();
