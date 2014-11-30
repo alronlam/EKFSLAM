@@ -62,18 +62,16 @@ public class MainDriver {
 		// runDoubleIntegration(cimuDataset, imgDataset);
 		runVINS(cimuDataset, imgDataset);
 		// runINS(imuDataset, imgDataset, insLogFileName);
-		// runINS(imuDatasetWithCimuHeading, imgDataset,
-		// insCimuHeadingLogFileName);
+		// runINS(imuDatasetWithCimuHeading, imgDataset, insCimuHeadingLogFileName);
 		// runBreadcrumbDummies(imuDataset, imgDataset, breadcrumbLogFileName);
-//		runBreadcrumbDummies(imuDatasetWithCimuHeading, imgDataset, breadcrumbWithCimuHeadingLogFileName);
-//		runIDP(cimuDataset, imgDataset);
+		// runBreadcrumbDummies(imuDatasetWithCimuHeading, imgDataset, breadcrumbWithCimuHeadingLogFileName);
+		// runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 
 		System.out.println(finalResultsStringBuilder.toString());
 	}
 
-	private static List<IMUReadingsBatch> changeHeading(List<IMUReadingsBatch> originalIMUDataset,
-			List<IMUReadingsBatch> cimuDataset) {
+	private static List<IMUReadingsBatch> changeHeading(List<IMUReadingsBatch> originalIMUDataset, List<IMUReadingsBatch> cimuDataset) {
 
 		List<IMUReadingsBatch> newIMUDataset = new ArrayList<IMUReadingsBatch>();
 
@@ -118,10 +116,8 @@ public class MainDriver {
 			doubleIntegrationLog.append(doubleIntegration.getDeviceCoords() + "\n");
 		}
 
-		finalResultsStringBuilder.append("Total distance traveled " + doubleIntegration.getTotalDistanceTraveled()
-				+ "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = "
-				+ doubleIntegration.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+		finalResultsStringBuilder.append("Total distance traveled " + doubleIntegration.getTotalDistanceTraveled() + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = " + doubleIntegration.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		/* Log - Write to File */
 		doubleIntegrationLog.writeToFile();
@@ -152,23 +148,21 @@ public class MainDriver {
 		/* Their sizes may not match due to logging problems */
 		int datasetSize = Math.min(imuDataset.size(), imgDataset.size());
 		System.out.println("DATASET SIZE: " + imuDataset.size() + " and " + imgDataset.size());
-		
+
 		double prevX = 0;
 		double prevY = 0;
 		for (int i = 0; i < datasetSize; i++) {
 
 			System.out.println("\n\nTime Step " + (i + 1));
-			
+
 			// Get them fancy translations
 			// is this even correct
 			double transX = breadcrumb.getDeviceCoords().getX() - prevX;
 			double transY = breadcrumb.getDeviceCoords().getY() - prevY;
-			
+
 			prevX = breadcrumb.getDeviceCoords().getX();
 			prevY = breadcrumb.getDeviceCoords().getY();
-		
-			
-			
+
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
 			breadcrumb.predict(currIMUBatch);
@@ -235,8 +229,7 @@ public class MainDriver {
 		}
 
 		finalResultsStringBuilder.append("Total Distance Traveled = " + vinsIDP.getTotalDistanceTraveled() + "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = "
-				+ vinsIDP.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = " + vinsIDP.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		/* Log - Write to File */
 		vinsIDPLog.writeToFile();
@@ -254,7 +247,7 @@ public class MainDriver {
 		/* Their sizes may not match due to logging problems */
 		int datasetSize = Math.min(imuDataset.size(), imgDataset.size());
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
-		
+
 		double prevX = 0;
 		double prevY = 0;
 		for (int i = 0; i < datasetSize; i++) {
@@ -265,11 +258,10 @@ public class MainDriver {
 			// is this even correct
 			double transX = breadcrumb.getDeviceCoords().getX() - prevX;
 			double transY = breadcrumb.getDeviceCoords().getY() - prevY;
-			
+
 			prevX = breadcrumb.getDeviceCoords().getX();
 			prevY = breadcrumb.getDeviceCoords().getY();
-		
-			
+
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
 			breadcrumb.predict(currIMUBatch);
@@ -288,13 +280,12 @@ public class MainDriver {
 
 		finalResultsStringBuilder.append("Total steps detected " + breadcrumb.totalStepsDetected + "\r\n");
 		finalResultsStringBuilder.append("Total distance traveled " + breadcrumb.getTotalDistanceTraveled() + "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = "
-				+ breadcrumb.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = " + breadcrumb.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		/* Log - Write to File */
 		breadcrumbLog.writeToFile();
 	}
-	
+
 	private static void runVINS(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset) {
 		/* Initialize the controller and manager */
 		VINSController vins = new VINSController();
@@ -309,51 +300,54 @@ public class MainDriver {
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
 
 		int state[] = new int[6];
+		int valid[] = new int[4];
 		double prevX = 0;
 		double prevY = 0;
 		for (int i = 0; i < datasetSize; i++) {
 
 			System.out.println("\n\nTime Step " + (i + 1));
-			
+
 			// Get them fancy translations
 			// is this even correct
 			double transX = vins.getDeviceCoords().getX() - prevX;
 			double transY = vins.getDeviceCoords().getY() - prevY;
-			
+
 			prevX = vins.getDeviceCoords().getX();
 			prevY = vins.getDeviceCoords().getY();
-			
-			
+
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
 			vins.predict(currIMUBatch);
 			// System.out.println("Finished predicting.");
-			
+
 			/* Image Update */
 			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY);
+			valid[(FeatureManager.VALID_ROTATION == FeatureManager.ROT_1 ? 0 : 2) + (FeatureManager.VALID_TRANSLATION == FeatureManager.TRAN_1 ? 0 : 1)]++;
 			state[FeatureManager.CURRENT_STEP]++;
-			state[5]++;	
-			
+			state[5]++;
+
 			vins.update(featureUpdate);
 			System.out.println("Finished updating.");
-			
-			
-			
+
 			/* Update the logs */
 			vinsLog.append(vins.getDeviceCoords() + "\n");
 		}
-		System.out.println("Dataset Size: " + datasetSize );
+		System.out.println("Rot 1 & Tran 1: " + valid[0]);
+		System.out.println("Rot 1 & Tran 2: " + valid[1]);
+		System.out.println("Rot 2 & Tran 1: " + valid[2]);
+		System.out.println("Rot 1 & Tran 2: " + valid[3]);
+		System.out.println("Success/Processed: " + state[0] + "/" + (state[5] - state[1]));
+		System.out.println("Dataset Size: " + datasetSize);
 		System.out.println("Initial Delay: " + state[1]);
 		System.out.println("Failed due to optical flow: " + state[2]);
 		System.out.println("Failed due to essential matrix: " + state[3]);
 		System.out.println("Failed due to triangulation: " + state[4]);
-		System.out.println("Success/Processed: " + state[0] +"/"+ (state[5]-state[1]));
-		System.out.println("Failed/Processed: " + (state[2] + state[3] + state[4]) +"/"+ (state[5]-state[1]) );
-		System.out.printf("Success Rate: %.3f%%\n", state[0] * 100.0 / (datasetSize-state[1]) );
-		
+		System.out.println("Success/Processed: " + state[0] + "/" + (state[5] - state[1]));
+		System.out.println("Failed/Processed: " + (state[2] + state[3] + state[4]) + "/" + (state[5] - state[1]));
+		System.out.printf("Success Rate: %.3f%%\n", state[0] * 100.0 / (datasetSize - state[1]));
+
 		finalResultsStringBuilder.append("Total distance traveled " + vins.getTotalDistanceTraveled() + "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = "
-				+ vins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = " + vins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		/* Log - Write to File */
 		vinsLog.writeToFile();
@@ -385,8 +379,7 @@ public class MainDriver {
 
 		finalResultsStringBuilder.append("Total steps detected: " + ins.totalStepsDetected + "\r\n");
 		finalResultsStringBuilder.append("Total distance traveled: " + ins.totalDistanceTraveled + "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = "
-				+ ins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = " + ins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		/* Log - Write to File */
 		insLog.writeToFile();
