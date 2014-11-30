@@ -34,8 +34,8 @@ public class FeatureManager {
 	private final boolean SWAP_IMAGES = true;
 
 	// Image Capture fields
-	private int frames = 0;
-	private final int FRAME_INTERVAL = 0;
+	private int frames = 3;
+	private final int FRAME_INTERVAL = 3;
 	private boolean framesReady = false;
 	private List<Mat> images;
 
