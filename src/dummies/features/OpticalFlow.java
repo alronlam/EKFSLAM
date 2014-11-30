@@ -24,7 +24,7 @@ class OpticalFlow {
 	private final Scalar RED = new Scalar(255, 0, 0);
 	
 	// Good Features to Track fields
-	private final int MAX_FEATURES = 100;
+	private final int MAX_FEATURES = 150;
 	private final double QUALITY_LEVEL = 0.01;
 	private final double MIN_DISTANCE = 20;
 	private final int BLOCK_SIZE = 3;
@@ -83,7 +83,7 @@ class OpticalFlow {
 			for (Byte item : cpNearStatus.toList()) {
 				if (item.intValue() == 1) {
 					Core.circle(detectMask, nearFeaturesList.get(index), 10, BLACK, -1);
-					Core.circle(nearImageDebug, nearFeaturesList.get(index), 2, RED, 1);
+					Core.circle(nearImageDebug, checkpointFeaturesList.get(index), 2, RED, 1);
 					Core.line(nearImageDebug, checkpointFeaturesList.get(index), nearFeaturesList.get(index), RED);
 				}
 				index++;

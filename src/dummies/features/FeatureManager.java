@@ -42,7 +42,7 @@ public class FeatureManager {
 	// Optical flow fields
 	private Mat checkpointImage;
 	private MatOfPoint2f checkpointFeatures;
-	private OpticalFlowNoGap opticalFlow;
+	private OpticalFlow opticalFlow;
 
 	// Triangulation fields
 	private Size imageSize;
@@ -76,7 +76,7 @@ public class FeatureManager {
 
 	public FeatureManager() {
 
-		opticalFlow = new OpticalFlowNoGap();
+		opticalFlow = new OpticalFlow();
 		checkpointFeatures = new MatOfPoint2f();
 		checkpointImage = new Mat();
 		images = new ArrayList<>();
@@ -157,8 +157,8 @@ public class FeatureManager {
 		images.add(farImage);
 		images.remove(0);
 
-		// OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, farImage, checkpointFeatures);
-		OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, checkpointFeatures);
+		OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, farImage, checkpointFeatures);
+		// OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, checkpointFeatures);
 		
 		MatOfPoint2f goodOld = opflowresult.getNearFeatures();
 		MatOfPoint2f goodNew = opflowresult.getFarFeatures();
