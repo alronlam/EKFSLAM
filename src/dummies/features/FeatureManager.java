@@ -165,10 +165,10 @@ public class FeatureManager {
 
 		FMatResult fMatResult = null;
 		points4D1 = new Mat();
-
+		
 		// Assures that returning null would clear out old features
 		checkpointFeatures = new MatOfPoint2f();
-
+		nearImage.copyTo(checkpointImage);
 		if (!goodOld.empty() && !goodNew.empty()) {
 
 			// does this work
