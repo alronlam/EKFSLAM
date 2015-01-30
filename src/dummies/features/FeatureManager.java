@@ -2,6 +2,9 @@ package dummies.features;
 
 import idp.ekf.Camera;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,8 +33,14 @@ public class FeatureManager {
 	private static boolean DEBUG_MODE = false;
 
 	// Boolean things (how does one even name this)
-	private final boolean USE_SCALE = false;
+	private final boolean USE_SCALE = true;
 	private final boolean SWAP_IMAGES = true;
+
+	private static final int LS_TRIANGULATION = 0;
+	private static final int ITER_LS_TRIANGULATION = 1;
+	private static final int OPENCV_TRIANGULATION = 2;
+
+	private static final int TRIANGULATION_METHOD = LS_TRIANGULATION;
 
 	// Image Capture fields
 	private int frames = 0;
@@ -63,6 +72,8 @@ public class FeatureManager {
 
 	public static int CURRENT_STEP;
 
+	// Valid Projection
+
 	public static int ROT_1 = 0;
 	public static int ROT_2 = 1;
 	public static int TRAN_1 = 2;
@@ -70,6 +81,11 @@ public class FeatureManager {
 
 	public static int VALID_ROTATION;
 	public static int VALID_TRANSLATION;
+
+	private Mat validRot, validT;
+
+	private double xScale;
+	private double zScale;
 
 	// DANGER Gets assigned in triangulatePoints(). Too lazy to return properly.
 	private double reprojErr1, reprojErr2;
@@ -159,7 +175,7 @@ public class FeatureManager {
 
 		OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, farImage, checkpointFeatures);
 		// OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, checkpointFeatures);
-		
+
 		MatOfPoint2f goodOld = opflowresult.getNearFeatures();
 		MatOfPoint2f goodNew = opflowresult.getFarFeatures();
 
@@ -239,6 +255,8 @@ public class FeatureManager {
 
 			this.VALID_ROTATION = this.ROT_1;
 			this.VALID_TRANSLATION = this.TRAN_1;
+			validRot = Rot1;
+			validT = T1;
 
 			// Combination 1
 			P2.put(0, 0, Rot1.get(0, 0)[0], Rot1.get(0, 1)[0], Rot1.get(0, 2)[0], T1.get(0, 0)[0]);
@@ -251,6 +269,8 @@ public class FeatureManager {
 			if (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation,
 				this.VALID_ROTATION = this.ROT_1;
 				this.VALID_TRANSLATION = this.TRAN_2;
+				validRot = Rot1;
+				validT = T2;
 
 				// Combination 2
 				P2.put(0, 0, Rot1.get(0, 0)[0], Rot1.get(0, 1)[0], Rot1.get(0, 2)[0], T2.get(0, 0)[0]);
@@ -267,6 +287,8 @@ public class FeatureManager {
 					}
 					this.VALID_ROTATION = this.ROT_2;
 					this.VALID_TRANSLATION = this.TRAN_1;
+					validRot = Rot2;
+					validT = T1;
 
 					// Combination 3
 					P2.put(0, 0, Rot2.get(0, 0)[0], Rot2.get(0, 1)[0], Rot2.get(0, 2)[0], T1.get(0, 0)[0]);
@@ -278,6 +300,8 @@ public class FeatureManager {
 					if (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
 						this.VALID_ROTATION = this.ROT_2;
 						this.VALID_TRANSLATION = this.TRAN_2;
+						validRot = Rot2;
+						validT = T2;
 
 						// Combination 4
 						P2.put(0, 0, Rot2.get(0, 0)[0], Rot2.get(0, 1)[0], Rot2.get(0, 2)[0], T2.get(0, 0)[0]);
@@ -299,15 +323,15 @@ public class FeatureManager {
 		List<PointDouble> currentPoints = new ArrayList<>();
 		List<PointDouble> newPoints = new ArrayList<>();
 		int currentSize = (int) opflowresult.getCurrentSize() - fMatResult.additionalBadPoints.size();
-		
-		if (this.VALID_ROTATION == this.ROT_1)
-			System.out.println("Rotation Matrix 1 is Valid.");
-		else
-			System.out.println("Rotation Matrix 2 is Valid.");
-		if (this.VALID_TRANSLATION == this.TRAN_1)
-			System.out.println("Translation Vector 1 is Valid.");
-		else
-			System.out.println("Translation Vector 2 is Valid.");
+
+		// if (this.VALID_ROTATION == this.ROT_1)
+		// System.out.println("Rotation Matrix 1 is Valid.");
+		// else
+		// System.out.println("Rotation Matrix 2 is Valid.");
+		// if (this.VALID_TRANSLATION == this.TRAN_1)
+		// System.out.println("Translation Vector 1 is Valid.");
+		// else
+		// System.out.println("Translation Vector 2 is Valid.");
 
 		Mat translationMatrix = T2;
 		if (this.VALID_TRANSLATION == this.TRAN_1)
@@ -321,11 +345,29 @@ public class FeatureManager {
 			zScale = 1;
 		}
 
+		Mat points4D = new Mat();
+		switch (this.TRIANGULATION_METHOD) {
+		case LS_TRIANGULATION:
+			points4D = points4D1;
+			break;
+
+		case ITER_LS_TRIANGULATION:
+			P2.put(0, 0, validRot.get(0, 0)[0], validRot.get(0, 1)[0], validRot.get(0, 2)[0], validT.get(0, 0)[0]);
+			P2.put(1, 0, validRot.get(1, 0)[0], validRot.get(1, 1)[0], validRot.get(1, 2)[0], validT.get(1, 0)[0]);
+			P2.put(2, 0, validRot.get(2, 0)[0], validRot.get(2, 1)[0], validRot.get(2, 2)[0], validT.get(2, 0)[0]);
+
+			points4D = points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, false);
+			break;
+		case OPENCV_TRIANGULATION:
+			Calib3d.triangulatePoints(P1, P2, goodOld, goodNew, points4D);
+			break;
+		}
+
 		for (int i = 0; i < points4D1.cols(); i++) {
-			double w = points4D1.get(3, i)[0];
-			double x = points4D1.get(0, i)[0] * xScale / w;
-			double y = points4D1.get(1, i)[0] / w;
-			double z = points4D1.get(2, i)[0] * zScale / w;
+			double w = points4D.get(3, i)[0];
+			double x = points4D.get(0, i)[0] * xScale / w;
+			double y = points4D.get(1, i)[0] / w;
+			double z = points4D.get(2, i)[0] * zScale / w;
 
 			PointDouble point = new PointDouble(x, z);
 			// System.out.println(point);
@@ -357,6 +399,100 @@ public class FeatureManager {
 		CURRENT_STEP = this.STEP_VALID_UPDATE;
 		System.out.println(update);
 		return update;
+	}
+
+	static boolean first = true;
+
+	private void logPoints4D() {
+		File dir = new File("trilogs");
+		File file = new File(dir + "\\points.csv");
+		File fileFirst = new File(dir + "\\firstSet.csv");
+		File fileTran = new File(dir + "\\trans.csv");
+		File fileScale = new File(dir + "\\pointsScaled.csv");
+
+		FileOutputStream outputStream = null;
+		FileOutputStream outputStream2 = null;
+		FileOutputStream outputStream3 = null;
+		FileOutputStream outputStream4 = null;
+
+		try {
+
+			if (!dir.exists())
+				if (!dir.mkdirs())
+					throw new IOException();
+
+			if (first) {
+				file.delete();
+				fileFirst.delete();
+				fileTran.delete();
+				fileScale.delete();
+			}
+
+			if (!file.exists())
+				file.createNewFile();
+			if (!fileTran.exists())
+				fileTran.createNewFile();
+			if (!fileScale.exists())
+				fileTran.createNewFile();
+
+			if (first) {
+				if (!fileFirst.exists())
+					fileFirst.createNewFile();
+			}
+
+			outputStream = new FileOutputStream(file, true);
+			outputStream3 = new FileOutputStream(fileTran, true);
+			outputStream4 = new FileOutputStream(fileScale, true);
+			if (first) {
+				outputStream2 = new FileOutputStream(fileFirst);
+			}
+
+			StringBuffer sb = new StringBuffer();
+			for (int i = 0; i < points4D1.cols(); i++) {
+				for (int j = 0; j < 4; j++)
+					sb.append(points4D1.get(j, i)[0] + (j != 3 ? "," : ""));
+				sb.append("\n");
+			}
+
+			StringBuffer sb2 = new StringBuffer();
+			for (int i = 0; i < points4D2.cols(); i++) {
+				for (int j = 0; j < 4; j++)
+					sb2.append(points4D2.get(j, i)[0] + (j != 3 ? "," : ""));
+				sb2.append("\n");
+			}
+
+			sb2.append("\n");
+
+			// System.out.println(sb.toString());
+
+			String str = validT.get(0, 0)[0] + "," + validT.get(1, 0)[0] + "," + validT.get(2, 0)[0];
+			str += "," + this.xScale + "," + this.zScale;
+			outputStream3.write((str + "\n").getBytes());
+
+			sb.append("\n");
+			outputStream.write((sb.toString()).getBytes());
+			outputStream4.write((sb2.toString()).getBytes());
+			if (first) {
+				outputStream2.write((sb.toString()).getBytes());
+				outputStream2.close();
+			}
+
+			outputStream.close();
+			outputStream3.close();
+			outputStream4.close();
+
+			first = false;
+		} catch (Exception e) {
+
+			System.out.println("called");
+		} finally {
+			if (outputStream != null)
+				try {
+					outputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		}
 	}
 
 	private List<Point> KeyPointsToPoints(List<KeyPoint> kps) {
@@ -643,45 +779,45 @@ public class FeatureManager {
 
 		// perspectiveTransform() requires Mat, but source uses a vector.
 		Mat points4d32F = convert1ChannelMatTo4ChannelMat(points4d);
-// 		System.out.println(points4d.size());
-// 		System.out.println(points4d32F.size());
+		// System.out.println(points4d.size());
+		// System.out.println(points4d32F.size());
 
-//		perspectiveTransform(convertHPointsToMat4Channel(points4d), P);
+		// perspectiveTransform(convertHPointsToMat4Channel(points4d), P);
 
 		Mat pcloud_mat = new Mat();
 
-//		Calib3d.convertPointsFromHomogeneous(points4d32F, pcloud_mat);
+		// Calib3d.convertPointsFromHomogeneous(points4d32F, pcloud_mat);
 
-//		System.out.println();
-//		System.out.println(convertHPointsToMat4Channel(points4d).size());
-//		System.out.println(convertHPointsToMat4Channel(points4d).channels());
-//		System.out.println(convertHPointsToMat4Channel(points4d).type());
-//		System.out.println();
-//		System.out.println(points4d32F.size());
-//		System.out.println(points4d32F.channels());
-//		System.out.println(points4d32F.type());
-//		System.out.println();
-//		System.out.println(points4d.size());
-//		System.out.println(points4d.channels());
-//		System.out.println(points4d.type());
-//		System.out.println();
-//		System.out.println(pcloud_mat.size());
-//		System.out.println(pcloud_mat.channels());
-//		System.out.println(pcloud_mat.type());
-//		System.out.println();
-//		System.out.println(Converters.vector_Point3d_to_Mat(pcloud_pt3d).size());
-//		System.out.println(Converters.vector_Point3d_to_Mat(pcloud_pt3d).channels());
-//		System.out.println(Converters.vector_Point3d_to_Mat(pcloud_pt3d).type());
-//		System.out.println(pcloud_pt3d_projected.dump());
-//		System.out.println();
-//		System.out.println(pcloud_pt3d_projected.size());
-//		System.out.println(pcloud_pt3d_projected.channels());
-//		System.out.println(pcloud_pt3d_projected.type());
+		// System.out.println();
+		// System.out.println(convertHPointsToMat4Channel(points4d).size());
+		// System.out.println(convertHPointsToMat4Channel(points4d).channels());
+		// System.out.println(convertHPointsToMat4Channel(points4d).type());
+		// System.out.println();
+		// System.out.println(points4d32F.size());
+		// System.out.println(points4d32F.channels());
+		// System.out.println(points4d32F.type());
+		// System.out.println();
+		// System.out.println(points4d.size());
+		// System.out.println(points4d.channels());
+		// System.out.println(points4d.type());
+		// System.out.println();
+		// System.out.println(pcloud_mat.size());
+		// System.out.println(pcloud_mat.channels());
+		// System.out.println(pcloud_mat.type());
+		// System.out.println();
+		// System.out.println(Converters.vector_Point3d_to_Mat(pcloud_pt3d).size());
+		// System.out.println(Converters.vector_Point3d_to_Mat(pcloud_pt3d).channels());
+		// System.out.println(Converters.vector_Point3d_to_Mat(pcloud_pt3d).type());
+		// System.out.println(pcloud_pt3d_projected.dump());
+		// System.out.println();
+		// System.out.println(pcloud_pt3d_projected.size());
+		// System.out.println(pcloud_pt3d_projected.channels());
+		// System.out.println(pcloud_pt3d_projected.type());
 		Core.perspectiveTransform(convertHPointsToMat4Channel(points4d), pcloud_pt3d_projected, P4x4);
-//		System.out.println();
-//		System.out.println(pcloud_pt3d_projected.size());
-//		System.out.println(pcloud_pt3d_projected.channels());
-//		System.out.println(pcloud_pt3d_projected.type());
+		// System.out.println();
+		// System.out.println(pcloud_pt3d_projected.size());
+		// System.out.println(pcloud_pt3d_projected.channels());
+		// System.out.println(pcloud_pt3d_projected.type());
 
 		List<Integer> status = new ArrayList<>(pcloud_pt3d.size());
 		for (int i = 0; i < pcloud_pt3d.size(); i++) {
@@ -700,6 +836,10 @@ public class FeatureManager {
 	}
 
 	private Mat triangulatePoints(MatOfPoint2f goodOld, MatOfPoint2f goodNew, Mat K, Mat p1, Mat p2, boolean isFirst) {
+		return triangulatePoints(goodOld, goodNew, K, p1, p2, isFirst, true);
+	}
+
+	private Mat triangulatePoints(MatOfPoint2f goodOld, MatOfPoint2f goodNew, Mat K, Mat p1, Mat p2, boolean isFirst, boolean useLSTriang) {
 		Mat Kinv = K.inv(); // Retained k. I needed that ._.
 
 		Mat points4Dtemp = Mat.zeros(goodNew.height(), 0, CvType.CV_64F);
@@ -727,8 +867,11 @@ public class FeatureManager {
 			u2.put(0, 0, goodNew.get(i, 0)[0], goodNew.get(i, 0)[1], 1);
 			Core.gemm(Kinv, u2.t(), 1, nullMatF, 0, um2);
 
-			// x = iterativeLinearLSTriangulation(um1.t(), p1, um2.t(), p2);
-			x = linearLSTriangulation(um1.t(), p1, um2.t(), p2);
+			if (useLSTriang)
+				x = linearLSTriangulation(um1.t(), p1, um2.t(), p2);
+			else
+				x = iterativeLinearLSTriangulation(um1.t(), p1, um2.t(), p2);
+
 			points4Dtemp.push_back(x.t());
 
 			// BEGIN Reprojection error code
