@@ -50,6 +50,7 @@ public class FeatureManager {
 
 	// Optical flow fields
 	private Mat checkpointImage;
+	private Mat cameraImage;
 	private MatOfPoint2f checkpointFeatures;
 	private OpticalFlow opticalFlow;
 
@@ -183,8 +184,14 @@ public class FeatureManager {
 		points4D1 = new Mat();
 		
 		// Assures that returning null would clear out old features
+		/* Not anymore! checkpoint Features and Image are still the previous one
+		   It gets assigned only at the end, if everything is successful. 	
+		   Pray it doesn't null until the end.
+		
 		checkpointFeatures = new MatOfPoint2f();
 		nearImage.copyTo(checkpointImage);
+		
+		*/
 		if (!goodOld.empty() && !goodNew.empty()) {
 			System.out.println("has good old");
 			// does this work
@@ -391,8 +398,9 @@ public class FeatureManager {
 		// Assignment of values for next cycle
 		// Only gets called when nothing went wrong
 		fMatResult.superGoodPoints1.copyTo(checkpointFeatures);
+		nearImage.copyTo(checkpointImage);
 		frames++;
-
+		
 		if (this.DEBUG_MODE)
 			System.out.println(update);
 

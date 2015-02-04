@@ -72,7 +72,7 @@ public class VINSController {
 		} else {
 			featureUpdateNullCount++;
 			// if (featureUpdateNullCount == 3)
-			ekf.deleteAllFeatures();
+			// ekf.deleteAllFeatures();
 		}
 	}
 
