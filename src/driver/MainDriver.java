@@ -43,7 +43,7 @@ public class MainDriver {
 
 	public static void main(String[] args) {
 
-		String targetFolder = "data/" + Constants.FOLDER_YUCH_LOBBY_RECTANGLE;
+		String targetFolder = "data/" + Constants.FOLDER_LS_STRAIGHT;
 
 		/* Load IMU Dataset */
 		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");

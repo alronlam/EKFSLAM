@@ -30,7 +30,7 @@ public class FeatureManager {
 
 	private static final String TAG = "Feature Manager";
 
-	private static boolean DEBUG_MODE = false;
+	private static boolean DEBUG_MODE = true;
 
 	// Boolean things (how does one even name this)
 	private final boolean USE_SCALE = true;
@@ -186,7 +186,7 @@ public class FeatureManager {
 		checkpointFeatures = new MatOfPoint2f();
 		nearImage.copyTo(checkpointImage);
 		if (!goodOld.empty() && !goodNew.empty()) {
-
+			System.out.println("has good old");
 			// does this work
 			if (SWAP_IMAGES) {
 				MatOfPoint2f temp = goodOld;
@@ -397,7 +397,7 @@ public class FeatureManager {
 			System.out.println(update);
 
 		CURRENT_STEP = this.STEP_VALID_UPDATE;
-		System.out.println(update);
+		// System.out.println(update);
 		return update;
 	}
 
