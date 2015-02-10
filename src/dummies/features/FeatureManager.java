@@ -30,7 +30,7 @@ public class FeatureManager {
 
 	private static final String TAG = "Feature Manager";
 
-	private static boolean DEBUG_MODE = false;
+	private static boolean DEBUG_MODE = true;
 
 	// Boolean things (how does one even name this)
 	private final boolean USE_SCALE = true;
@@ -50,6 +50,7 @@ public class FeatureManager {
 
 	// Optical flow fields
 	private Mat checkpointImage;
+	private Mat cameraImage;
 	private MatOfPoint2f checkpointFeatures;
 	private OpticalFlow opticalFlow;
 
@@ -150,7 +151,7 @@ public class FeatureManager {
 		return kps;
 	}
 
-	public FeatureUpdate getFeatureUpdate(Mat currentImage, double translationX, double translationZ, PointDouble cameraPosition) {
+	public FeatureUpdate getFeatureUpdate(Mat currentImage, double translationX, double translationZ) {
 		if (!framesReady) {
 			Mat toAdd = new Mat();
 			currentImage.copyTo(toAdd);
@@ -162,7 +163,7 @@ public class FeatureManager {
 			}
 			frames++;
 			CURRENT_STEP = this.STEP_IMAGE_CAPTURE;
-			return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
+			return null;
 		}
 		CURRENT_STEP = this.STEP_OPTICAL_FLOW;
 
@@ -181,12 +182,18 @@ public class FeatureManager {
 
 		FMatResult fMatResult = null;
 		points4D1 = new Mat();
-
+		
 		// Assures that returning null would clear out old features
+		/* Not anymore! checkpoint Features and Image are still the previous one
+		   It gets assigned only at the end, if everything is successful. 	
+		   Pray it doesn't null until the end.
+		
 		checkpointFeatures = new MatOfPoint2f();
 		nearImage.copyTo(checkpointImage);
+		
+		*/
 		if (!goodOld.empty() && !goodNew.empty()) {
-
+			System.out.println("has good old");
 			// does this work
 			if (SWAP_IMAGES) {
 				MatOfPoint2f temp = goodOld;
@@ -225,11 +232,11 @@ public class FeatureManager {
 				if (this.DEBUG_MODE)
 					System.out.println("det(E) != 0 : " + Core.determinant(E));
 				P2 = Mat.zeros(3, 4, CvType.CV_64F);
-				return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
+				return null;
 			}
 
 			if (!decomposeEtoRandT(E))
-				return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
+				return null;
 
 			if (Core.determinant(R1) + 1.0 < 1e-09) {
 				// according to http://en.wikipedia.org/wiki/Essential_matrix#Showing_that_it_is_valid
@@ -239,7 +246,7 @@ public class FeatureManager {
 				E = E.mul(Mat.ones(E.size(), E.type()), -1);
 
 				if (!decomposeEtoRandT(E))
-					return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
+					return null;
 			}
 
 			P1.put(0, 0, 1, 0, 0, 0);
@@ -248,7 +255,7 @@ public class FeatureManager {
 
 			if (!checkCoherentRotation(Rot1)) {
 				P2 = Mat.zeros(3, 4, CvType.CV_64F);
-				return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
+				return null;
 			}
 
 			CURRENT_STEP = this.STEP_TRIANGULATION;
@@ -283,7 +290,7 @@ public class FeatureManager {
 				if (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
 					if (!checkCoherentRotation(Rot2)) {
 						P2 = Mat.zeros(3, 4, CvType.CV_64F);
-						return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
+						return null;
 					}
 					this.VALID_ROTATION = this.ROT_2;
 					this.VALID_TRANSLATION = this.TRAN_1;
@@ -312,32 +319,17 @@ public class FeatureManager {
 						points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
 						if (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
 							// Triangulation failed.
-							return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
+							return null;
 						}
 					}
 				}
 			}
 		}
 
-		// Appending additional bad points from Fundamental Matrix calculation
-		List<Integer> badPoints = opflowresult.getBadPointsIndex();
-		// System.out.println(badPoints);
-		List<Integer> additionalBadPoints = fMatResult.additionalBadPoints;
-		int additionalBadPointsCount = 0;
-		for(Integer index : additionalBadPoints){
-			if(!badPoints.contains(index)){
-				badPoints.add(index);
-				additionalBadPointsCount++;
-			}
-		}
-		
-
-		Collections.sort(badPoints);
-
 		FeatureUpdate update = new FeatureUpdate();
 		List<PointDouble> currentPoints = new ArrayList<>();
 		List<PointDouble> newPoints = new ArrayList<>();
-		int currentSize = (int) opflowresult.getCurrentSize() - additionalBadPointsCount;
+		int currentSize = (int) opflowresult.getCurrentSize() - fMatResult.additionalBadPoints.size();
 
 		// if (this.VALID_ROTATION == this.ROT_1)
 		// System.out.println("Rotation Matrix 1 is Valid.");
@@ -378,23 +370,11 @@ public class FeatureManager {
 			break;
 		}
 
-		ArrayList<Double> xlist = new ArrayList<>();
-		ArrayList<Double> ylist = new ArrayList<>();
-		ArrayList<Double> zlist = new ArrayList<>();
-
-		xlist.add(goodOld.size().area());
-		ylist.add(goodNew.size().width);
-		zlist.add(goodNew.size().height);
-
 		for (int i = 0; i < points4D1.cols(); i++) {
 			double w = points4D.get(3, i)[0];
-			double x = points4D.get(0, i)[0] / w;
+			double x = points4D.get(0, i)[0] * xScale / w;
 			double y = points4D.get(1, i)[0] / w;
-			double z = points4D.get(2, i)[0] / w;
-
-			xlist.add(x);
-			ylist.add(y);
-			zlist.add(z);
+			double z = points4D.get(2, i)[0] * zScale / w;
 
 			PointDouble point = new PointDouble(x, z);
 			// System.out.println(point);
@@ -405,9 +385,11 @@ public class FeatureManager {
 			}
 		}
 
-		logPoints(xlist, ylist, zlist);
-
-		// MOVED UP
+		// Appending additional bad points from Fundamental Matrix calculation
+		List<Integer> badPoints = opflowresult.getBadPointsIndex();
+		List<Integer> additionalBadPoints = fMatResult.additionalBadPoints;
+		badPoints.addAll(additionalBadPoints);
+		Collections.sort(badPoints);
 
 		update.setCurrentPoints(currentPoints);
 		update.setBadPointsIndex(badPoints);
@@ -416,67 +398,18 @@ public class FeatureManager {
 		// Assignment of values for next cycle
 		// Only gets called when nothing went wrong
 		fMatResult.superGoodPoints1.copyTo(checkpointFeatures);
+		nearImage.copyTo(checkpointImage);
 		frames++;
-
+		
 		if (this.DEBUG_MODE)
 			System.out.println(update);
 
 		CURRENT_STEP = this.STEP_VALID_UPDATE;
-
-		// System.out.println("\npre");
-		System.out.print(update);
-		// System.out.println("\npost");
-
-		return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(update, cameraPosition);
+		// System.out.println(update);
+		return update;
 	}
 
 	static boolean first = true;
-
-	private void logPoints(List xlist, List ylist, List zlist) {
-		// if(!first)
-		// return;
-
-		File dir = new File("trilogs");
-		File file = new File(dir + "\\poi.csv");
-
-		FileOutputStream outputStream = null;
-
-		try {
-
-			if (!dir.exists())
-				if (!dir.mkdirs())
-					throw new IOException();
-
-			if (first) {
-				file.delete();
-			}
-
-			if (!file.exists())
-				file.createNewFile();
-
-			outputStream = new FileOutputStream(file, true);
-
-			StringBuffer sb = new StringBuffer();
-			for (int i = 0; i < xlist.size(); i++) {
-				sb.append(xlist.get(i) + "," + ylist.get(i) + "," + zlist.get(i) + "\n");
-			}
-			outputStream.write((sb.toString()).getBytes());
-
-			outputStream.close();
-
-			first = false;
-		} catch (Exception e) {
-
-			System.out.println("called");
-		} finally {
-			if (outputStream != null)
-				try {
-					outputStream.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-		}
-	}
 
 	private void logPoints4D() {
 		File dir = new File("trilogs");
@@ -640,7 +573,6 @@ public class FeatureManager {
 		F = Calib3d.findFundamentalMat(pts1Mat, pts2Mat, Calib3d.FM_RANSAC, 0.006 * res.maxVal, 0.99, status);
 
 		// Point Filtering
-		// TODO: consider revising
 		int badpointsCompensation = 0;
 		List<Integer> additionaBadpoints = new ArrayList<>();
 		for (int statusIndex = 0; statusIndex < status.size().height; statusIndex++) {
@@ -655,15 +587,13 @@ public class FeatureManager {
 
 			} else if (statusIndex + badpointsCompensation < currentSize) {
 				Integer additionalBadpoint = statusIndex + badpointsCompensation;
-				if (!additionaBadpoints.contains(additionalBadpoint))
-					additionaBadpoints.add(additionalBadpoint);
+				additionaBadpoints.add(additionalBadpoint);
 			}
 		}
 		FMatResult result = new FMatResult(F, veryGoodpts1, veryGoodpts2, additionaBadpoints);
 		return result;
 	}
 
-	// TODO: something fishy going on with bad points
 	private class FMatResult {
 		Mat F;
 		MatOfPoint2f superGoodPoints1;
