@@ -171,7 +171,7 @@ public class MainDriver {
 			// vinsIDP.predict(currIMUBatch);
 			System.out.println("Finished predicting.");
 			/* Image Update */
-			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY);
+			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY, vins.getDeviceCoords());
 			breadcrumb.update(featureUpdate);
 			// vins.update(featureUpdate);
 
@@ -268,7 +268,7 @@ public class MainDriver {
 			// System.out.println("Finished predicting.");
 
 			/* Image Update */
-			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY);
+			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY,breadcrumb.getDeviceCoords());
 			breadcrumb.update(featureUpdate);
 			// System.out.println("Finished updating.");
 
@@ -305,7 +305,7 @@ public class MainDriver {
 		double prevY = 0;
 		for (int i = 0; i < datasetSize; i++) {
 
-			System.out.println("\n\nTime Step " + (i + 1));
+			System.out.println("\nTime Step " + (i + 1));
 
 			// Get them fancy translations
 			// is this even correct
@@ -317,17 +317,18 @@ public class MainDriver {
 
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
+//			System.out.println(vins.getDeviceCoords());
 			vins.predict(currIMUBatch);
-			// System.out.println("Finished predicting.");
+//			System.out.println(vins.getDeviceCoords());
 
 			/* Image Update */
-			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY);
+			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY, vins.getDeviceCoords());
 			valid[(FeatureManager.VALID_ROTATION == FeatureManager.ROT_1 ? 0 : 2) + (FeatureManager.VALID_TRANSLATION == FeatureManager.TRAN_1 ? 0 : 1)]++;
 			state[FeatureManager.CURRENT_STEP]++;
 			state[5]++;
 
 			vins.update(featureUpdate);
-			System.out.println("Finished updating.");
+			//System.out.println("Finished updating.");
 
 			/* Update the logs */
 			vinsLog.append(vins.getDeviceCoords() + "\n");

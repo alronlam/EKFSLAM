@@ -29,6 +29,8 @@ public class Constants {
 	public static final String FOLDER_YUCH_SMALLER_RECTANGLE_ALRON = "Yuch Smaller Rectangle - Alron";
 	public static final String FOLDER_YUCH_SMALLER_RECTANGLE_IVAN = "Yuch Smaller Rectangle - Ivan";
 	public static final String FOLDER_TriTest = "TriTest";
+	
+	public static final String FOLDER_LS_NOFAIL = "ls mod";
 
 	// Others
 	public static final String INS_DATA_HEADER = "Acc_x,Acc_y,Acc_z,Gyro_x,Gyro_y,Gyro_z,Orient_x,Orient_y,Orient_z,Time\n";
