@@ -151,7 +151,7 @@ public class FeatureManager {
 		return kps;
 	}
 
-	public FeatureUpdate getFeatureUpdate(Mat currentImage, double translationX, double translationZ) {
+	public FeatureUpdate getFeatureUpdate(Mat currentImage, double translationX, double translationZ, PointDouble cameraPosition) {
 		if (!framesReady) {
 			Mat toAdd = new Mat();
 			currentImage.copyTo(toAdd);
@@ -163,7 +163,7 @@ public class FeatureManager {
 			}
 			frames++;
 			CURRENT_STEP = this.STEP_IMAGE_CAPTURE;
-			return null;
+			return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 		}
 		CURRENT_STEP = this.STEP_OPTICAL_FLOW;
 
@@ -182,16 +182,13 @@ public class FeatureManager {
 
 		FMatResult fMatResult = null;
 		points4D1 = new Mat();
-		
+
 		// Assures that returning null would clear out old features
-		/* Not anymore! checkpoint Features and Image are still the previous one
-		   It gets assigned only at the end, if everything is successful. 	
-		   Pray it doesn't null until the end.
-		
-		checkpointFeatures = new MatOfPoint2f();
-		nearImage.copyTo(checkpointImage);
-		
-		*/
+		/*
+		 * Not anymore! checkpoint Features and Image are still the previous one It gets assigned only at the end, if everything is successful. Pray it doesn't null until the end.
+		 * 
+		 * checkpointFeatures = new MatOfPoint2f(); nearImage.copyTo(checkpointImage);
+		 */
 		if (!goodOld.empty() && !goodNew.empty()) {
 			System.out.println("has good old");
 			// does this work
@@ -232,11 +229,12 @@ public class FeatureManager {
 				if (this.DEBUG_MODE)
 					System.out.println("det(E) != 0 : " + Core.determinant(E));
 				P2 = Mat.zeros(3, 4, CvType.CV_64F);
-				return null;
+				return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 			}
 
 			if (!decomposeEtoRandT(E))
-				return null;
+
+				return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 
 			if (Core.determinant(R1) + 1.0 < 1e-09) {
 				// according to http://en.wikipedia.org/wiki/Essential_matrix#Showing_that_it_is_valid
@@ -246,7 +244,8 @@ public class FeatureManager {
 				E = E.mul(Mat.ones(E.size(), E.type()), -1);
 
 				if (!decomposeEtoRandT(E))
-					return null;
+
+					return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 			}
 
 			P1.put(0, 0, 1, 0, 0, 0);
@@ -255,7 +254,7 @@ public class FeatureManager {
 
 			if (!checkCoherentRotation(Rot1)) {
 				P2 = Mat.zeros(3, 4, CvType.CV_64F);
-				return null;
+				return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 			}
 
 			CURRENT_STEP = this.STEP_TRIANGULATION;
@@ -290,7 +289,8 @@ public class FeatureManager {
 				if (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
 					if (!checkCoherentRotation(Rot2)) {
 						P2 = Mat.zeros(3, 4, CvType.CV_64F);
-						return null;
+
+						return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 					}
 					this.VALID_ROTATION = this.ROT_2;
 					this.VALID_TRANSLATION = this.TRAN_1;
@@ -319,7 +319,8 @@ public class FeatureManager {
 						points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
 						if (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
 							// Triangulation failed.
-							return null;
+
+							return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 						}
 					}
 				}
@@ -329,8 +330,24 @@ public class FeatureManager {
 		FeatureUpdate update = new FeatureUpdate();
 		List<PointDouble> currentPoints = new ArrayList<>();
 		List<PointDouble> newPoints = new ArrayList<>();
-		int currentSize = (int) opflowresult.getCurrentSize() - fMatResult.additionalBadPoints.size();
 
+		// Appending additional bad points from Fundamental Matrix calculation
+		List<Integer> badPoints = opflowresult.getBadPointsIndex();
+		List<Integer> additionalBadPoints = fMatResult.additionalBadPoints;
+		int currentSize;
+		{
+			int additionalBadPointsCount = 0;
+			for (Integer index : additionalBadPoints) {
+				if (badPoints.contains(index)) {
+					additionalBadPointsCount++;
+					badPoints.add(index);
+				}
+			}
+			badPoints.addAll(additionalBadPoints);
+			Collections.sort(badPoints);
+
+			currentSize = (int) opflowresult.getCurrentSize() - additionalBadPointsCount;
+		}
 		// if (this.VALID_ROTATION == this.ROT_1)
 		// System.out.println("Rotation Matrix 1 is Valid.");
 		// else
@@ -372,9 +389,9 @@ public class FeatureManager {
 
 		for (int i = 0; i < points4D1.cols(); i++) {
 			double w = points4D.get(3, i)[0];
-			double x = points4D.get(0, i)[0] * xScale / w;
+			double x = points4D.get(0, i)[0] / w;
 			double y = points4D.get(1, i)[0] / w;
-			double z = points4D.get(2, i)[0] * zScale / w;
+			double z = points4D.get(2, i)[0] / w;
 
 			PointDouble point = new PointDouble(x, z);
 			// System.out.println(point);
@@ -385,11 +402,7 @@ public class FeatureManager {
 			}
 		}
 
-		// Appending additional bad points from Fundamental Matrix calculation
-		List<Integer> badPoints = opflowresult.getBadPointsIndex();
-		List<Integer> additionalBadPoints = fMatResult.additionalBadPoints;
-		badPoints.addAll(additionalBadPoints);
-		Collections.sort(badPoints);
+		// BADPOINTS MOVED UP
 
 		update.setCurrentPoints(currentPoints);
 		update.setBadPointsIndex(badPoints);
@@ -400,13 +413,13 @@ public class FeatureManager {
 		fMatResult.superGoodPoints1.copyTo(checkpointFeatures);
 		nearImage.copyTo(checkpointImage);
 		frames++;
-		
+
 		if (this.DEBUG_MODE)
 			System.out.println(update);
 
 		CURRENT_STEP = this.STEP_VALID_UPDATE;
 		// System.out.println(update);
-		return update;
+		return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(update, cameraPosition);
 	}
 
 	static boolean first = true;
