@@ -361,7 +361,9 @@ public class FeatureManager {
 			System.out.println(badPoints);
 
 			currentSize = (int) opflowresult.getCurrentSize() - additionalBadPointsCount + badPointsDuplicatesCount;
-		}
+			
+			System.out.println(opflowresult.getCurrentSize()+" "+additionalBadPointsCount+" " +badPointsDuplicatesCount);
+		} 
 		// if (this.VALID_ROTATION == this.ROT_1)
 		// System.out.println("Rotation Matrix 1 is Valid.");
 		// else
