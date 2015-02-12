@@ -336,17 +336,31 @@ public class FeatureManager {
 		List<Integer> additionalBadPoints = fMatResult.additionalBadPoints;
 		int currentSize;
 		{
-			int additionalBadPointsCount = 0;
-			for (Integer index : additionalBadPoints) {
-				if (badPoints.contains(index)) {
-					additionalBadPointsCount++;
-					badPoints.add(index);
+			List<Integer> finalBadPoints = new ArrayList<>();
+
+			int badPointsDuplicatesCount = 0;
+
+			for (Integer index : badPoints) {
+				if (finalBadPoints.contains(index)) {
+					badPointsDuplicatesCount++;
+				} else {
+					finalBadPoints.add(index);
 				}
 			}
-			badPoints.addAll(additionalBadPoints);
-			Collections.sort(badPoints);
 
-			currentSize = (int) opflowresult.getCurrentSize() - additionalBadPointsCount;
+			int additionalBadPointsCount = 0;
+			for (Integer index : additionalBadPoints) {
+				if (finalBadPoints.contains(index)) {
+					additionalBadPointsCount++;
+				} else {
+					finalBadPoints.add(index);
+				}
+			}
+			badPoints = finalBadPoints;
+			Collections.sort(badPoints);
+			System.out.println(badPoints);
+
+			currentSize = (int) opflowresult.getCurrentSize() - additionalBadPointsCount + badPointsDuplicatesCount;
 		}
 		// if (this.VALID_ROTATION == this.ROT_1)
 		// System.out.println("Rotation Matrix 1 is Valid.");
