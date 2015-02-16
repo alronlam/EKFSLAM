@@ -43,7 +43,7 @@ public class MainDriver {
 
 	public static void main(String[] args) {
 
-		String targetFolder = "data/" + Constants.FOLDER_YUCH_LOBBY_RECTANGLE;
+		String targetFolder = "data/" + Constants.FOLDER_LS_STRAIGHT;
 
 		/* Load IMU Dataset */
 		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
@@ -268,7 +268,7 @@ public class MainDriver {
 			// System.out.println("Finished predicting.");
 
 			/* Image Update */
-			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY,breadcrumb.getDeviceCoords());
+			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY, breadcrumb.getDeviceCoords());
 			breadcrumb.update(featureUpdate);
 			// System.out.println("Finished updating.");
 
@@ -317,9 +317,9 @@ public class MainDriver {
 
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
-//			System.out.println(vins.getDeviceCoords());
+			// System.out.println(vins.getDeviceCoords());
 			vins.predict(currIMUBatch);
-//			System.out.println(vins.getDeviceCoords());
+			// System.out.println(vins.getDeviceCoords());
 
 			/* Image Update */
 			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY, vins.getDeviceCoords());
@@ -328,7 +328,7 @@ public class MainDriver {
 			state[5]++;
 
 			vins.update(featureUpdate);
-			//System.out.println("Finished updating.");
+			// System.out.println("Finished updating.");
 
 			/* Update the logs */
 			vinsLog.append(vins.getDeviceCoords() + "\n");
@@ -345,7 +345,7 @@ public class MainDriver {
 		System.out.println("Failed due to triangulation: " + state[4]);
 		System.out.println("Success/Processed: " + state[0] + "/" + (state[5] - state[1]));
 		System.out.println("Failed/Processed: " + (state[2] + state[3] + state[4]) + "/" + (state[5] - state[1]));
-		System.out.printf("Success Rate: %.3f%%\n", state[0] * 100.0 / (datasetSize - state[1]));
+		System.out.printf("Success Rate: %.3f%%\n", state[0] * 100.0 / (state[5] - state[1]));
 
 		finalResultsStringBuilder.append("Total distance traveled " + vins.getTotalDistanceTraveled() + "\r\n");
 		finalResultsStringBuilder.append("Total Displacement = " + vins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");

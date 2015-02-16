@@ -59,34 +59,80 @@ public class FeatureData {
 
 		// Given:
 
-		PointDouble P0, P1; // camera positions
-		PointDouble F0, F1; // feature points w/ relative scale
+		// PointDouble P0, P1; // camera positions
+		// PointDouble F0, F1; // feature points w/ relative scale
+		//
+		// P0 = cameraPosition;
+		// F0 = relativePosition;
+		//
+		// // translate relative position to fit global coordinate system
+		// F0.setX(P0.getX() + F0.getX());
+		// F0.setY(P0.getY() + F0.getY());
+		//
+		// int index = relativePositionList.size() - 1;
+		//
+		// P1 = relativePositionList.get(index);
+		// F1 = cameraPositionList.get(index);
+		//
+		// // translate relative position to fit global coordinate system
+		// F1.setX(P1.getX() + F1.getX());
+		// F1.setY(P1.getY() + F1.getY());
+		//
+		// // Get Slope and y-intercept
+		//
+		// double m0 = (P0.getY() - F0.getY()) / (P0.getX() - F0.getX());
+		// double m1 = (P1.getY() - F1.getY()) / (P1.getX() - F1.getX());
+		//
+		// double b0 = P0.getY() - m0 * P0.getX();
+		// double b1 = P1.getY() - m1 * P1.getX();
+		//
+		// // Get the intersection of the two lines
+		//
+		// double x = (b1 - b0) / (m0 - m1);
+		// double y = (b0 * m1 - b1 * m0) / (m1 - m0);
+		//
+		// PointDouble metricPosition = new PointDouble(x, y);
+		//
+		// // Add new metric position to list
+		// this.metricPositionList.add(metricPosition);
 
-		P0 = cameraPosition;
-		F0 = relativePosition;
+		for (int i = 0; i < relativePositionList.size(); ++i) {
+			PointDouble P0, P1; // camera positions
+			PointDouble F0, F1; // feature points w/ relative scale
 
-		int index = relativePositionList.size() - 1;
+			P0 = cameraPosition;
+			F0 = relativePosition;
 
-		P1 = relativePositionList.get(index);
-		F1 = cameraPositionList.get(index);
+			// translate relative position to fit global coordinate system
+			F0.setX(P0.getX() + F0.getX());
+			F0.setY(P0.getY() + F0.getY());
 
-		// Get Slope and y-intercept
+			P1 = relativePositionList.get(i);
+			F1 = cameraPositionList.get(i);
 
-		double m0 = (P0.getY() - F0.getY()) / (P0.getX() - F0.getX());
-		double m1 = (P1.getY() - F1.getY()) / (P1.getX() - F1.getX());
+			// translate relative position to fit global coordinate system
+			F1.setX(P1.getX() + F1.getX());
+			F1.setY(P1.getY() + F1.getY());
 
-		double b0 = P0.getY() - m0 * P0.getX();
-		double b1 = P1.getY() - m1 * P1.getX();
+			// Get Slope and y-intercept
 
-		// Get the intersection of the two lines
+			double m0 = (P0.getY() - F0.getY()) / (P0.getX() - F0.getX());
+			double m1 = (P1.getY() - F1.getY()) / (P1.getX() - F1.getX());
 
-		double x = (b1 - b0) / (m0 - m1);
-		double y = (b0 * m1 - b1 * m0) / (m1 - m0);
+			double b0 = P0.getY() - m0 * P0.getX();
+			double b1 = P1.getY() - m1 * P1.getX();
 
-		PointDouble metricPosition = new PointDouble(x, y);
+			// Get the intersection of the two lines
 
-		// Add new metric position to list
-		this.metricPositionList.add(metricPosition);
+			double x = (b1 - b0) / (m0 - m1);
+			double y = (b0 * m1 - b1 * m0) / (m1 - m0);
+
+			PointDouble metricPosition = new PointDouble(x, y);
+
+			// Add new metric position to list
+			this.metricPositionList.add(metricPosition);
+		}
+
 		updateEstimatedPosition();
 
 		// Add relative position to list
@@ -102,7 +148,7 @@ public class FeatureData {
 		double sumdenx = 0;
 		double sumdeny = 0;
 
-//		System.out.println(metricPositionList.size());
+		// System.out.println(metricPositionList.size());
 		if (metricPositionList.size() == 1)
 			this.estimatedPosition = metricPositionList.get(0);
 		else {
@@ -115,7 +161,6 @@ public class FeatureData {
 			//
 			// this.estimatedPosition = new PointDouble(sumx / count, sumy / count);
 
-
 			// Weighted Mean
 			for (int i = 0; i < metricPositionList.size(); ++i) {
 				PointDouble curr = metricPositionList.get(i);
@@ -126,7 +171,7 @@ public class FeatureData {
 					weightx += Math.abs(curr.getX() - metricPositionList.get(j).getX());
 					weighty += Math.abs(curr.getY() - metricPositionList.get(j).getY());
 				}
-//				System.out.print("(" + weightx + ", " + weighty + ") ");
+				// System.out.print("(" + weightx + ", " + weighty + ") ");
 
 				sumnumx += weightx * curr.getX();
 				sumnumy += weighty * curr.getY();
@@ -134,8 +179,8 @@ public class FeatureData {
 				sumdenx += weightx;
 				sumdeny += weighty;
 			}
-//			System.out.println();
-//			System.out.println();
+			// System.out.println();
+			// System.out.println();
 
 			this.estimatedPosition = new PointDouble(sumnumx / sumdenx, sumnumy / sumdeny);
 		}

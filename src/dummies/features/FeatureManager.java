@@ -189,6 +189,7 @@ public class FeatureManager {
 		 * 
 		 * checkpointFeatures = new MatOfPoint2f(); nearImage.copyTo(checkpointImage);
 		 */
+		nearImage.copyTo(checkpointImage);
 		if (!goodOld.empty() && !goodNew.empty()) {
 			System.out.println("has good old");
 			// does this work
@@ -347,23 +348,33 @@ public class FeatureManager {
 					finalBadPoints.add(index);
 				}
 			}
+			List<Integer> noDuplicatesAdditionalBadPoints = new ArrayList<>();
 
-			int additionalBadPointsCount = 0;
+			int additionalBadPointsDuplicatesCount = 0;
 			for (Integer index : additionalBadPoints) {
+				if (noDuplicatesAdditionalBadPoints.contains(index)) {
+					additionalBadPointsDuplicatesCount++;
+				} else {
+					noDuplicatesAdditionalBadPoints.add(index);
+				}
+			}
+
+			for (Integer index : noDuplicatesAdditionalBadPoints) {
 				if (finalBadPoints.contains(index)) {
-					additionalBadPointsCount++;
+					badPointsDuplicatesCount++;
 				} else {
 					finalBadPoints.add(index);
 				}
 			}
+
 			badPoints = finalBadPoints;
 			Collections.sort(badPoints);
-			System.out.println(badPoints);
+//			System.out.println(badPoints);
 
-			currentSize = (int) opflowresult.getCurrentSize() - additionalBadPointsCount + badPointsDuplicatesCount;
-			
-			System.out.println(opflowresult.getCurrentSize()+" "+additionalBadPointsCount+" " +badPointsDuplicatesCount);
-		} 
+			currentSize = (int) opflowresult.getCurrentSize() - fMatResult.additionalBadPoints.size() + additionalBadPointsDuplicatesCount + badPointsDuplicatesCount;
+
+			System.out.println(opflowresult.getCurrentSize() + " " + additionalBadPointsDuplicatesCount + " " + badPointsDuplicatesCount);
+		}
 		// if (this.VALID_ROTATION == this.ROT_1)
 		// System.out.println("Rotation Matrix 1 is Valid.");
 		// else
@@ -430,8 +441,11 @@ public class FeatureManager {
 		nearImage.copyTo(checkpointImage);
 		frames++;
 
-		if (this.DEBUG_MODE)
-			System.out.println(update);
+		if (this.DEBUG_MODE){
+			System.out.println(update.getCurrentPoints().size() + update.getBadPointsIndex().size());
+			System.out.println(update.getCurrentPoints().size() + update.getNewPoints().size());
+			
+		}
 
 		CURRENT_STEP = this.STEP_VALID_UPDATE;
 		// System.out.println(update);
