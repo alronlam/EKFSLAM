@@ -1,6 +1,7 @@
 package driver;
 
 import idp.VINSIDPController;
+import idp.ekf.EKFScalingCorrecter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +44,7 @@ public class MainDriver {
 
 	public static void main(String[] args) {
 
-		String targetFolder = "data/" + Constants.FOLDER_LS_STRAIGHT;
+		String targetFolder = "data/" + Constants.FOLDER_YUCH_LOBBY_RECTANGLE;
 
 		/* Load IMU Dataset */
 		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
@@ -60,7 +61,7 @@ public class MainDriver {
 		List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
 
 		// runDoubleIntegration(cimuDataset, imgDataset);
-		runVINS(cimuDataset, imgDataset);
+		// runVINS(cimuDataset, imgDataset);
 		// runINS(imuDataset, imgDataset, insLogFileName);
 		// runINS(imuDatasetWithCimuHeading, imgDataset, insCimuHeadingLogFileName);
 		// runBreadcrumbDummies(imuDataset, imgDataset, breadcrumbLogFileName);
@@ -104,7 +105,7 @@ public class MainDriver {
 		int datasetSize = Math.min(imuDataset.size(), imgDataset.size());
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
 
-		for (int i = 0; i < datasetSize; i++) {
+		for (int i = 0; i < datasetSize/8; i++) {
 
 			System.out.println("\n\nTime Step " + (i + 1));
 
@@ -319,6 +320,8 @@ public class MainDriver {
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
 			// System.out.println(vins.getDeviceCoords());
 			vins.predict(currIMUBatch);
+			
+			PointDouble predictResult = vins.getDeviceCoords();
 			// System.out.println(vins.getDeviceCoords());
 
 			/* Image Update */
@@ -329,10 +332,17 @@ public class MainDriver {
 
 			vins.update(featureUpdate);
 			// System.out.println("Finished updating.");
+			
+			PointDouble deviceCoords = vins.getDeviceCoords();
+			
+			EKFScalingCorrecter.getEKFScalingResultCorrecter().updateCoords(deviceCoords, predictResult);
 
 			/* Update the logs */
-			vinsLog.append(vins.getDeviceCoords() + "\n");
+//			vinsLog.append(vins.getDeviceCoords() + "\n");
 		}
+		
+		vinsLog.append(EKFScalingCorrecter.getEKFScalingResultCorrecter().getCorrectedPositionsAsString());
+		
 		System.out.println("Rot 1 & Tran 1: " + valid[0]);
 		System.out.println("Rot 1 & Tran 2: " + valid[1]);
 		System.out.println("Rot 2 & Tran 1: " + valid[2]);
@@ -346,9 +356,12 @@ public class MainDriver {
 		System.out.println("Success/Processed: " + state[0] + "/" + (state[5] - state[1]));
 		System.out.println("Failed/Processed: " + (state[2] + state[3] + state[4]) + "/" + (state[5] - state[1]));
 		System.out.printf("Success Rate: %.3f%%\n", state[0] * 100.0 / (state[5] - state[1]));
-
-		finalResultsStringBuilder.append("Total distance traveled " + vins.getTotalDistanceTraveled() + "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = " + vins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+		
+		finalResultsStringBuilder.append("Total distance traveled " + EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = " +EKFScalingCorrecter.getEKFScalingResultCorrecter().getFinalPosition().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+		
+//		finalResultsStringBuilder.append("Total distance traveled " + vins.getTotalDistanceTraveled() + "\r\n");
+//		finalResultsStringBuilder.append("Total Displacement = " + vins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		/* Log - Write to File */
 		vinsLog.writeToFile();

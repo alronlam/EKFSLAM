@@ -126,15 +126,15 @@ public class FeatureScaler {
 			FeatureData.addToCameraPositionList(cameraPosition);
 			System.out.println("Camera Positions: " + FeatureData.cameraPositionList.size());
 			System.out.println("Current Camera Position: " + cameraPosition);
-//			if (featureList.size() > 0) {
-//				System.out.println("Metric Position of First, MidPoint, and Last Feature: ");
-//				for (int i = 0; i < 5; ++i)
-//					System.out.println("feature #" + featureList.get(i) + ": " + featureList.get(i).getSavedEstimatedPosition());
-//				// System.out.println("feature #" + featureList.get(0) + ": " + featureList.get(0).getSavedEstimatedPosition());
-//				// System.out.println("feature #" + featureList.get((int) (featureList.size() / 2)) + ": "
-//				// + featureList.get((int) (featureList.size() / 2)).getSavedEstimatedPosition());
-//				// System.out.println("feature #" + featureList.get(featureList.size() - 1) + ": " + featureList.get(featureList.size() - 1).getSavedEstimatedPosition());
-//			}
+			if (featureList.size() > 0) {
+				System.out.println("Metric Position of First, MidPoint, and Last Feature: ");
+				for (int i = 0; i < Math.min(5, featureList.size()); ++i)
+					System.out.println("feature #" + featureList.get(i) + ": " + featureList.get(i).getSavedEstimatedPosition());
+				// System.out.println("feature #" + featureList.get(0) + ": " + featureList.get(0).getSavedEstimatedPosition());
+				// System.out.println("feature #" + featureList.get((int) (featureList.size() / 2)) + ": "
+				// + featureList.get((int) (featureList.size() / 2)).getSavedEstimatedPosition());
+				// System.out.println("feature #" + featureList.get(featureList.size() - 1) + ": " + featureList.get(featureList.size() - 1).getSavedEstimatedPosition());
+			}
 
 			// System.out.println("\n" + featureList.size());
 			// System.out.println(currentPoints.size());
