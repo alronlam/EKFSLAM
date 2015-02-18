@@ -44,7 +44,7 @@ public class MainDriver {
 
 	public static void main(String[] args) {
 
-		String targetFolder = "data/" + Constants.FOLDER_YUCH_LOBBY_RECTANGLE;
+		String targetFolder = "data/" + Constants.FOLDER_LS_STRAIGHT;
 
 		/* Load IMU Dataset */
 		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
@@ -61,11 +61,11 @@ public class MainDriver {
 		List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
 
 		// runDoubleIntegration(cimuDataset, imgDataset);
-		// runVINS(cimuDataset, imgDataset);
+		//runVINS(cimuDataset, imgDataset);
 		// runINS(imuDataset, imgDataset, insLogFileName);
 		// runINS(imuDatasetWithCimuHeading, imgDataset, insCimuHeadingLogFileName);
 		// runBreadcrumbDummies(imuDataset, imgDataset, breadcrumbLogFileName);
-		// runBreadcrumbDummies(imuDatasetWithCimuHeading, imgDataset, breadcrumbWithCimuHeadingLogFileName);
+		  runBreadcrumbDummies(imuDatasetWithCimuHeading, imgDataset, breadcrumbWithCimuHeadingLogFileName);
 		// runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 
@@ -266,6 +266,8 @@ public class MainDriver {
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
 			breadcrumb.predict(currIMUBatch);
+			
+			PointDouble predictResult = breadcrumb.getDeviceCoords();
 			// System.out.println("Finished predicting.");
 
 			/* Image Update */
@@ -275,13 +277,22 @@ public class MainDriver {
 
 			System.out.println(breadcrumb.getDeviceCoords() + "\n");
 
+			PointDouble deviceCoords = breadcrumb.getDeviceCoords();
+			
+			EKFScalingCorrecter.getEKFScalingResultCorrecter().updateCoords(deviceCoords, predictResult);
+
 			/* Update the logs */
-			breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
+//			breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
 		}
+		
+		finalResultsStringBuilder.append(EKFScalingCorrecter.getEKFScalingResultCorrecter().getCorrectedPositionsAsString());
 
 		finalResultsStringBuilder.append("Total steps detected " + breadcrumb.totalStepsDetected + "\r\n");
-		finalResultsStringBuilder.append("Total distance traveled " + breadcrumb.getTotalDistanceTraveled() + "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = " + breadcrumb.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+//		finalResultsStringBuilder.append("Total distance traveled " + breadcrumb.getTotalDistanceTraveled() + "\r\n");
+//		finalResultsStringBuilder.append("Total Displacement = " + breadcrumb.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+
+		finalResultsStringBuilder.append("Total distance traveled " + EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = " +EKFScalingCorrecter.getEKFScalingResultCorrecter().getFinalPosition().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		/* Log - Write to File */
 		breadcrumbLog.writeToFile();

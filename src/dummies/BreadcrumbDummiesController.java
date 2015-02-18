@@ -63,8 +63,10 @@ public class BreadcrumbDummiesController {
 				pointsLog.append(update.toString() + "\r\n");
 
 			pointsLog.append("\r\nAdd Points:\r\n");
-			for (PointDouble add : toAdd)
+			for (PointDouble add : toAdd){
+				System.out.println("Add point "+add.toString());
 				pointsLog.append(add.toString() + "\r\n");
+			}
 
 			pointsLog.writeToFile();
 
@@ -87,7 +89,7 @@ public class BreadcrumbDummiesController {
 		} else {
 			featureUpdateNullCount++;
 			// if (featureUpdateNullCount == 3)
-			ekf.deleteAllFeatures();
+			// ekf.deleteAllFeatures();
 		}
 	}
 
