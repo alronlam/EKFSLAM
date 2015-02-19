@@ -258,6 +258,7 @@ public class MainDriver {
 
 		double prevX = 0;
 		double prevY = 0;
+		PointDouble prevPoint = new PointDouble(Double.MAX_VALUE, Double.MAX_VALUE);
 		for (int i = 0; i < datasetSize; i++) {
 
 			System.out.println("Time Step " + (i + 1));
@@ -278,9 +279,11 @@ public class MainDriver {
 			// System.out.println("Finished predicting.");
 
 			/* Image Update */
-			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY,
-					breadcrumb.getDeviceCoords());
-			breadcrumb.update(featureUpdate);
+			if (prevPoint.getX() != predictResult.getX() || prevPoint.getY() != predictResult.getY()) {
+				FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY, breadcrumb.getDeviceCoords());
+				breadcrumb.update(featureUpdate);
+				prevPoint = predictResult;
+			}
 			// System.out.println("Finished updating.");
 
 			System.out.println(breadcrumb.getDeviceCoords() + "\n");
@@ -293,8 +296,7 @@ public class MainDriver {
 			// breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
 		}
 
-		finalResultsStringBuilder.append(EKFScalingCorrecter.getEKFScalingResultCorrecter()
-				.getCorrectedPositionsAsString());
+		breadcrumbLog.append(EKFScalingCorrecter.getEKFScalingResultCorrecter().getCorrectedPositionsAsString());
 
 		finalResultsStringBuilder.append("Total steps detected " + breadcrumb.totalStepsDetected + "\r\n");
 		// finalResultsStringBuilder.append("Total distance traveled " +
