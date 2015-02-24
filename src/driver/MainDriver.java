@@ -44,7 +44,7 @@ public class MainDriver {
 
 	public static void main(String[] args) {
 
-		String targetFolder = "data/" + Constants.FOLDER_YUCH_LOBBY_RECTANGLE;
+		String targetFolder = "data/" + Constants.FOLDER_LS_STRAIGHT;
 
 		/* Load IMU Dataset */
 		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
@@ -60,14 +60,14 @@ public class MainDriver {
 		/* Change IMU Dataset with Camera Heading */
 		List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
 
-		// runDoubleIntegration(cimuDataset, imgDataset);
-		// runVINS(cimuDataset, imgDataset);
+//		 runDoubleIntegration(cimuDataset, imgDataset);
+		 runVINS(cimuDataset, imgDataset);
 		// runINS(imuDataset, imgDataset, insLogFileName);
-		// runINS(imuDatasetWithCimuHeading, imgDataset,
-		// insCimuHeadingLogFileName);
+//		 runINS(imuDatasetWithCimuHeading, imgDataset,
+//		 insCimuHeadingLogFileName);
 		// runBreadcrumbDummies(imuDataset, imgDataset, breadcrumbLogFileName);
-		 runBreadcrumbDummies(imuDatasetWithCimuHeading, imgDataset,
-		 breadcrumbWithCimuHeadingLogFileName);
+//		 runBreadcrumbDummies(imuDatasetWithCimuHeading, imgDataset,
+//		 breadcrumbWithCimuHeadingLogFileName);
 		// runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 
