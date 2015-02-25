@@ -177,7 +177,171 @@ class OpticalFlow {
 		OpticalFlowResult result = new OpticalFlowResult(goodNearFeatures, goodFarFeatures, badPointsIndex, current);
 		return result;
 	}
+	
+	
+	/**
+	 * Performs optical flow between two consecutive images.
+	 * 
+	 * @param previousImage
+	 * @param nextImage
+	 * @param previousFeatures
+	 * @return
+	 */
+	OpticalFlowResult getFeatures(Mat previousImage, Mat nextImage, MatOfPoint2f previousFeatures) {
+		// Create detect mask
+		
+		Mat detectMask = previousImage.clone();
+		detectMask.setTo(WHITE);
+		List<Point> previousFeaturesList = previousFeatures.toList();
+		for (int i = 0; i < previousFeaturesList.size(); i++) {
+			Core.circle(detectMask, previousFeaturesList.get(i), 10, BLACK, -1);
+		}
+		
+		// Detect new features
+		double previousSize = previousFeatures.size().height;
+		MatOfPoint rawNewFeatures = new MatOfPoint();
+		int toFind = MAX_FEATURES - (int) previousSize;
+		if (toFind > 0) {
+			Imgproc.goodFeaturesToTrack(nextImage, rawNewFeatures, toFind, QUALITY_LEVEL, MIN_DISTANCE, detectMask,
+					BLOCK_SIZE, USE_HARRIS, k);
+		}
+		MatOfPoint2f newFeatures = new MatOfPoint2f(rawNewFeatures.toArray());
+		TermCriteria termCriteria = new TermCriteria(TermCriteria.EPS + TermCriteria.MAX_ITER, 40, 0.001);
+		
+		// Optical Flow
+		MatOfPoint2f leftFeatures = new MatOfPoint2f();
+		leftFeatures.push_back(previousFeatures);
+		leftFeatures.push_back(newFeatures);
+		MatOfPoint2f rightFeatures = new MatOfPoint2f();
+		
+		MatOfByte status = new MatOfByte();
+		MatOfFloat error = new MatOfFloat();
+		
+		if (leftFeatures.size().height > 0) {
+			TermCriteria opflowcriteria = new TermCriteria(TermCriteria.EPS + TermCriteria.MAX_ITER, 40, 0.001);
+			Video.calcOpticalFlowPyrLK(previousImage, nextImage, leftFeatures, rightFeatures, status, error, 
+				OPFLOW_WIN_SIZE, MAX_LEVEL, opflowcriteria, Video.OPTFLOW_LK_GET_MIN_EIGENVALS, MIN_EIG_THRESHOLD);	
+		}
+		
+		// Segregate good, bad, and new
 
+		List<Point> goodLeftFeaturesList = new ArrayList<>();
+		List<Point> goodRightFeaturesList = new ArrayList<>();
+		List<Integer> badPointsList = new ArrayList<>();
+		
+		List<Point> leftFeaturesList = leftFeatures.toList();
+		List<Point> rightFeaturesList = rightFeatures.toList();
+		Mat imageDebug = nextImage.clone();
+		
+		int index = 0;
+		int currents = 0;
+		
+		for (Byte item : status.toList()) {	
+			if (item.intValue() == 1) {
+				if (index < previousSize) {
+					currents++;
+				}
+				goodLeftFeaturesList.add(leftFeaturesList.get(index));
+				goodRightFeaturesList.add(rightFeaturesList.get(index));
+				Core.circle(imageDebug, rightFeaturesList.get(index), 2, RED, 1);
+				Core.line(imageDebug, leftFeaturesList.get(index), rightFeaturesList.get(index), RED);
+
+			} else if (index < previousSize) {
+				badPointsList.add(Integer.valueOf(index));
+			}
+			index++;
+		}
+		io.saveNext(imageDebug);
+		
+		
+		MatOfPoint2f goodNearFeatures = new MatOfPoint2f();
+		MatOfPoint2f goodFarFeatures = new MatOfPoint2f();
+		goodNearFeatures.fromList(goodLeftFeaturesList);
+		goodFarFeatures.fromList(goodRightFeaturesList);
+		
+		OpticalFlowResult result = new OpticalFlowResult(goodNearFeatures, goodFarFeatures, badPointsList, currents);
+		return result;
+	}
+	
+	/**
+	 * Used for asynchronous feature updates. Keeps the features in a single matrix.
+	 * @param previousImage
+	 * @param nextImage
+	 * @param flowingFeatures
+	 * @param currentSize
+	 * @param isGoodFeatures
+	 */
+	AsyncOpticalFlowResult unfilteredFlow(Mat previousImage, Mat nextImage, List<Point> flowingFeaturesList, 
+			int currentSize, List<Boolean> isGoodFeatures) {
+		
+		MatOfPoint2f flowingFeatures = new  MatOfPoint2f(flowingFeaturesList.toArray(new Point[0]));
+		
+		/* Create mask */
+		Mat detectMask = previousImage.clone();
+		detectMask.setTo(WHITE);
+		
+		for (int i = 0; i < flowingFeaturesList.size(); i++) {
+			boolean isGoodFeature = true;
+			if (i < currentSize) {
+				isGoodFeature = isGoodFeatures.get(i);
+			}
+			if (isGoodFeature) {
+				Core.circle(detectMask, flowingFeaturesList.get(i), 10, BLACK, -1);
+			}
+		}
+		
+		
+		/* Detect new features*/
+		double previousSize = flowingFeatures.size().height;
+		MatOfPoint rawNewFeatures = new MatOfPoint();
+		int toFind = MAX_FEATURES - (int) previousSize;
+		
+		if (toFind > 0) {
+			Imgproc.goodFeaturesToTrack(nextImage, rawNewFeatures, toFind, QUALITY_LEVEL, MIN_DISTANCE, detectMask,
+					BLOCK_SIZE, USE_HARRIS, k);
+		}
+		MatOfPoint2f newFeatures = new MatOfPoint2f(rawNewFeatures.toArray());
+		TermCriteria termCriteria = new TermCriteria(TermCriteria.EPS + TermCriteria.MAX_ITER, 40, 0.001);
+		
+		
+		/* Optical flow */
+		MatOfPoint2f leftFeatures = new MatOfPoint2f();
+		leftFeatures.push_back(flowingFeatures);
+		leftFeatures.push_back(newFeatures);
+		MatOfPoint2f rightFeatures = new MatOfPoint2f();
+		MatOfByte statuses = new MatOfByte();
+		MatOfFloat error = new MatOfFloat();
+		
+		if (leftFeatures.size().height > 0) {
+			TermCriteria opflowcriteria = new TermCriteria(TermCriteria.EPS + TermCriteria.MAX_ITER, 40, 0.001);
+			Video.calcOpticalFlowPyrLK(previousImage, nextImage, leftFeatures, rightFeatures, statuses, error, 
+				OPFLOW_WIN_SIZE, MAX_LEVEL, opflowcriteria, Video.OPTFLOW_LK_GET_MIN_EIGENVALS, MIN_EIG_THRESHOLD);	
+		}
+		
+		
+		/* Filter bad features */
+		List<Point> rightFeaturesList = rightFeatures.toList();
+		List<Point> filteredFeatures = new ArrayList<>();
+		List<Byte> statusList = statuses.toList();
+		
+		for (int i = 0; i < rightFeatures.size().height; i++) {
+			int status = statusList.get(i).intValue();
+			if (i < currentSize) {
+				boolean oldValue = isGoodFeatures.get(i);
+				boolean newValue = oldValue && (status == 1);
+				isGoodFeatures.set(i, newValue);
+				// Current features get added regardless if good or bad
+				filteredFeatures.add( rightFeaturesList.get(i) );
+			} else if (status == 1) { 
+				// Remove new features that are bad
+				filteredFeatures.add( rightFeaturesList.get(i) );		
+			}
+		}
+		
+		AsyncOpticalFlowResult result = new AsyncOpticalFlowResult(filteredFeatures, isGoodFeatures);
+		return result;
+	}
+	
 	private MatOfPoint2f convert(MatOfKeyPoint keyPoints) {
 		KeyPoint[] keyPointsArray = keyPoints.toArray();
 		Point[] pointsArray = new Point[keyPointsArray.length];

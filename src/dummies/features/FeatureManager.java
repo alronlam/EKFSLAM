@@ -150,7 +150,21 @@ public class FeatureManager {
 
 		return kps;
 	}
-
+	
+	private List<Point> flowingFeatures;
+	private List<Boolean> isGoodFeatures;
+	private int currentSize;
+	private Mat prevImage;
+	
+	public void flowImage(Mat currentImage) {
+		AsyncOpticalFlowResult opflowresult = opticalFlow.unfilteredFlow(prevImage, currentImage, 
+				flowingFeatures, currentSize, isGoodFeatures);
+		
+		prevImage.copyTo(currentImage);
+		isGoodFeatures = opflowresult.getIsGoodFeatures();
+		flowingFeatures = opflowresult.getFlowingFeatures();
+	}
+	
 	public FeatureUpdate getFeatureUpdate(Mat currentImage, double translationX, double translationZ, PointDouble cameraPosition) {
 		if (!framesReady) {
 			Mat toAdd = new Mat();
