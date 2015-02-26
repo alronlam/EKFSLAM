@@ -150,20 +150,69 @@ public class FeatureManager {
 
 		return kps;
 	}
-	
+	private List<Point> checkpointFeaturesList;
 	private List<Point> flowingFeatures;
 	private List<Boolean> isGoodFeatures;
 	private int currentSize;
+	private int newSize;
 	private Mat prevImage;
 	
 	public void flowImage(Mat currentImage) {
 		AsyncOpticalFlowResult opflowresult = opticalFlow.unfilteredFlow(prevImage, currentImage, 
-				flowingFeatures, currentSize, isGoodFeatures);
-		
-		prevImage.copyTo(currentImage);
+				flowingFeatures, checkpointFeaturesList.size(), isGoodFeatures);
+		currentImage.copyTo(prevImage);
 		isGoodFeatures = opflowresult.getIsGoodFeatures();
 		flowingFeatures = opflowresult.getFlowingFeatures();
 	}
+	
+	  
+	public FeatureUpdate getAsyncFeatureUpdate(Mat currentImage, PointDouble cameraPosition) {
+		if (prevImage == null) {
+			prevImage = new Mat(); // not sure if needed
+			currentImage.copyTo(prevImage);
+			return null;
+		}
+		
+		/* Perform final optical flow */
+		this.flowImage(currentImage);
+		
+		
+		List<Point> flowedCheckpointFeatures = new ArrayList<>();
+		List<Integer> badPointsIndex = new ArrayList<>();
+		List<Point> nextNewFeatures = new ArrayList<>();
+		List<Point> goodCheckpointFeatures = new ArrayList<>();
+		List<Point> goodFlowedCheckpointFeatures = new ArrayList<>();
+		
+		for (int i = 0; i < flowingFeatures.size(); i++) {
+			boolean isGoodFeature = isGoodFeatures.get(i);
+			
+			if (i < checkpointFeaturesList.size()) { 
+				if (isGoodFeature) {
+					goodCheckpointFeatures.add( checkpointFeaturesList.get(i));
+					goodFlowedCheckpointFeatures.add( flowedCheckpointFeatures.get(i) );
+				} else {
+					badPointsIndex.add(Integer.valueOf(i));
+				}
+			} 
+			// TODO handle next new
+			
+			flowedCheckpointFeatures.add(flowingFeatures.get(i));
+			if (!isGoodFeature) {
+				badPointsIndex.add(Integer.valueOf(i));
+			}
+		}
+		
+		
+		
+		
+		/* Initialize variables for next cycle */
+		isGoodFeatures.clear(); 
+		for (int i = 0; i < currentSize; i++) {
+			isGoodFeatures.add(true);
+		}
+	}
+	
+	
 	
 	public FeatureUpdate getFeatureUpdate(Mat currentImage, double translationX, double translationZ, PointDouble cameraPosition) {
 		if (!framesReady) {
@@ -197,12 +246,6 @@ public class FeatureManager {
 		FMatResult fMatResult = null;
 		points4D1 = new Mat();
 
-		// Assures that returning null would clear out old features
-		/*
-		 * Not anymore! checkpoint Features and Image are still the previous one It gets assigned only at the end, if everything is successful. Pray it doesn't null until the end.
-		 * 
-		 * checkpointFeatures = new MatOfPoint2f(); nearImage.copyTo(checkpointImage);
-		 */
 		nearImage.copyTo(checkpointImage);
 		if (!goodOld.empty() && !goodNew.empty()) {
 			System.out.println("has good old");

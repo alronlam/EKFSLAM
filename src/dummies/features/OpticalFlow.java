@@ -264,17 +264,17 @@ class OpticalFlow {
 	}
 	
 	/**
-	 * Used for asynchronous feature updates. Keeps the features in a single matrix.
+	 * Used for asynchronous feature updates. Keeps the features in a single list.
 	 * @param previousImage
 	 * @param nextImage
 	 * @param flowingFeatures
-	 * @param currentSize
+	 * @param checkpointSize
 	 * @param isGoodFeatures
 	 */
 	AsyncOpticalFlowResult unfilteredFlow(Mat previousImage, Mat nextImage, List<Point> flowingFeaturesList, 
-			int currentSize, List<Boolean> isGoodFeatures) {
+			int checkpointSize, List<Boolean> isGoodFeatures) {
 		
-		MatOfPoint2f flowingFeatures = new  MatOfPoint2f(flowingFeaturesList.toArray(new Point[0]));
+		MatOfPoint2f flowingFeatures = new MatOfPoint2f(flowingFeaturesList.toArray(new Point[0]));
 		
 		/* Create mask */
 		Mat detectMask = previousImage.clone();
@@ -282,7 +282,7 @@ class OpticalFlow {
 		
 		for (int i = 0; i < flowingFeaturesList.size(); i++) {
 			boolean isGoodFeature = true;
-			if (i < currentSize) {
+			if (i < checkpointSize) {
 				isGoodFeature = isGoodFeatures.get(i);
 			}
 			if (isGoodFeature) {
@@ -300,14 +300,13 @@ class OpticalFlow {
 			Imgproc.goodFeaturesToTrack(nextImage, rawNewFeatures, toFind, QUALITY_LEVEL, MIN_DISTANCE, detectMask,
 					BLOCK_SIZE, USE_HARRIS, k);
 		}
-		MatOfPoint2f newFeatures = new MatOfPoint2f(rawNewFeatures.toArray());
-		TermCriteria termCriteria = new TermCriteria(TermCriteria.EPS + TermCriteria.MAX_ITER, 40, 0.001);
+		MatOfPoint2f nextNewFeatures = new MatOfPoint2f(rawNewFeatures.toArray());
 		
 		
 		/* Optical flow */
 		MatOfPoint2f leftFeatures = new MatOfPoint2f();
 		leftFeatures.push_back(flowingFeatures);
-		leftFeatures.push_back(newFeatures);
+		leftFeatures.push_back(nextNewFeatures);
 		MatOfPoint2f rightFeatures = new MatOfPoint2f();
 		MatOfByte statuses = new MatOfByte();
 		MatOfFloat error = new MatOfFloat();
@@ -326,12 +325,14 @@ class OpticalFlow {
 		
 		for (int i = 0; i < rightFeatures.size().height; i++) {
 			int status = statusList.get(i).intValue();
-			if (i < currentSize) {
+			if (i < checkpointSize) {
 				boolean oldValue = isGoodFeatures.get(i);
 				boolean newValue = oldValue && (status == 1);
 				isGoodFeatures.set(i, newValue);
+				
 				// Current features get added regardless if good or bad
 				filteredFeatures.add( rightFeaturesList.get(i) );
+			
 			} else if (status == 1) { 
 				// Remove new features that are bad
 				filteredFeatures.add( rightFeaturesList.get(i) );		
