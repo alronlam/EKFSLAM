@@ -33,6 +33,13 @@ public class Constants {
 	public static final String FOLDER_YUCH_SMALLER_RECTANGLE_IVAN = "Yuch Smaller Rectangle - Ivan";
 	public static final String FOLDER_TriTest = "TriTest";
 
+	// Feb 2015 Datasets
+	public static final String FOLDER_RECT1_MIGUEL2_S3 = "Ivan Miguel 2nd Floor S3 Feb 23";
+	public static final String FOLDER_RECT1_MIGUEL3_S3 = "Ivan Miguel 3rd Floor S3 Feb 23";
+	public static final String FOLDER_RECT1_MIGUEL3_S4 = "Ivan Miguel 3rd Floor S4 Feb 24";
+	public static final String FOLDER_STRT1_SJ5_S4 = "Ivan SJ 5th Floor S4 Feb 26";
+	public static final String FOLDER_STRT2_SJ6_S4 = "Ivan SJ 6th Floor S4 Feb 26";
+	
 	// Others
 	public static final String INS_DATA_HEADER = "Acc_x,Acc_y,Acc_z,Gyro_x,Gyro_y,Gyro_z,Orient_x,Orient_y,Orient_z,Time\n";
 
