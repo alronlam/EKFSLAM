@@ -42,25 +42,29 @@ public class MainDriver {
 	private static StringBuilder finalResultsStringBuilder = new StringBuilder();
 
 	public static void main(String[] args) {
-
+		System.out.println("init 1");
 		String targetFolder = "data/" + Constants.FOLDER_LS_STRAIGHT;
 
+		System.out.println("init 2");
 		/* Load IMU Dataset */
 		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
 		List<IMUReadingsBatch> imuDataset = imuLogReader.readSensorEntries();
 
+		System.out.println("init 3");
 		IMULogReader cimuLogReader = new IMULogReader(targetFolder + "/cimu");
 		List<IMUReadingsBatch> cimuDataset = cimuLogReader.readSensorEntries();
-
+		
+		System.out.println("init 4");
 		/* Load Images Dataset */
 		ImgLogReader imgLogReader = new ImgLogReader(targetFolder + "/img");
 		List<Mat> imgDataset = imgLogReader.readImages();
-
+		
+		System.out.println("init 5");
 		/* Change IMU Dataset with Camera Heading */
 		List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
 
 //		 runDoubleIntegration(cimuDataset, imgDataset);
-		 runVINS(cimuDataset, imgDataset);
+		// runVINS(cimuDataset, imgDataset);
 		// runINS(imuDataset, imgDataset, insLogFileName);
 //		 runINS(imuDatasetWithCimuHeading, imgDataset,
 //		 insCimuHeadingLogFileName);
@@ -311,6 +315,7 @@ public class MainDriver {
 	
 	/* Based on runBreadcrumbDummies */
 	private static void runAsync(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String logFileName) {
+		System.out.println("init 1");
 		/* Initialize the controller and manager */
 		BreadcrumbDummiesController breadcrumb = new BreadcrumbDummiesController();
 		FeatureManager featureManager = new FeatureManager();
@@ -325,6 +330,7 @@ public class MainDriver {
 		double prevY = 0;
 		PointDouble prevPoint = new PointDouble(Double.MAX_VALUE, Double.MAX_VALUE);
 		
+		System.out.println("init 2");
 		int imuIndex = 0;
 		int imgIndex = 0;
 		int elapsedTime = Constants.MS_IMU_DURATION;
@@ -389,6 +395,7 @@ public class MainDriver {
 			System.out.println(sb.toString());
 			
 			elapsedTime += Constants.MS_IMG_DURATION;
+			timeStep++;
 		}
 		
 		breadcrumbLog.append(EKFScalingCorrecter.getEKFScalingResultCorrecter().getCorrectedPositionsAsString());

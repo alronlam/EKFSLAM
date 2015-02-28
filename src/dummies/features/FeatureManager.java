@@ -153,8 +153,7 @@ public class FeatureManager {
 	private List<Point> checkpointFeaturesList;
 	private List<Point> flowingFeatures;
 	private List<Boolean> isGoodFeatures;
-	private int currentSize;
-	private int newSize;
+	private int currentSize = 0;
 	private Mat prevImage;
 	
 	public void flowImage(Mat currentImage) {
@@ -163,6 +162,9 @@ public class FeatureManager {
 		currentImage.copyTo(prevImage);
 		isGoodFeatures = opflowresult.getIsGoodFeatures();
 		flowingFeatures = opflowresult.getFlowingFeatures();
+		System.out.println("Flowing features: " + flowingFeatures.size());
+		System.out.println("Is Good Features: " + isGoodFeatures.size());
+		
 	}
 	
 	  
@@ -170,13 +172,16 @@ public class FeatureManager {
 		/* For first call. */
 		if (prevImage == null) {
 			prevImage = new Mat(); // not sure if needed
+			checkpointFeaturesList = new ArrayList<>();
+			flowingFeatures = new ArrayList<>();
+			isGoodFeatures = new ArrayList<>();
 			currentImage.copyTo(prevImage);
 			return null;
 		}
 		
 		/* Perform final optical flow. */
 		this.flowImage(currentImage);
-		
+		System.out.println("HHEEEEEEERE");
 		
 		/* Group features accordingly. */
 		List<Point> flowedCheckpointFeatures = new ArrayList<>();
@@ -214,7 +219,7 @@ public class FeatureManager {
 
 		FMatResult fMatResult = null;
 		points4D1 = new Mat();
-
+		
 		if (!goodOld.empty() && !goodNew.empty()) {
 			System.out.println("has good old");
 			// does this work
@@ -461,13 +466,21 @@ public class FeatureManager {
 
 		
 		/* Initialize variables for next cycle */
-		isGoodFeatures.clear(); 
+		
+		fMatResult.superGoodPoints1.copyTo(checkpointFeatures);
+		flowingFeatures = checkpointFeatures.toList(); 
+		
+		
+		currentSize = (int) checkpointFeatures.size().height;
+		isGoodFeatures.clear();
+		
 		for (int i = 0; i < currentSize; i++) {
 			isGoodFeatures.add(true);
 		}
-		fMatResult.superGoodPoints1.copyTo(checkpointFeatures);
+		
+		
 		frames++;
-
+		
 		if (this.DEBUG_MODE){
 			System.out.println(update.getCurrentPoints().size() + update.getBadPointsIndex().size());
 			System.out.println(update.getCurrentPoints().size() + update.getNewPoints().size());	

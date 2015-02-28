@@ -243,7 +243,7 @@ class OpticalFlow {
 				}
 				goodLeftFeaturesList.add(leftFeaturesList.get(index));
 				goodRightFeaturesList.add(rightFeaturesList.get(index));
-				Core.circle(imageDebug, rightFeaturesList.get(index), 2, RED, 1);
+				Core.circle(imageDebug, rightFeaturesList.get(index), 2, RED, -1);
 				Core.line(imageDebug, leftFeaturesList.get(index), rightFeaturesList.get(index), RED);
 
 			} else if (index < previousSize) {
@@ -319,10 +319,12 @@ class OpticalFlow {
 		
 		
 		/* Filter bad features */
+		List<Point> leftFeaturesList = leftFeatures.toList();
 		List<Point> rightFeaturesList = rightFeatures.toList();
 		List<Point> filteredFeatures = new ArrayList<>();
 		List<Byte> statusList = statuses.toList();
-		
+		Mat imageDebug = nextImage.clone();
+				
 		for (int i = 0; i < rightFeatures.size().height; i++) {
 			int status = statusList.get(i).intValue();
 			if (i < checkpointSize) {
@@ -339,6 +341,17 @@ class OpticalFlow {
 			}
 		}
 		
+		
+		int index = 0;
+		for (Byte item : statuses.toList()) {	
+			if (item.intValue() == 1) {
+				Core.circle(imageDebug, rightFeaturesList.get(index), 2, RED, 1);
+				Core.line(imageDebug, leftFeaturesList.get(index), rightFeaturesList.get(index), RED);
+			} 
+			index++;
+		}
+		io.saveNext(imageDebug);
+
 		AsyncOpticalFlowResult result = new AsyncOpticalFlowResult(filteredFeatures, isGoodFeatures);
 		return result;
 	}
