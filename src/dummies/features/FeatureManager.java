@@ -166,7 +166,7 @@ public class FeatureManager {
 	}
 	
 	  
-	public FeatureUpdate getAsyncFeatureUpdate(Mat currentImage, PointDouble cameraPosition) {
+	public FeatureUpdate getAsyncFeatureUpdate(Mat currentImage, double translationX, double translationZ, PointDouble cameraPosition) {
 		/* For first call. */
 		if (prevImage == null) {
 			prevImage = new Mat(); // not sure if needed

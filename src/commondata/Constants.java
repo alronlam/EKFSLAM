@@ -15,7 +15,10 @@ public class Constants {
 	public static final int MS_OVERALL_CYCLE_FREQUENCY = 350;
 	public static final int MS_INS_SAMPLING_FREQUENCY = 10;
 	public static final int MS_FREQUENCY_FOR_CAMERA_CAPTURE = 350;
-
+	
+	public static final int MS_IMG_DURATION = 66;
+	public static final int MS_IMU_DURATION = 350;
+	
 	// Log related
 	public static final String FOLDER_STRAIGHT_7M = "straight7m";
 	public static final String FOLDER_STANDING_30S = "standing30s";
