@@ -181,7 +181,6 @@ public class FeatureManager {
 		
 		/* Perform final optical flow. */
 		this.flowImage(currentImage);
-		System.out.println("HHEEEEEEERE");
 		
 		/* Group features accordingly. */
 		List<Point> flowedCheckpointFeatures = new ArrayList<>();
@@ -191,10 +190,9 @@ public class FeatureManager {
 		List<Point> goodFlowedCheckpointFeatures = new ArrayList<>();
 		
 		for (int i = 0; i < flowingFeatures.size(); i++) {
-			boolean isGoodFeature = isGoodFeatures.get(i);
 			// Split off features into checkpoint and next new features.
-			if (i < checkpointFeaturesList.size()) { 
-				if (isGoodFeature) {
+			if (i < checkpointFeaturesList.size()) {
+				if (isGoodFeatures.get(i)) {
 					goodCheckpointFeatures.add( checkpointFeaturesList.get(i));
 					goodFlowedCheckpointFeatures.add( flowedCheckpointFeatures.get(i) );
 				
@@ -203,8 +201,8 @@ public class FeatureManager {
 					badPointsIndex.add(Integer.valueOf(i));
 				}
 			
-			} else if (isGoodFeature) {
-				nextNewFeatures.add(flowedCheckpointFeatures.get(i));	
+			} else {
+				nextNewFeatures.add(flowingFeatures.get(i));	
 			}
 		}
 		
@@ -214,11 +212,27 @@ public class FeatureManager {
 		// TODO convert to function  
 		MatOfPoint2f goodOld = new MatOfPoint2f();
 		MatOfPoint2f goodNew = new MatOfPoint2f();
-		goodOld.fromList(goodCheckpointFeatures);
+		
 		goodNew.fromList(goodFlowedCheckpointFeatures);
 
 		FMatResult fMatResult = null;
 		points4D1 = new Mat();
+		System.out.println(goodCheckpointFeatures.size());
+		
+// sketchy code ahead
+		if (goodOld.empty() || goodNew.empty()) {
+			flowingFeatures = checkpointFeatures.toList(); 
+			
+			currentSize = (int) checkpointFeatures.size().height;
+			isGoodFeatures.clear();
+			
+			for (int i = 0; i < currentSize; i++) {
+				isGoodFeatures.add(true);
+			}			
+			frames++;
+			return null;
+		}
+
 		
 		if (!goodOld.empty() && !goodNew.empty()) {
 			System.out.println("has good old");
@@ -470,7 +484,6 @@ public class FeatureManager {
 		fMatResult.superGoodPoints1.copyTo(checkpointFeatures);
 		flowingFeatures = checkpointFeatures.toList(); 
 		
-		
 		currentSize = (int) checkpointFeatures.size().height;
 		isGoodFeatures.clear();
 		
@@ -525,7 +538,7 @@ public class FeatureManager {
 		FMatResult fMatResult = null;
 		points4D1 = new Mat();
 
-		nearImage.copyTo(checkpointImage);
+		
 		if (!goodOld.empty() && !goodNew.empty()) {
 			System.out.println("has good old");
 			// does this work

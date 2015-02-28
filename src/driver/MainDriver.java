@@ -64,7 +64,7 @@ public class MainDriver {
 		List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
 
 //		 runDoubleIntegration(cimuDataset, imgDataset);
-		// runVINS(cimuDataset, imgDataset);
+//		runVINS(cimuDataset, imgDataset);
 		// runINS(imuDataset, imgDataset, insLogFileName);
 //		 runINS(imuDatasetWithCimuHeading, imgDataset,
 //		 insCimuHeadingLogFileName);
@@ -74,7 +74,7 @@ public class MainDriver {
 		// runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 		 
-		 // runAsync(imuDataset, imgDataset, asyncLogFileName);
+		 runAsync(imuDataset, imgDataset, asyncLogFileName);
 
 		System.out.println(finalResultsStringBuilder.toString());
 	}
@@ -366,6 +366,7 @@ public class MainDriver {
 				if (prevPoint.getX() != predictResult.getX() || prevPoint.getY() != predictResult.getY()) {
 					FeatureUpdate featureUpdate = featureManager.getAsyncFeatureUpdate(imgDataset.get(imgIndex), 
 							transX, transY, breadcrumb.getDeviceCoords());
+					
 					breadcrumb.update(featureUpdate);
 					prevPoint = predictResult;
 				}
