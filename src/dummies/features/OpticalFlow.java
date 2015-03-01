@@ -332,7 +332,7 @@ class OpticalFlow {
 				boolean newValue = oldValue && (status == 1);
 				isGoodFeatures.set(i, newValue);
 				
-				// Current features get added regardless if good or bad
+				// Checkpoint features get added regardless if good or bad
 				filteredFeatures.add( rightFeaturesList.get(i) );
 			
 			} else if (status == 1) { 

@@ -340,9 +340,10 @@ public class MainDriver {
 				break;
 			}
 			
-			System.out.println("Time Step " + (timeStep + 1));
+			
 			StringBuilder sb = new StringBuilder();
 			if (elapsedTime >= Constants.MS_IMU_DURATION) {
+				System.out.println("\nTime Step " + (timeStep + 1));
 				sb.append("Feature Update. ");
 				sb.append("img: " + imgIndex + " ");
 				sb.append("imu: " + imuIndex + " ");
@@ -372,7 +373,7 @@ public class MainDriver {
 				}
 				// System.out.println("Finished updating.");
 
-				System.out.println(breadcrumb.getDeviceCoords() + "\n");
+				System.out.println(breadcrumb.getDeviceCoords() + "");
 
 				PointDouble deviceCoords = breadcrumb.getDeviceCoords();
 
@@ -380,20 +381,22 @@ public class MainDriver {
 
 				imuIndex++;
 				elapsedTime = elapsedTime % Constants.MS_IMU_DURATION;
-				
+				sb.append(elapsedTime + "ms");
 				/* Update the logs */
 				// breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
-				
+				System.out.println(sb.toString());
 				 
 			} else {
-				sb.append("Image Flow. ");
-				sb.append("img: " + imgIndex + " ");				
+				// sb.append("Image Flow. ");
+				// sb.append("img: " + imgIndex + " ");
+				// sb.append(elapsedTime + "ms");
+				// System.out.println(sb.toString());
 				featureManager.flowImage(imgDataset.get(imgIndex));
 			}
 			
 			imgIndex++;
-			sb.append(elapsedTime + "ms");
-			System.out.println(sb.toString());
+			
+			
 			
 			elapsedTime += Constants.MS_IMG_DURATION;
 			timeStep++;

@@ -113,7 +113,7 @@ public class FeatureScaler {
 
 			scaledCurrEndIndex = scaledNewEndIndex;
 			scaledNewEndIndex = featureList.size();
-
+			
 			for (int i = 0; i < relativeFeatures.size(); ++i) {
 				if (i < scaledCurrEndIndex) {
 					currentPoints.add(featureList.get(i).getEstimatedPosition(relativeFeatures.get(i), cameraPosition));

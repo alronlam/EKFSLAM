@@ -162,9 +162,8 @@ public class FeatureManager {
 		currentImage.copyTo(prevImage);
 		isGoodFeatures = opflowresult.getIsGoodFeatures();
 		flowingFeatures = opflowresult.getFlowingFeatures();
-		System.out.println("Flowing features: " + flowingFeatures.size());
-		System.out.println("Is Good Features: " + isGoodFeatures.size());
-		
+		// System.out.println("Flowing features: " + flowingFeatures.size());
+		// System.out.println("Is Good Features: " + isGoodFeatures.size());
 	}
 	
 	  
@@ -183,7 +182,6 @@ public class FeatureManager {
 		this.flowImage(currentImage);
 		
 		/* Group features accordingly. */
-		List<Point> flowedCheckpointFeatures = new ArrayList<>();
 		List<Integer> badPointsIndex = new ArrayList<>();
 		List<Point> nextNewFeatures = new ArrayList<>();
 		List<Point> goodCheckpointFeatures = new ArrayList<>();
@@ -192,11 +190,12 @@ public class FeatureManager {
 		for (int i = 0; i < flowingFeatures.size(); i++) {
 			// Split off features into checkpoint and next new features.
 			if (i < checkpointFeaturesList.size()) {
+				// Prepare good current and new features for triangulation
 				if (isGoodFeatures.get(i)) {
-					goodCheckpointFeatures.add( checkpointFeaturesList.get(i));
-					goodFlowedCheckpointFeatures.add( flowedCheckpointFeatures.get(i) );
+					goodCheckpointFeatures.add( checkpointFeaturesList.get(i) );
+					goodFlowedCheckpointFeatures.add( flowingFeatures.get(i) );
 				
-				// Add bad point indices of current checkpoint features.
+				// Add bad point indices of current features.
 				} else if (i < currentSize) {
 					badPointsIndex.add(Integer.valueOf(i));
 				}
@@ -212,28 +211,25 @@ public class FeatureManager {
 		// TODO convert to function  
 		MatOfPoint2f goodOld = new MatOfPoint2f();
 		MatOfPoint2f goodNew = new MatOfPoint2f();
-		
+		goodOld.fromList(goodCheckpointFeatures);
 		goodNew.fromList(goodFlowedCheckpointFeatures);
 
-		FMatResult fMatResult = null;
-		points4D1 = new Mat();
-		System.out.println(goodCheckpointFeatures.size());
-		
-// sketchy code ahead
+		// sketchy code ahead
 		if (goodOld.empty() || goodNew.empty()) {
-			flowingFeatures = checkpointFeatures.toList(); 
-			
-			currentSize = (int) checkpointFeatures.size().height;
+			flowingFeatures = checkpointFeaturesList; 
+			currentSize = (int) checkpointFeaturesList.size();
+			flowingFeatures.addAll(nextNewFeatures);
 			isGoodFeatures.clear();
 			
-			for (int i = 0; i < currentSize; i++) {
+			for (int i = 0; i < flowingFeatures.size(); i++) {
 				isGoodFeatures.add(true);
-			}			
+			}
 			frames++;
 			return null;
 		}
 
-		
+		FMatResult fMatResult = null;
+		points4D1 = new Mat();		
 		if (!goodOld.empty() && !goodNew.empty()) {
 			System.out.println("has good old");
 			// does this work
@@ -379,6 +375,7 @@ public class FeatureManager {
 		// Appending additional bad points from Fundamental Matrix calculation
 		List<Integer> badPoints = badPointsIndex;
 		List<Integer> additionalBadPoints = fMatResult.additionalBadPoints;
+		currentSize -= badPoints.size();
 		{
 			List<Integer> finalBadPoints = new ArrayList<>();
 
@@ -413,11 +410,11 @@ public class FeatureManager {
 			badPoints = finalBadPoints;
 			Collections.sort(badPoints);
 			//	System.out.println(badPoints);
-
+			
 			currentSize = currentSize - fMatResult.additionalBadPoints.size() + additionalBadPointsDuplicatesCount + badPointsDuplicatesCount;
-
 			System.out.println(currentSize + " " + additionalBadPointsDuplicatesCount + " " + badPointsDuplicatesCount);
 		}
+		
 		// if (this.VALID_ROTATION == this.ROT_1)
 		// System.out.println("Rotation Matrix 1 is Valid.");
 		// else
@@ -426,7 +423,7 @@ public class FeatureManager {
 		// System.out.println("Translation Vector 1 is Valid.");
 		// else
 		// System.out.println("Translation Vector 2 is Valid.");
-
+		
 		Mat translationMatrix = T2;
 		if (this.VALID_TRANSLATION == this.TRAN_1)
 			translationMatrix = T1;
@@ -473,25 +470,22 @@ public class FeatureManager {
 		}
 
 		// BADPOINTS MOVED UP
-
+		
 		update.setCurrentPoints(currentPoints);
 		update.setBadPointsIndex(badPoints);
 		update.setNewPoints(newPoints);
 
-		
 		/* Initialize variables for next cycle */
-		
 		fMatResult.superGoodPoints1.copyTo(checkpointFeatures);
-		flowingFeatures = checkpointFeatures.toList(); 
-		
-		currentSize = (int) checkpointFeatures.size().height;
+		checkpointFeaturesList = new ArrayList<>(checkpointFeatures.toList());
+		flowingFeatures = checkpointFeaturesList; 
+		currentSize = checkpointFeaturesList.size();
+		flowingFeatures.addAll(nextNewFeatures);
 		isGoodFeatures.clear();
 		
-		for (int i = 0; i < currentSize; i++) {
+		for (int i = 0; i < flowingFeatures.size(); i++) {
 			isGoodFeatures.add(true);
 		}
-		
-		
 		frames++;
 		
 		if (this.DEBUG_MODE){
