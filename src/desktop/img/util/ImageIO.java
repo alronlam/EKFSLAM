@@ -42,8 +42,14 @@ public class ImageIO {
 			String digitString = firstFile.split("\\.")[0];
 			lastDigitLoaded = Integer.parseInt(digitString);
 
-			String lastfile = files[files.length - 1];
-			digitString = lastfile.split("\\.")[0];
+			String lastfile;
+			int i = 0;
+			do {
+				++i;
+				lastfile = files[files.length - i];
+				digitString = lastfile.split("\\.")[0];
+			} while (!digitString.matches("[-+]?\\d*\\.?\\d+"));
+
 			lastDigitSaved = Integer.parseInt(digitString);
 		}
 	}

@@ -15,7 +15,10 @@ public class Constants {
 	public static final int MS_OVERALL_CYCLE_FREQUENCY = 350;
 	public static final int MS_INS_SAMPLING_FREQUENCY = 10;
 	public static final int MS_FREQUENCY_FOR_CAMERA_CAPTURE = 350;
-
+	
+	public static final int MS_IMG_DURATION = 66;
+	public static final int MS_IMU_DURATION = 350;
+	
 	// Log related
 	public static final String FOLDER_STRAIGHT_7M = "straight7m";
 	public static final String FOLDER_STANDING_30S = "standing30s";
@@ -30,6 +33,13 @@ public class Constants {
 	public static final String FOLDER_YUCH_SMALLER_RECTANGLE_IVAN = "Yuch Smaller Rectangle - Ivan";
 	public static final String FOLDER_TriTest = "TriTest";
 
+	// Feb 2015 Datasets
+	public static final String FOLDER_RECT1_MIGUEL2_S3 = "Ivan Miguel 2nd Floor S3 Feb 23";
+	public static final String FOLDER_RECT1_MIGUEL3_S3 = "Ivan Miguel 3rd Floor S3 Feb 23";
+	public static final String FOLDER_RECT1_MIGUEL3_S4 = "Ivan Miguel 3rd Floor S4 Feb 24";
+	public static final String FOLDER_STRT1_SJ5_S4 = "Ivan SJ 5th Floor S4 Feb 26";
+	public static final String FOLDER_STRT2_SJ6_S4 = "Ivan SJ 6th Floor S4 Feb 26";
+	
 	// Others
 	public static final String INS_DATA_HEADER = "Acc_x,Acc_y,Acc_z,Gyro_x,Gyro_y,Gyro_z,Orient_x,Orient_y,Orient_z,Time\n";
 
