@@ -8,7 +8,7 @@
 	<classpathentry kind="lib" path="lib/junit-4.12-beta-3.jar"/>
 	<classpathentry kind="lib" path="lib/opencv/opencv-249.jar">
 		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="EKFSLAM/lib/opencv/x64"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="EKFSLAM/lib/opencv/x86"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="output" path="bin"/>

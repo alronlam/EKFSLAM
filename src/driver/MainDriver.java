@@ -14,8 +14,10 @@ import stepbasedins.data.SensorEntry;
 import util.FileLog;
 import vins.DoubleIntegrationController;
 import vins.VINSController;
+
 import commondata.Constants;
 import commondata.PointDouble;
+
 import desktop.img.ImgLogReader;
 import desktop.imu.IMULogReader;
 import desktop.imu.IMUReadingsBatch;
@@ -43,8 +45,7 @@ public class MainDriver {
 
 	public static void main(String[] args) {
 		System.out.println("init 1");
-		String targetFolder = "data/" + Constants.FOLDER_LS_STRAIGHT;
-
+		String targetFolder = "data/" + Constants.FOLDER_STRT2_SJ6_S4;
 
 		System.out.println("init 2");
 		/* Load IMU Dataset */
@@ -54,33 +55,34 @@ public class MainDriver {
 		System.out.println("init 3");
 		IMULogReader cimuLogReader = new IMULogReader(targetFolder + "/cimu");
 		List<IMUReadingsBatch> cimuDataset = cimuLogReader.readSensorEntries();
-		
+
 		System.out.println("init 4");
 		/* Load Images Dataset */
 		ImgLogReader imgLogReader = new ImgLogReader(targetFolder + "/img");
 		List<Mat> imgDataset = imgLogReader.readImages();
-		
+
 		System.out.println("init 5");
 		/* Change IMU Dataset with Camera Heading */
 		List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
 
-//		 runDoubleIntegration(cimuDataset, imgDataset);
-//		runVINS(cimuDataset, imgDataset);
+		// runDoubleIntegration(cimuDataset, imgDataset);
+		// runVINS(cimuDataset, imgDataset);
 		// runINS(imuDataset, imgDataset, insLogFileName);
-//		 runINS(imuDatasetWithCimuHeading, imgDataset,
-//		 insCimuHeadingLogFileName);
-//		runBreadcrumbDummies(imuDataset, imgDataset, breadcrumbLogFileName);
-//		 runBreadcrumbDummies(imuDatasetWithCimuHeading, imgDataset,
-//		 breadcrumbWithCimuHeadingLogFileName);
+		// runINS(imuDatasetWithCimuHeading, imgDataset,
+		// insCimuHeadingLogFileName);
+		// runBreadcrumbDummies(imuDataset, imgDataset, breadcrumbLogFileName);
+		// runBreadcrumbDummies(imuDatasetWithCimuHeading, imgDataset,
+		// breadcrumbWithCimuHeadingLogFileName);
 		// runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
-		 
-		 runAsync(imuDataset, imgDataset, asyncLogFileName);
+
+		runAsync(imuDataset, imgDataset, asyncLogFileName);
 
 		System.out.println(finalResultsStringBuilder.toString());
 	}
 
-	private static List<IMUReadingsBatch> changeHeading(List<IMUReadingsBatch> originalIMUDataset, List<IMUReadingsBatch> cimuDataset) {
+	private static List<IMUReadingsBatch> changeHeading(List<IMUReadingsBatch> originalIMUDataset,
+			List<IMUReadingsBatch> cimuDataset) {
 
 		List<IMUReadingsBatch> newIMUDataset = new ArrayList<IMUReadingsBatch>();
 
@@ -125,8 +127,10 @@ public class MainDriver {
 			doubleIntegrationLog.append(doubleIntegration.getDeviceCoords() + "\n");
 		}
 
-		finalResultsStringBuilder.append("Total distance traveled " + doubleIntegration.getTotalDistanceTraveled() + "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = " + doubleIntegration.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+		finalResultsStringBuilder.append("Total distance traveled " + doubleIntegration.getTotalDistanceTraveled()
+				+ "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = "
+				+ doubleIntegration.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		/* Log - Write to File */
 		doubleIntegrationLog.writeToFile();
@@ -180,7 +184,8 @@ public class MainDriver {
 			// vinsIDP.predict(currIMUBatch);
 			System.out.println("Finished predicting.");
 			/* Image Update */
-			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY, vins.getDeviceCoords());
+			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY,
+					vins.getDeviceCoords());
 			breadcrumb.update(featureUpdate);
 			// vins.update(featureUpdate);
 
@@ -238,7 +243,8 @@ public class MainDriver {
 		}
 
 		finalResultsStringBuilder.append("Total Distance Traveled = " + vinsIDP.getTotalDistanceTraveled() + "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = " + vinsIDP.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = "
+				+ vinsIDP.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		/* Log - Write to File */
 		vinsIDPLog.writeToFile();
@@ -281,7 +287,8 @@ public class MainDriver {
 
 			/* Image Update */
 			if (prevPoint.getX() != predictResult.getX() || prevPoint.getY() != predictResult.getY()) {
-				FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY, breadcrumb.getDeviceCoords());
+				FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY,
+						breadcrumb.getDeviceCoords());
 				breadcrumb.update(featureUpdate);
 				prevPoint = predictResult;
 			}
@@ -306,14 +313,16 @@ public class MainDriver {
 		// breadcrumb.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0))
 		// + "\r\n");
 
-		finalResultsStringBuilder.append("Total distance traveled " + EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = " + EKFScalingCorrecter.getEKFScalingResultCorrecter().getFinalPosition().computeDistanceTo(new PointDouble(0, 0))
-				+ "\r\n");
+		finalResultsStringBuilder.append("Total distance traveled "
+				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = "
+				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getFinalPosition()
+						.computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		/* Log - Write to File */
 		breadcrumbLog.writeToFile();
 	}
-	
+
 	/* Based on runBreadcrumbDummies */
 	private static void runAsync(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String logFileName) {
 		System.out.println("init 1");
@@ -330,7 +339,7 @@ public class MainDriver {
 		double prevX = 0;
 		double prevY = 0;
 		PointDouble prevPoint = new PointDouble(Double.MAX_VALUE, Double.MAX_VALUE);
-		
+
 		System.out.println("init 2");
 		int imuIndex = 0;
 		int imgIndex = 0;
@@ -340,15 +349,14 @@ public class MainDriver {
 			if (imuIndex >= imuDataset.size() || imgIndex >= imgDataset.size()) {
 				break;
 			}
-			
-			
+
 			StringBuilder sb = new StringBuilder();
 			if (elapsedTime >= Constants.MS_IMU_DURATION) {
 				System.out.println("\nTime Step " + (timeStep + 1));
 				sb.append("Feature Update. ");
 				sb.append("img: " + imgIndex + " ");
 				sb.append("imu: " + imuIndex + " ");
-				
+
 				// Get them fancy translations
 				// is this even correct
 				double transX = breadcrumb.getDeviceCoords().getX() - prevX;
@@ -366,9 +374,9 @@ public class MainDriver {
 
 				/* Image Update */
 				if (prevPoint.getX() != predictResult.getX() || prevPoint.getY() != predictResult.getY()) {
-					FeatureUpdate featureUpdate = featureManager.getAsyncFeatureUpdate(imgDataset.get(imgIndex), 
+					FeatureUpdate featureUpdate = featureManager.getAsyncFeatureUpdate(imgDataset.get(imgIndex),
 							transX, transY, breadcrumb.getDeviceCoords());
-					
+
 					breadcrumb.update(featureUpdate);
 					prevPoint = predictResult;
 				}
@@ -386,7 +394,7 @@ public class MainDriver {
 				/* Update the logs */
 				// breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
 				System.out.println(sb.toString());
-				 
+
 			} else {
 				// sb.append("Image Flow. ");
 				// sb.append("img: " + imgIndex + " ");
@@ -394,15 +402,13 @@ public class MainDriver {
 				// System.out.println(sb.toString());
 				featureManager.flowImage(imgDataset.get(imgIndex));
 			}
-			
+
 			imgIndex++;
-			
-			
-			
+
 			elapsedTime += Constants.MS_IMG_DURATION;
 			timeStep++;
 		}
-		
+
 		breadcrumbLog.append(EKFScalingCorrecter.getEKFScalingResultCorrecter().getCorrectedPositionsAsString());
 
 		finalResultsStringBuilder.append("Total steps detected " + breadcrumb.totalStepsDetected + "\r\n");
@@ -412,14 +418,15 @@ public class MainDriver {
 		// breadcrumb.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0))
 		// + "\r\n");
 
-		finalResultsStringBuilder.append("Total distance traveled " + EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = " + EKFScalingCorrecter.getEKFScalingResultCorrecter().getFinalPosition().computeDistanceTo(new PointDouble(0, 0))
-				+ "\r\n");
+		finalResultsStringBuilder.append("Total distance traveled "
+				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = "
+				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getFinalPosition()
+						.computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		/* Log - Write to File */
 		breadcrumbLog.writeToFile();
 	}
-
 
 	private static void runVINS(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset) {
 		/* Initialize the controller and manager */
@@ -459,8 +466,10 @@ public class MainDriver {
 			// System.out.println(vins.getDeviceCoords());
 
 			/* Image Update */
-			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY, vins.getDeviceCoords());
-			valid[(FeatureManager.VALID_ROTATION == FeatureManager.ROT_1 ? 0 : 2) + (FeatureManager.VALID_TRANSLATION == FeatureManager.TRAN_1 ? 0 : 1)]++;
+			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY,
+					vins.getDeviceCoords());
+			valid[(FeatureManager.VALID_ROTATION == FeatureManager.ROT_1 ? 0 : 2)
+					+ (FeatureManager.VALID_TRANSLATION == FeatureManager.TRAN_1 ? 0 : 1)]++;
 			state[FeatureManager.CURRENT_STEP]++;
 			state[5]++;
 
@@ -491,9 +500,11 @@ public class MainDriver {
 		System.out.println("Failed/Processed: " + (state[2] + state[3] + state[4]) + "/" + (state[5] - state[1]));
 		System.out.printf("Success Rate: %.3f%%\n", state[0] * 100.0 / (state[5] - state[1]));
 
-		finalResultsStringBuilder.append("Total distance traveled " + EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = " + EKFScalingCorrecter.getEKFScalingResultCorrecter().getFinalPosition().computeDistanceTo(new PointDouble(0, 0))
-				+ "\r\n");
+		finalResultsStringBuilder.append("Total distance traveled "
+				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = "
+				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getFinalPosition()
+						.computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		// finalResultsStringBuilder.append("Total distance traveled " +
 		// vins.getTotalDistanceTraveled() + "\r\n");
@@ -531,7 +542,8 @@ public class MainDriver {
 
 		finalResultsStringBuilder.append("Total steps detected: " + ins.totalStepsDetected + "\r\n");
 		finalResultsStringBuilder.append("Total distance traveled: " + ins.totalDistanceTraveled + "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = " + ins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = "
+				+ ins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		/* Log - Write to File */
 		insLog.writeToFile();
