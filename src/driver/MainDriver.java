@@ -34,18 +34,19 @@ public class MainDriver {
 	private static String logFolder = "results";
 	private static String breadcrumbLogFileName = "breadcrumb.csv";
 	private static String breadcrumbWithCimuHeadingLogFileName = "breadcrumbCimuHeading.csv";
+	private static String breadcrumbWithCimuHeading15hzLogFileName = "breadcrumbCimuHeading15hz.csv";
 	private static String insLogFileName = "ins.csv";
 	private static String insCimuHeadingLogFileName = "insCimuHeading.csv";
 	private static String vinsLogFileName = "vins.csv";
+	private static String vins15hzLogFileName = "vins15hz.csv";
 	private static String idpLogFileName = "vinsidp.csv";
 	private static String doubleIntegrationLogFileName = "doubleintegration.csv";
-	private static String asyncLogFileName = "async.csv";
 
 	private static StringBuilder finalResultsStringBuilder = new StringBuilder();
 
 	public static void main(String[] args) {
 		System.out.println("init 1");
-		String targetFolder = "data/" + Constants.FOLDER_LS_STRAIGHT;
+		String targetFolder = "data/" + Constants.FOLDER_STRT1_SJ5_S4;
 
 		System.out.println("init 2");
 		/* Load IMU Dataset */
@@ -65,20 +66,20 @@ public class MainDriver {
 		/* Change IMU Dataset with Camera Heading */
 		List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
 
-		// runDoubleIntegration(cimuDataset, imgDataset);
-		runVINSAsync(cimuDataset, imgDataset, vinsLogFileName, false);
 		// runINS(imuDataset, imgDataset, insLogFileName);
 		// runINS(imuDatasetWithCimuHeading, imgDataset,
 		// insCimuHeadingLogFileName);
-		// runBreadcrumbDummies(imuDataset, imgDataset, breadcrumbLogFileName);
-		// runBreadcrumbDummies(imuDatasetWithCimuHeading, imgDataset,
-		// breadcrumbWithCimuHeadingLogFileName);
+		//
+		// runDoubleIntegration(cimuDataset, imgDataset);
+		// runVINSAsync(cimuDataset, imgDataset, vinsLogFileName, false);
+		runVINSAsync(cimuDataset, imgDataset, vins15hzLogFileName, true);
+
+		// runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset,
+		// breadcrumbWithCimuHeadingLogFileName, false);
+		// runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset,
+		// breadcrumbWithCimuHeading15hzLogFileName, true);
 		// runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
-
-		// runAsync(imuDataset, imgDataset, asyncLogFileName, false);
-		// runAsync(imuDatasetWithCimuHeading, imgDataset, asyncLogFileName,
-		// false);
 
 		System.out.println(finalResultsStringBuilder.toString());
 	}
@@ -442,7 +443,7 @@ public class MainDriver {
 		FeatureManager featureManager = new FeatureManager();
 
 		/* Initialize the logs */
-		FileLog vinsLog = new FileLog(logFolder + "/" + vinsLogFileName);
+		FileLog vinsLog = new FileLog(logFolder + "/" + logFileName);
 		vinsLog.append(vins.getDeviceCoords() + "\n");
 
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
