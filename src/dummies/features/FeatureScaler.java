@@ -124,9 +124,9 @@ public class FeatureScaler {
 			}
 
 			FeatureData.addToCameraPositionList(cameraPosition);
-			System.out.println("Camera Positions: " + FeatureData.cameraPositionList.size());
-			System.out.println("Current Camera Position: " + cameraPosition);
-			if (featureList.size() > 0) {
+			// System.out.println("Camera Positions: " + FeatureData.cameraPositionList.size());
+			// System.out.println("Current Camera Position: " + cameraPosition);
+			if (featureList.size() < 0) {
 				System.out.println("Metric Position of First, MidPoint, and Last Feature: ");
 				for (int i = 0; i < Math.min(5, featureList.size()); ++i)
 					System.out.println("feature #" + featureList.get(i) + ": " + featureList.get(i).getSavedEstimatedPosition());

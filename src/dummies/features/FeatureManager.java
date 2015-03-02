@@ -183,28 +183,37 @@ public class FeatureManager {
 		List<Point> nextNewFeatures = new ArrayList<>();
 		List<Point> goodCheckpointFeatures = new ArrayList<>();
 		List<Point> goodFlowedCheckpointFeatures = new ArrayList<>();
-
-		int goodCurrentSize = 0;
+		
+		int goodCurrents = 0;
+		
 		for (int i = 0; i < flowingFeatures.size(); i++) {
 			// Split off features into checkpoint and next new features.
 			if (i < checkpointFeaturesList.size()) {
-
 				// Prepare good current and new features for triangulation
 				if (isGoodFeatures.get(i)) {
+					if (i < currentSize) {
+						goodCurrents++;
+						
+					} else {
+						
+					}
 					goodCheckpointFeatures.add(checkpointFeaturesList.get(i));
 					goodFlowedCheckpointFeatures.add(flowingFeatures.get(i));
-
-					// Add bad point indices of current features.
+					
+				// Add bad point indices of current features.
 				} else if (i < currentSize) {
 					badPointsIndex.add(Integer.valueOf(i));
+					
 				}
 
 			} else {
 				nextNewFeatures.add(flowingFeatures.get(i));
+				
 			}
 		}
-		System.out.println("BPI " + badPointsIndex.size());
-		System.out.println("GCF " + goodCheckpointFeatures.size());
+		System.out.println("current size " + currentSize);
+		System.out.println("gcf " + goodCheckpointFeatures.size());
+		System.out.println("good currents " + goodCurrents);
 		/* Triangulation */
 		// WARNING. Copy paste mode. Changes on function below must be reflected
 		// here.
@@ -213,7 +222,7 @@ public class FeatureManager {
 		MatOfPoint2f goodNew = new MatOfPoint2f();
 		goodOld.fromList(goodCheckpointFeatures);
 		goodNew.fromList(goodFlowedCheckpointFeatures);
-
+		
 		// sketchy code ahead
 		if (goodOld.empty() || goodNew.empty()) {
 			currentSize = (int) checkpointFeaturesList.size();
@@ -229,13 +238,15 @@ public class FeatureManager {
 				isGoodFeatures.add(true);
 			}
 			frames++;
-			System.out.println("ENDING CPFL " + checkpointFeaturesList.size());
+			System.out.println("Early exit. ENDING CPFL " + checkpointFeaturesList.size());
 			return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 		}
 		FMatResult fMatResult = null;
 		points4D1 = new Mat();
+		currentSize = goodCurrents;
+
 		if (!goodOld.empty() && !goodNew.empty()) {
-			System.out.println("has good old");
+
 			// does this work
 			if (SWAP_IMAGES) {
 				MatOfPoint2f temp = goodOld;
@@ -253,16 +264,17 @@ public class FeatureManager {
 
 			kpGoodOld = convertMatOfPoint2fToListOfKeyPoints(goodOld);
 			kpGoodNew = convertMatOfPoint2fToListOfKeyPoints(goodNew);
-
+			
 			CURRENT_STEP = this.STEP_ESSENTIAL_MATRIX;
+			System.out.println("b4 " + goodOld.size().height);
 			fMatResult = getFundamentalMat(kpGoodOld, kpGoodNew, badPointsIndex, currentSize);
 			F = fMatResult.F;
-
+			
 			// SOBRANG HASSLE
 			// A bit scary
 			goodOld = fMatResult.superGoodPoints1;
 			goodNew = fMatResult.superGoodPoints2;
-
+			System.out.println("af " + goodOld.size().height);
 			tempMat = nullMatF.clone();
 			E = nullMatF.clone();
 
@@ -377,7 +389,9 @@ public class FeatureManager {
 				}
 			}
 		}
-
+		
+		
+		
 		FeatureUpdate update = new FeatureUpdate();
 		List<PointDouble> currentPoints = new ArrayList<>();
 		List<PointDouble> newPoints = new ArrayList<>();
@@ -385,7 +399,6 @@ public class FeatureManager {
 		// Appending additional bad points from Fundamental Matrix calculation
 		List<Integer> badPoints = badPointsIndex;
 		List<Integer> additionalBadPoints = fMatResult.additionalBadPoints;
-		currentSize -= badPoints.size();
 		{
 			List<Integer> finalBadPoints = new ArrayList<>();
 
@@ -425,7 +438,6 @@ public class FeatureManager {
 					+ badPointsDuplicatesCount;
 			System.out.println(currentSize + " " + additionalBadPointsDuplicatesCount + " " + badPointsDuplicatesCount);
 		}
-
 		// if (this.VALID_ROTATION == this.ROT_1)
 		// System.out.println("Rotation Matrix 1 is Valid.");
 		// else
@@ -441,7 +453,7 @@ public class FeatureManager {
 
 		// double xScale = translationX / translationMatrix.get(0, 0)[0];
 		// double zScale = translationZ / translationMatrix.get(2, 0)[0];
-
+		
 		if (!USE_SCALE) { // HAHA WOT.
 			// xScale = 1;
 			// zScale = 1;
@@ -463,6 +475,7 @@ public class FeatureManager {
 			Calib3d.triangulatePoints(P1, P2, goodOld, goodNew, points4D);
 			break;
 		}
+		
 		for (int i = 0; i < points4D.cols(); i++) {
 			double w = points4D.get(3, i)[0];
 			double x = points4D.get(0, i)[0] / w;
@@ -489,9 +502,7 @@ public class FeatureManager {
 		checkpointFeaturesList = new ArrayList<>(checkpointFeatures.toList());
 		currentSize = checkpointFeaturesList.size();
 		checkpointFeaturesList.addAll(nextNewFeatures);
-		System.out.println("ENDING CPFL " + checkpointFeaturesList.size());
-		System.out.println("nnf: " + nextNewFeatures.size());
-
+		
 		flowingFeatures = new ArrayList<>();
 		for (Point point : checkpointFeaturesList) {
 			flowingFeatures.add(new Point(point.x, point.y));
@@ -991,20 +1002,28 @@ public class FeatureManager {
 		List<Integer> additionaBadpoints = new ArrayList<>();
 		for (int statusIndex = 0; statusIndex < status.size().height; statusIndex++) {
 			if (!badpointsList.isEmpty() && badpointsCompensation < badpointsList.size()
-					&& statusIndex == badpointsList.get(badpointsCompensation)) {
+					&& statusIndex + badpointsCompensation == badpointsList.get(badpointsCompensation)) {
+				// System.out.println((statusIndex + badpointsCompensation) + " existing bad");
 				badpointsCompensation++;
-
+				statusIndex--;
+				continue;
 			}
 			int actualStatus = (int) status.get(statusIndex, 0)[0];
 			if (actualStatus == 1) {
+				// System.out.println((statusIndex + badpointsCompensation) + " very good");
 				veryGoodpts1.push_back(pts1Mat.submat(statusIndex, statusIndex + 1, 0, 1));
 				veryGoodpts2.push_back(pts2Mat.submat(statusIndex, statusIndex + 1, 0, 1));
 
-			} else if (statusIndex + badpointsCompensation < currentSize) {
+			} else if (statusIndex < currentSize) {
 				Integer additionalBadpoint = statusIndex + badpointsCompensation;
 				additionaBadpoints.add(additionalBadpoint);
+				// System.out.println((statusIndex + badpointsCompensation) + " additional bad");
+			} else {
+				// System.out.println((statusIndex + badpointsCompensation));
 			}
 		}
+		System.out.println(badpointsList);
+		System.out.println(additionaBadpoints);
 		FMatResult result = new FMatResult(F, veryGoodpts1, veryGoodpts2, additionaBadpoints);
 		return result;
 	}
