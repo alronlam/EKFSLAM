@@ -64,7 +64,7 @@ public class BreadcrumbDummiesController {
 
 			pointsLog.append("\r\nAdd Points:\r\n");
 			for (PointDouble add : toAdd){
-				System.out.println("Add point "+add.toString());
+				// System.out.println("Add point "+add.toString());
 				pointsLog.append(add.toString() + "\r\n");
 			}
 

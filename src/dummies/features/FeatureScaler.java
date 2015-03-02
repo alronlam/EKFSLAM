@@ -38,7 +38,7 @@ public class FeatureScaler {
 
 	public FeatureUpdate getScaledFeatureUpdate(FeatureUpdate relativeFeatureUpdate, PointDouble cameraPosition) {
 
-		System.out.println("\ngetScaledFeatureUpdate called: " + relativeFeatureUpdate);
+		// System.out.println("\ngetScaledFeatureUpdate called: " + relativeFeatureUpdate);
 		if (relativeFeatureUpdate == null) {
 			// System.out.println("Null Feature Update");
 			// previousUpdate = null;
@@ -52,7 +52,7 @@ public class FeatureScaler {
 
 			return null;
 		} else if (previousUpdate == null) {
-			System.out.println("\nInitial Delay");
+			// System.out.println("\nInitial Delay");
 			previousUpdate = relativeFeatureUpdate;
 
 			// temp
@@ -68,9 +68,9 @@ public class FeatureScaler {
 
 			canReturnUpdate = true;
 
-			System.out.println(featureList.size() + " " + temp.relativePositionList.size() + " " + temp.cameraPositionList.size());
-			System.out.println("0 -> " + this.scaledCurrEndIndex + " -> " + this.scaledNewEndIndex + " -> " + this.unscaledEndIndex);
-			System.out.println("End Initial Delay");
+			// System.out.println(featureList.size() + " " + temp.relativePositionList.size() + " " + temp.cameraPositionList.size());
+			// System.out.println("0 -> " + this.scaledCurrEndIndex + " -> " + this.scaledNewEndIndex + " -> " + this.unscaledEndIndex);
+			// System.out.println("End Initial Delay");
 			return null;
 		} else {
 			FeatureUpdate scaledFeatureUpdate = new FeatureUpdate();
@@ -156,10 +156,10 @@ public class FeatureScaler {
 			scaledFeatureUpdate.setCurrentPoints(currentPoints);
 			scaledFeatureUpdate.setNewPoints(newPoints);
 
-			System.out.println("\nScaled Feature Update");
-			System.out.println("0 -> " + this.scaledCurrEndIndex + " -> " + this.scaledNewEndIndex + " -> " + this.unscaledEndIndex);
-			System.out.println(scaledFeatureUpdate.getCurrentPoints().size() + scaledFeatureUpdate.getBadPointsIndex().size());
-			System.out.println(scaledFeatureUpdate.getCurrentPoints().size() + scaledFeatureUpdate.getNewPoints().size());
+			// System.out.println("\nScaled Feature Update");
+			// System.out.println("0 -> " + this.scaledCurrEndIndex + " -> " + this.scaledNewEndIndex + " -> " + this.unscaledEndIndex);
+			// System.out.println(scaledFeatureUpdate.getCurrentPoints().size() + scaledFeatureUpdate.getBadPointsIndex().size());
+			// System.out.println(scaledFeatureUpdate.getCurrentPoints().size() + scaledFeatureUpdate.getNewPoints().size());
 			// System.out.println(scaledFeatureUpdate);
 			// System.out.println(badScaledPointsIndices);
 			// System.out.println(featureList.size());

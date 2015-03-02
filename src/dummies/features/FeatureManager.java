@@ -162,7 +162,42 @@ public class FeatureManager {
 		// System.out.println("Flowing features: " + flowingFeatures.size());
 		// System.out.println("Is Good Features: " + isGoodFeatures.size());
 	}
+	
+	private void asyncExit(List<Point> nextNewFeatures) {
+		if (currentSize == 0) {
+			currentSize = (int) checkpointFeaturesList.size();
+			checkpointFeaturesList.addAll(nextNewFeatures);
+		}
+		
+		flowingFeatures = new ArrayList<>();
+		for (Point point : checkpointFeaturesList) {
+			flowingFeatures.add(new Point(point.x, point.y));
+		}
+		isGoodFeatures.clear();
 
+		for (int i = 0; i < flowingFeatures.size(); i++) {
+			isGoodFeatures.add(true);
+		}
+		
+		System.out.println("Async exit. ENDING CPFL " + checkpointFeaturesList.size());
+	}
+	
+	private void nullExit(List<Point> nextNewFeatures) {
+		flowingFeatures = new ArrayList<>();
+		for (Point point : checkpointFeaturesList) {
+			flowingFeatures.add(new Point(point.x, point.y));
+		}
+		isGoodFeatures.clear();
+
+		for (int i = 0; i < flowingFeatures.size(); i++) {
+			isGoodFeatures.add(true);
+		}
+		
+		System.out.println("Null exit. ENDING CPFL " + checkpointFeaturesList.size());
+	}
+	
+
+	
 	public FeatureUpdate getAsyncFeatureUpdate(Mat currentImage, double translationX, double translationZ,
 			PointDouble cameraPosition) {
 		/* For first call. */
@@ -225,26 +260,12 @@ public class FeatureManager {
 		
 		// sketchy code ahead
 		if (goodOld.empty() || goodNew.empty()) {
-			currentSize = (int) checkpointFeaturesList.size();
-			checkpointFeaturesList.addAll(nextNewFeatures);
-
-			flowingFeatures = new ArrayList<>();
-			for (Point point : checkpointFeaturesList) {
-				flowingFeatures.add(new Point(point.x, point.y));
-			}
-			isGoodFeatures.clear();
-
-			for (int i = 0; i < flowingFeatures.size(); i++) {
-				isGoodFeatures.add(true);
-			}
-			frames++;
-			System.out.println("Early exit. ENDING CPFL " + checkpointFeaturesList.size());
+			asyncExit(nextNewFeatures);
 			return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 		}
 		FMatResult fMatResult = null;
 		points4D1 = new Mat();
-		currentSize = goodCurrents;
-
+		
 		if (!goodOld.empty() && !goodNew.empty()) {
 
 			// does this work
@@ -266,15 +287,13 @@ public class FeatureManager {
 			kpGoodNew = convertMatOfPoint2fToListOfKeyPoints(goodNew);
 			
 			CURRENT_STEP = this.STEP_ESSENTIAL_MATRIX;
-			System.out.println("b4 " + goodOld.size().height);
-			fMatResult = getFundamentalMat(kpGoodOld, kpGoodNew, badPointsIndex, currentSize);
+			fMatResult = getFundamentalMat(kpGoodOld, kpGoodNew, badPointsIndex, goodCurrents);
 			F = fMatResult.F;
 			
 			// SOBRANG HASSLE
 			// A bit scary
 			goodOld = fMatResult.superGoodPoints1;
 			goodNew = fMatResult.superGoodPoints2;
-			System.out.println("af " + goodOld.size().height);
 			tempMat = nullMatF.clone();
 			E = nullMatF.clone();
 
@@ -286,6 +305,8 @@ public class FeatureManager {
 				if (this.DEBUG_MODE)
 					System.out.println("det(E) != 0 : " + Core.determinant(E));
 				P2 = Mat.zeros(3, 4, CvType.CV_64F);
+				
+				nullExit(nextNewFeatures);
 				return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 			}
 
@@ -302,7 +323,7 @@ public class FeatureManager {
 				E = E.mul(Mat.ones(E.size(), E.type()), -1);
 
 				if (!decomposeEtoRandT(E))
-
+					nullExit(nextNewFeatures);
 					return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 			}
 
@@ -312,6 +333,7 @@ public class FeatureManager {
 
 			if (!checkCoherentRotation(Rot1)) {
 				P2 = Mat.zeros(3, 4, CvType.CV_64F);
+				nullExit(nextNewFeatures);
 				return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 			}
 
@@ -382,7 +404,7 @@ public class FeatureManager {
 								|| reprojErr2 > 100) { // TODO: Test
 														// Triangulation
 							// Triangulation failed.
-
+							nullExit(nextNewFeatures);
 							return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 						}
 					}
@@ -434,9 +456,9 @@ public class FeatureManager {
 			Collections.sort(badPoints);
 			// System.out.println(badPoints);
 
-			currentSize = currentSize - fMatResult.additionalBadPoints.size() + additionalBadPointsDuplicatesCount
+			goodCurrents = goodCurrents - fMatResult.additionalBadPoints.size() + additionalBadPointsDuplicatesCount
 					+ badPointsDuplicatesCount;
-			System.out.println(currentSize + " " + additionalBadPointsDuplicatesCount + " " + badPointsDuplicatesCount);
+			// System.out.println(currentSize + " " + additionalBadPointsDuplicatesCount + " " + badPointsDuplicatesCount);
 		}
 		// if (this.VALID_ROTATION == this.ROT_1)
 		// System.out.println("Rotation Matrix 1 is Valid.");
@@ -484,14 +506,12 @@ public class FeatureManager {
 
 			PointDouble point = new PointDouble(x, z);
 			// System.out.println(point);
-			if (i < currentSize) {
+			if (i < goodCurrents) {
 				currentPoints.add(point);
 			} else {
 				newPoints.add(point);
 			}
 		}
-
-		// BADPOINTS MOVED UP
 
 		update.setCurrentPoints(currentPoints);
 		update.setBadPointsIndex(badPoints);
@@ -1022,8 +1042,7 @@ public class FeatureManager {
 				// System.out.println((statusIndex + badpointsCompensation));
 			}
 		}
-		System.out.println(badpointsList);
-		System.out.println(additionaBadpoints);
+		
 		FMatResult result = new FMatResult(F, veryGoodpts1, veryGoodpts2, additionaBadpoints);
 		return result;
 	}
