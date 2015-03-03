@@ -72,7 +72,7 @@ plot(vins15hz_X,vins15hz_Y, ':xg', 'DisplayName', 'V-INS 15Hz');
 plot(breadcrumbCimuHeading_X,breadcrumbCimuHeading_Y, ':oy', 'DisplayName', 'Breadcrumb w/ Cimu Heading'); hold on;
 
 %Breadcrumb with Cimu Heading 15Hz
-plot(breadcrumbCimuHeading15hz_X,breadcrumbCimuHeading15hz_Y, ':xk', 'DisplayName', 'Breadcrumb 15Hz w/ Cimu Heading');
+plot(breadcrumbCimuHeading15hz_X,breadcrumbCimuHeading15hz_Y, ':ok', 'DisplayName', 'Breadcrumb 15Hz w/ Cimu Heading');
 
 
 %V-INS IDP
