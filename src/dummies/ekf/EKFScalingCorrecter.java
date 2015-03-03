@@ -1,13 +1,9 @@
-package idp.ekf;
+package dummies.ekf;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import commondata.PointDouble;
-
-import dummies.features.FeatureData;
-import dummies.features.FeatureScaler;
-import dummies.features.FeatureUpdate;
 
 public class EKFScalingCorrecter {
 
@@ -23,24 +19,28 @@ public class EKFScalingCorrecter {
 		offset = new PointDouble(0, 0);
 	}
 
+	public static void resetInstance() {
+		ekfScalingCorrecter = new EKFScalingCorrecter();
+	}
+
 	public static EKFScalingCorrecter getEKFScalingResultCorrecter() {
 		return ekfScalingCorrecter;
 	}
 
 	public void updateCoords(PointDouble deviceCoords, PointDouble predictResult) {
 
-		if(correctedCameraPositionList.size() < 2){
+		if (correctedCameraPositionList.size() < 2) {
 			correctedCameraPositionList.add(deviceCoords);
 			return;
 		}
-			
-		
+
 		deviceCoords.setX(deviceCoords.getX() - offset.getX());
 		deviceCoords.setY(deviceCoords.getY() - offset.getY());
 		predictResult.setX(predictResult.getX() - offset.getX());
 		predictResult.setY(predictResult.getY() - offset.getY());
 
-		double dist = correctedCameraPositionList.get(correctedCameraPositionList.size() - 1).computeDistanceTo(deviceCoords);
+		double dist = correctedCameraPositionList.get(correctedCameraPositionList.size() - 1).computeDistanceTo(
+				deviceCoords);
 
 		if (dist > .1 && dist < .7) {
 			// valid point
@@ -80,7 +80,8 @@ public class EKFScalingCorrecter {
 		totalDistanceTraveled += correctedCameraPositionList.get(0).computeDistanceTo(new PointDouble(0, 0));
 
 		for (int i = 1; i < correctedCameraPositionList.size() - 1; ++i)
-			totalDistanceTraveled += correctedCameraPositionList.get(i).computeDistanceTo(correctedCameraPositionList.get(i + 1));
+			totalDistanceTraveled += correctedCameraPositionList.get(i).computeDistanceTo(
+					correctedCameraPositionList.get(i + 1));
 
 		return totalDistanceTraveled;
 	}

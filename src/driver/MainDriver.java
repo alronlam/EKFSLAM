@@ -1,7 +1,6 @@
 package driver;
 
 import idp.VINSIDPController;
-import idp.ekf.EKFScalingCorrecter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +21,9 @@ import desktop.img.ImgLogReader;
 import desktop.imu.IMULogReader;
 import desktop.imu.IMUReadingsBatch;
 import dummies.BreadcrumbDummiesController;
+import dummies.ekf.EKFScalingCorrecter;
 import dummies.features.FeatureManager;
+import dummies.features.FeatureScaler;
 import dummies.features.FeatureUpdate;
 
 public class MainDriver {
@@ -46,7 +47,7 @@ public class MainDriver {
 
 	public static void main(String[] args) {
 		System.out.println("init 1");
-		String dataset = Constants.FOLDER_RECT2_MIGUEL4_S4;
+		String dataset = Constants.FOLDER_RECT1_MIGUEL2_S3;
 		String targetFolder = "data/" + dataset;
 		boolean isDatasetAsync = false;
 		if (Constants.ASYNC_DATASETS.contains(dataset)) {
@@ -71,19 +72,14 @@ public class MainDriver {
 		/* Change IMU Dataset with Camera Heading */
 		List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
 
-		// runINS(imuDataset, imgDataset, insLogFileName);
-		// runINS(imuDatasetWithCimuHeading, imgDataset,
-		// insCimuHeadingLogFileName);
+		runINS(imuDataset, imgDataset, insLogFileName);
+		runINS(imuDatasetWithCimuHeading, imgDataset, insCimuHeadingLogFileName);
+		runDoubleIntegration(cimuDataset, imgDataset);
+		runVINSAsync(cimuDataset, imgDataset, vinsLogFileName, false);
+		runVINSAsync(cimuDataset, imgDataset, vins15hzLogFileName, true);
 
-		// runDoubleIntegration(cimuDataset, imgDataset);
-
-		// runVINSAsync(cimuDataset, imgDataset, vinsLogFileName, false);
-		// runVINSAsync(cimuDataset, imgDataset, vins15hzLogFileName, true);
-
-		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset,
-		breadcrumbWithCimuHeadingLogFileName, false);
-		// runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset,
-		// breadcrumbWithCimuHeading15hzLogFileName, true);
+		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, breadcrumbWithCimuHeadingLogFileName, false);
+		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, breadcrumbWithCimuHeading15hzLogFileName, true);
 		// runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 
@@ -424,6 +420,7 @@ public class MainDriver {
 
 		breadcrumbLog.append(EKFScalingCorrecter.getEKFScalingResultCorrecter().getCorrectedPositionsAsString());
 
+		finalResultsStringBuilder.append("\r\n" + logFileName + "\r\n");
 		finalResultsStringBuilder.append("Total steps detected " + breadcrumb.totalStepsDetected + "\r\n");
 		// finalResultsStringBuilder.append("Total distance traveled " +
 		// breadcrumb.getTotalDistanceTraveled() + "\r\n");
@@ -443,6 +440,8 @@ public class MainDriver {
 
 	private static void runVINSAsync(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String logFileName,
 			boolean isAsync) {
+		FeatureScaler.resetInstance();
+		EKFScalingCorrecter.resetInstance();
 		System.out.println("init 1");
 		/* Initialize the controller and manager */
 		VINSController vins = new VINSController();
@@ -548,6 +547,7 @@ public class MainDriver {
 		System.out.println("Failed/Processed: " + (state[2] + state[3] + state[4]) + "/" + (state[5] - state[1]));
 		System.out.printf("Success Rate: %.3f%%\n", state[0] * 100.0 / (state[5] - state[1]));
 
+		finalResultsStringBuilder.append("\r\n" + logFileName + "\r\n");
 		finalResultsStringBuilder.append("Total distance traveled "
 				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + "\r\n");
 		finalResultsStringBuilder.append("Total Displacement = "
@@ -675,7 +675,7 @@ public class MainDriver {
 			insLog.append(ins.getDeviceCoords() + "\n");
 
 		}
-
+		finalResultsStringBuilder.append("\r\n" + logFileName + "\r\n");
 		finalResultsStringBuilder.append("Total steps detected: " + ins.totalStepsDetected + "\r\n");
 		finalResultsStringBuilder.append("Total distance traveled: " + ins.totalDistanceTraveled + "\r\n");
 		finalResultsStringBuilder.append("Total Displacement = "
