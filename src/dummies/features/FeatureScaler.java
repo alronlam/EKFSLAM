@@ -28,6 +28,10 @@ public class FeatureScaler {
 		return featureScaler;
 	}
 
+	public static void resetInstance() {
+		featureScaler = new FeatureScaler();
+	}
+
 	// Queue:
 	// | Scaled Curr | Scaled New | Unscaled |
 	// unscaledEndIndex == size - 1
@@ -38,7 +42,8 @@ public class FeatureScaler {
 
 	public FeatureUpdate getScaledFeatureUpdate(FeatureUpdate relativeFeatureUpdate, PointDouble cameraPosition) {
 
-		// System.out.println("\ngetScaledFeatureUpdate called: " + relativeFeatureUpdate);
+		// System.out.println("\ngetScaledFeatureUpdate called: " +
+		// relativeFeatureUpdate);
 		if (relativeFeatureUpdate == null) {
 			// System.out.println("Null Feature Update");
 			// previousUpdate = null;
@@ -68,8 +73,11 @@ public class FeatureScaler {
 
 			canReturnUpdate = true;
 
-			// System.out.println(featureList.size() + " " + temp.relativePositionList.size() + " " + temp.cameraPositionList.size());
-			// System.out.println("0 -> " + this.scaledCurrEndIndex + " -> " + this.scaledNewEndIndex + " -> " + this.unscaledEndIndex);
+			// System.out.println(featureList.size() + " " +
+			// temp.relativePositionList.size() + " " +
+			// temp.cameraPositionList.size());
+			// System.out.println("0 -> " + this.scaledCurrEndIndex + " -> " +
+			// this.scaledNewEndIndex + " -> " + this.unscaledEndIndex);
 			// System.out.println("End Initial Delay");
 			return null;
 		} else {
@@ -100,10 +108,13 @@ public class FeatureScaler {
 				}
 			}
 
-			// System.out.println("\nBad Scaled Points:\n" + featureList.size() + " " + toDelete.size());
-			// System.out.println("\nBad Scaled Points:\n" + featureList.size() + " " + toDelete);
+			// System.out.println("\nBad Scaled Points:\n" + featureList.size()
+			// + " " + toDelete.size());
+			// System.out.println("\nBad Scaled Points:\n" + featureList.size()
+			// + " " + toDelete);
 			// System.out.println(badScaledPointsIndices.size());
-			// System.out.println("0 -> " + this.scaledCurrEndIndex + " -> " + this.scaledNewEndIndex + " -> " + this.unscaledEndIndex);
+			// System.out.println("0 -> " + this.scaledCurrEndIndex + " -> " +
+			// this.scaledNewEndIndex + " -> " + this.unscaledEndIndex);
 
 			// Current Points & New Points
 
@@ -113,7 +124,7 @@ public class FeatureScaler {
 
 			scaledCurrEndIndex = scaledNewEndIndex;
 			scaledNewEndIndex = featureList.size();
-			
+
 			for (int i = 0; i < relativeFeatures.size(); ++i) {
 				if (i < scaledCurrEndIndex) {
 					currentPoints.add(featureList.get(i).getEstimatedPosition(relativeFeatures.get(i), cameraPosition));
@@ -124,22 +135,31 @@ public class FeatureScaler {
 			}
 
 			FeatureData.addToCameraPositionList(cameraPosition);
-			// System.out.println("Camera Positions: " + FeatureData.cameraPositionList.size());
+			// System.out.println("Camera Positions: " +
+			// FeatureData.cameraPositionList.size());
 			// System.out.println("Current Camera Position: " + cameraPosition);
 			if (featureList.size() < 0) {
 				System.out.println("Metric Position of First, MidPoint, and Last Feature: ");
 				for (int i = 0; i < Math.min(5, featureList.size()); ++i)
-					System.out.println("feature #" + featureList.get(i) + ": " + featureList.get(i).getSavedEstimatedPosition());
-				// System.out.println("feature #" + featureList.get(0) + ": " + featureList.get(0).getSavedEstimatedPosition());
-				// System.out.println("feature #" + featureList.get((int) (featureList.size() / 2)) + ": "
-				// + featureList.get((int) (featureList.size() / 2)).getSavedEstimatedPosition());
-				// System.out.println("feature #" + featureList.get(featureList.size() - 1) + ": " + featureList.get(featureList.size() - 1).getSavedEstimatedPosition());
+					System.out.println("feature #" + featureList.get(i) + ": "
+							+ featureList.get(i).getSavedEstimatedPosition());
+				// System.out.println("feature #" + featureList.get(0) + ": " +
+				// featureList.get(0).getSavedEstimatedPosition());
+				// System.out.println("feature #" + featureList.get((int)
+				// (featureList.size() / 2)) + ": "
+				// + featureList.get((int) (featureList.size() /
+				// 2)).getSavedEstimatedPosition());
+				// System.out.println("feature #" +
+				// featureList.get(featureList.size() - 1) + ": " +
+				// featureList.get(featureList.size() -
+				// 1).getSavedEstimatedPosition());
 			}
 
 			// System.out.println("\n" + featureList.size());
 			// System.out.println(currentPoints.size());
 			// System.out.println(newPoints.size());
-			// System.out.println("0 -> " + this.scaledCurrEndIndex + " -> " + this.scaledNewEndIndex + " -> " + this.unscaledEndIndex);
+			// System.out.println("0 -> " + this.scaledCurrEndIndex + " -> " +
+			// this.scaledNewEndIndex + " -> " + this.unscaledEndIndex);
 
 			// Unscaled Points
 
@@ -157,9 +177,12 @@ public class FeatureScaler {
 			scaledFeatureUpdate.setNewPoints(newPoints);
 
 			// System.out.println("\nScaled Feature Update");
-			// System.out.println("0 -> " + this.scaledCurrEndIndex + " -> " + this.scaledNewEndIndex + " -> " + this.unscaledEndIndex);
-			// System.out.println(scaledFeatureUpdate.getCurrentPoints().size() + scaledFeatureUpdate.getBadPointsIndex().size());
-			// System.out.println(scaledFeatureUpdate.getCurrentPoints().size() + scaledFeatureUpdate.getNewPoints().size());
+			// System.out.println("0 -> " + this.scaledCurrEndIndex + " -> " +
+			// this.scaledNewEndIndex + " -> " + this.unscaledEndIndex);
+			// System.out.println(scaledFeatureUpdate.getCurrentPoints().size()
+			// + scaledFeatureUpdate.getBadPointsIndex().size());
+			// System.out.println(scaledFeatureUpdate.getCurrentPoints().size()
+			// + scaledFeatureUpdate.getNewPoints().size());
 			// System.out.println(scaledFeatureUpdate);
 			// System.out.println(badScaledPointsIndices);
 			// System.out.println(featureList.size());
