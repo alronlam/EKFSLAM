@@ -10,8 +10,8 @@ breadcrumbCimuHeading_Y = breadcrumbCimuHeading(:,2);
 
 % Breadcrumb 15Hz: INS (with Cimu heading) + VINS Dummies
 load breadcrumbCimuHeading15hz.csv;
-breadcrumbCimuHeading15hz_X = breadcrumbCimuHeading(:,1);
-breadcrumbCimuHeading15hz_Y = breadcrumbCimuHeading(:,2);
+breadcrumbCimuHeading15hz_X = breadcrumbCimuHeading15hz(:,1);
+breadcrumbCimuHeading15hz_Y = breadcrumbCimuHeading15hz(:,2);
 
 
 
@@ -37,8 +37,8 @@ vins_Y = vins(:,2);
 
 % VINS - 15Hz
 load vins15hz.csv;    
-vins15hz_X = vins(:,1);   
-vins15hz_Y = vins(:,2);
+vins15hz_X = vins15hz(:,1);   
+vins15hz_Y = vins15hz(:,2);
 
 % VINS IDP
 load vinsidp.csv;    
@@ -63,7 +63,7 @@ plot(vins15hz_X,vins15hz_Y, ':xg', 'DisplayName', 'V-INS 15Hz');
 %plot(ins_X,ins_Y, ':xb', 'DisplayName', 'INS');
 
 %INS with Cimu Heading
-plot(insCimuHeading_X,insCimuHeading_Y, ':xc', 'DisplayName', 'INS w/ Cimu Heading');
+%plot(insCimuHeading_X,insCimuHeading_Y, ':xc', 'DisplayName', 'INS w/ Cimu Heading');
 
 %Breadcrumb
 %plot(breadcrumb_X,breadcrumb_Y, ':og', 'DisplayName', 'Breadcrumb');
@@ -72,7 +72,7 @@ plot(insCimuHeading_X,insCimuHeading_Y, ':xc', 'DisplayName', 'INS w/ Cimu Headi
 plot(breadcrumbCimuHeading_X,breadcrumbCimuHeading_Y, ':oy', 'DisplayName', 'Breadcrumb w/ Cimu Heading'); hold on;
 
 %Breadcrumb with Cimu Heading 15Hz
-%plot(breadcrumbCimuHeading15hz_X,breadcrumbCimuHeading15hz_Y, ':ok', 'DisplayName', 'Breadcrumb 15Hz w/ Cimu Heading');
+plot(breadcrumbCimuHeading15hz_X,breadcrumbCimuHeading15hz_Y, ':ok', 'DisplayName', 'Breadcrumb 15Hz w/ Cimu Heading');
 
 
 %V-INS IDP
