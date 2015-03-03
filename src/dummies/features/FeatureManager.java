@@ -164,7 +164,8 @@ public class FeatureManager {
 	}
 	
 	private void asyncExit(List<Point> nextNewFeatures) {
-		if (currentSize == 0) {
+		if (first) {
+			first = false;
 			currentSize = (int) checkpointFeaturesList.size();
 			checkpointFeaturesList.addAll(nextNewFeatures);
 		}
