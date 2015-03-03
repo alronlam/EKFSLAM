@@ -1,5 +1,8 @@
 package commondata;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Constants {
 
 	// Bluetooth related
@@ -39,6 +42,17 @@ public class Constants {
 	public static final String FOLDER_RECT1_MIGUEL3_S4 = "Ivan Miguel 3rd Floor S4 Feb 24";
 	public static final String FOLDER_STRT1_SJ5_S4 = "Ivan SJ 5th Floor S4 Feb 26";
 	public static final String FOLDER_STRT2_SJ6_S4 = "Ivan SJ 6th Floor S4 Feb 26";
+	
+	public static final List<String> ASYNC_DATASETS; 
+	
+	static {
+		ASYNC_DATASETS = new ArrayList<>();
+		ASYNC_DATASETS.add(FOLDER_RECT1_MIGUEL2_S3);
+		ASYNC_DATASETS.add(FOLDER_RECT1_MIGUEL3_S3);
+		ASYNC_DATASETS.add(FOLDER_RECT1_MIGUEL3_S4);
+		ASYNC_DATASETS.add(FOLDER_STRT1_SJ5_S4);
+		ASYNC_DATASETS.add(FOLDER_STRT2_SJ6_S4);
+	}
 	
 	// Others
 	public static final String INS_DATA_HEADER = "Acc_x,Acc_y,Acc_z,Gyro_x,Gyro_y,Gyro_z,Orient_x,Orient_y,Orient_z,Time\n";
