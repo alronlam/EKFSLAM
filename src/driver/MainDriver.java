@@ -46,13 +46,13 @@ public class MainDriver {
 
 	public static void main(String[] args) {
 		System.out.println("init 1");
-		String dataset = Constants.FOLDER_RECT1_MIGUEL2_S3;
+		String dataset = Constants.FOLDER_RECT1_MIGUEL3_S4;
 		String targetFolder = "data/" + dataset;
 		boolean isDatasetAsync = false;
 		if (Constants.ASYNC_DATASETS.contains(dataset)) {
 			isDatasetAsync = true;
 		}
-		
+
 		System.out.println("init 2");
 		/* Load IMU Dataset */
 		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
@@ -74,10 +74,9 @@ public class MainDriver {
 		// runINS(imuDataset, imgDataset, insLogFileName);
 		// runINS(imuDatasetWithCimuHeading, imgDataset,
 		// insCimuHeadingLogFileName);
-		//
+
 		// runDoubleIntegration(cimuDataset, imgDataset);
-		
-		
+
 		// runVINSAsync(cimuDataset, imgDataset, vinsLogFileName, false);
 		// runVINSAsync(cimuDataset, imgDataset, vins15hzLogFileName, true);
 
@@ -90,7 +89,7 @@ public class MainDriver {
 
 		System.out.println(finalResultsStringBuilder.toString());
 	}
-	
+
 	private static List<IMUReadingsBatch> changeHeading(List<IMUReadingsBatch> originalIMUDataset,
 			List<IMUReadingsBatch> cimuDataset) {
 
@@ -493,8 +492,8 @@ public class MainDriver {
 
 				/* Image Update */
 				if (prevPoint.getX() != predictResult.getX() || prevPoint.getY() != predictResult.getY()) {
-					FeatureUpdate featureUpdate = featureManager.getAsyncFeatureUpdate(imgDataset.get(imgIndex), transX,
-							transY, vins.getDeviceCoords());
+					FeatureUpdate featureUpdate = featureManager.getAsyncFeatureUpdate(imgDataset.get(imgIndex),
+							transX, transY, vins.getDeviceCoords());
 					valid[(FeatureManager.VALID_ROTATION == FeatureManager.ROT_1 ? 0 : 2)
 							+ (FeatureManager.VALID_TRANSLATION == FeatureManager.TRAN_1 ? 0 : 1)]++;
 					state[FeatureManager.CURRENT_STEP]++;

@@ -54,25 +54,25 @@ hold on
 plot(doubleintegration_X,doubleintegration_Y, '-xm', 'DisplayName', 'Double Integration');
 
 %V-INS
-plot(vins_X,vins_Y, ':xr', 'DisplayName', 'V-INS');
+plot(vins_X,vins_Y, ':xr', 'DisplayName', 'V-INS'); hold on;
 
-%V-INS
-plot(vins15hz_X,vins15hz_Y, ':x', 'DisplayName', 'V-INS 15Hz');
+%V-INS 15Hz
+plot(vins15hz_X,vins15hz_Y, ':xg', 'DisplayName', 'V-INS 15Hz');
 
 %INS
 %plot(ins_X,ins_Y, ':xb', 'DisplayName', 'INS');
 
 %INS with Cimu Heading
-%plot(insCimuHeading_X,insCimuHeading_Y, ':xc', 'DisplayName', 'INS w/ Cimu Heading');
+plot(insCimuHeading_X,insCimuHeading_Y, ':xc', 'DisplayName', 'INS w/ Cimu Heading');
 
 %Breadcrumb
 %plot(breadcrumb_X,breadcrumb_Y, ':og', 'DisplayName', 'Breadcrumb');
 
 %Breadcrumb with Cimu Heading
-plot(breadcrumbCimuHeading_X,breadcrumbCimuHeading_Y, ':oy', 'DisplayName', 'Breadcrumb w/ Cimu Heading');
+plot(breadcrumbCimuHeading_X,breadcrumbCimuHeading_Y, ':oy', 'DisplayName', 'Breadcrumb w/ Cimu Heading'); hold on;
 
-%Breadcrumb with Cimu Heading
-plot(breadcrumbCimuHeading15hz_X,breadcrumbCimuHeading15hz_Y, ':o', 'DisplayName', 'Breadcrumb 15Hz w/ Cimu Heading');
+%Breadcrumb with Cimu Heading 15Hz
+%plot(breadcrumbCimuHeading15hz_X,breadcrumbCimuHeading15hz_Y, ':ok', 'DisplayName', 'Breadcrumb 15Hz w/ Cimu Heading');
 
 
 %V-INS IDP
