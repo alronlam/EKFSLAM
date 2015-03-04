@@ -25,6 +25,10 @@ public class FeatureData {
 		index = run++;
 	}
 
+	public static void resetCameraPositions() {
+		cameraPositionList.clear();
+	}
+
 	public String toString() {
 		return "" + index;
 	}
@@ -53,88 +57,89 @@ public class FeatureData {
 			return null;
 		}
 
-		// Create metric position based on new relative position and camera position
+		// Create metric position based on new relative position and camera
+		// position
 		// solve for the lines
 		// y = mx + b
 
 		// Given:
 
-		 PointDouble P0, P1; // camera positions
-		 PointDouble F0, F1; // feature points w/ relative scale
-		
-		 P0 = cameraPosition;
-		 F0 = relativePosition;
-		
-		 // translate relative position to fit global coordinate system
-		 F0.setX(P0.getX() + F0.getX());
-		 F0.setY(P0.getY() + F0.getY());
-		
-		 int index = relativePositionList.size() - 1;
-		
-		 P1 = relativePositionList.get(index);
-		 F1 = cameraPositionList.get(index);
-		
-		 // translate relative position to fit global coordinate system
-		 F1.setX(P1.getX() + F1.getX());
-		 F1.setY(P1.getY() + F1.getY());
-		
-		 // Get Slope and y-intercept
-		
-		 double m0 = (P0.getY() - F0.getY()) / (P0.getX() - F0.getX());
-		 double m1 = (P1.getY() - F1.getY()) / (P1.getX() - F1.getX());
-		
-		 double b0 = P0.getY() - m0 * P0.getX();
-		 double b1 = P1.getY() - m1 * P1.getX();
-		
-		 // Get the intersection of the two lines
-		
-		 double x = (b1 - b0) / (m0 - m1);
-		 double y = (b0 * m1 - b1 * m0) / (m1 - m0);
-		
-		 PointDouble metricPosition = new PointDouble(x, y);
-		
-		 // Add new metric position to list
-		 this.metricPositionList.add(metricPosition);
+		PointDouble P0, P1; // camera positions
+		PointDouble F0, F1; // feature points w/ relative scale
 
-//		for (int i = 0; i < relativePositionList.size(); ++i) {
-//			PointDouble P0, P1; // camera positions
-//			PointDouble F0, F1; // feature points w/ relative scale
-//
-//			P0 = cameraPosition;
-//			F0 = relativePosition;
-//
-//			// translate relative position to fit global coordinate system
-//			F0.setX(P0.getX() + F0.getX());
-//			F0.setY(P0.getY() + F0.getY());
-//
-//			P1 = relativePositionList.get(i);
-//			F1 = cameraPositionList.get(i);
-//
-//			// translate relative position to fit global coordinate system
-//			F1.setX(P1.getX() + F1.getX());
-//			F1.setY(P1.getY() + F1.getY());
-//
-//			// Get Slope and y-intercept
-//
-//			double m0 = (P0.getY() - F0.getY()) / (P0.getX() - F0.getX());
-//			double m1 = (P1.getY() - F1.getY()) / (P1.getX() - F1.getX());
-//
-//			double b0 = P0.getY() - m0 * P0.getX();
-//			double b1 = P1.getY() - m1 * P1.getX();
-//
-//			// Get the intersection of the two lines
-//
-//			double x = (b1 - b0) / (m0 - m1);
-//			double y = (b0 * m1 - b1 * m0) / (m1 - m0);
-//
-//			PointDouble metricPosition = new PointDouble(x, y);
-//
-//			// Add new metric position to list
-//			this.metricPositionList.add(metricPosition);
-//		}
-//		
-//		if (this.index == 0)
-//			System.out.println(metricPositionList);
+		P0 = cameraPosition;
+		F0 = relativePosition;
+
+		// translate relative position to fit global coordinate system
+		F0.setX(P0.getX() + F0.getX());
+		F0.setY(P0.getY() + F0.getY());
+
+		int index = relativePositionList.size() - 1;
+
+		P1 = relativePositionList.get(index);
+		F1 = cameraPositionList.get(index);
+
+		// translate relative position to fit global coordinate system
+		F1.setX(P1.getX() + F1.getX());
+		F1.setY(P1.getY() + F1.getY());
+
+		// Get Slope and y-intercept
+
+		double m0 = (P0.getY() - F0.getY()) / (P0.getX() - F0.getX());
+		double m1 = (P1.getY() - F1.getY()) / (P1.getX() - F1.getX());
+
+		double b0 = P0.getY() - m0 * P0.getX();
+		double b1 = P1.getY() - m1 * P1.getX();
+
+		// Get the intersection of the two lines
+
+		double x = (b1 - b0) / (m0 - m1);
+		double y = (b0 * m1 - b1 * m0) / (m1 - m0);
+
+		PointDouble metricPosition = new PointDouble(x, y);
+
+		// Add new metric position to list
+		this.metricPositionList.add(metricPosition);
+
+		// for (int i = 0; i < relativePositionList.size(); ++i) {
+		// PointDouble P0, P1; // camera positions
+		// PointDouble F0, F1; // feature points w/ relative scale
+		//
+		// P0 = cameraPosition;
+		// F0 = relativePosition;
+		//
+		// // translate relative position to fit global coordinate system
+		// F0.setX(P0.getX() + F0.getX());
+		// F0.setY(P0.getY() + F0.getY());
+		//
+		// P1 = relativePositionList.get(i);
+		// F1 = cameraPositionList.get(i);
+		//
+		// // translate relative position to fit global coordinate system
+		// F1.setX(P1.getX() + F1.getX());
+		// F1.setY(P1.getY() + F1.getY());
+		//
+		// // Get Slope and y-intercept
+		//
+		// double m0 = (P0.getY() - F0.getY()) / (P0.getX() - F0.getX());
+		// double m1 = (P1.getY() - F1.getY()) / (P1.getX() - F1.getX());
+		//
+		// double b0 = P0.getY() - m0 * P0.getX();
+		// double b1 = P1.getY() - m1 * P1.getX();
+		//
+		// // Get the intersection of the two lines
+		//
+		// double x = (b1 - b0) / (m0 - m1);
+		// double y = (b0 * m1 - b1 * m0) / (m1 - m0);
+		//
+		// PointDouble metricPosition = new PointDouble(x, y);
+		//
+		// // Add new metric position to list
+		// this.metricPositionList.add(metricPosition);
+		// }
+		//
+		// if (this.index == 0)
+		// System.out.println(metricPositionList);
 
 		updateEstimatedPosition();
 
@@ -162,7 +167,8 @@ public class FeatureData {
 			// sumy += featurePosition.getY();
 			// }
 			//
-			// this.estimatedPosition = new PointDouble(sumx / count, sumy / count);
+			// this.estimatedPosition = new PointDouble(sumx / count, sumy /
+			// count);
 
 			// Weighted Mean
 			for (int i = 0; i < metricPositionList.size(); ++i) {

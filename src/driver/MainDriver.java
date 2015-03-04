@@ -22,6 +22,7 @@ import desktop.imu.IMULogReader;
 import desktop.imu.IMUReadingsBatch;
 import dummies.BreadcrumbDummiesController;
 import dummies.ekf.EKFScalingCorrecter;
+import dummies.features.FeatureData;
 import dummies.features.FeatureManager;
 import dummies.features.FeatureScaler;
 import dummies.features.FeatureUpdate;
@@ -72,14 +73,16 @@ public class MainDriver {
 		/* Change IMU Dataset with Camera Heading */
 		List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
 
-		runINS(imuDataset, imgDataset, insLogFileName);
-		runINS(imuDatasetWithCimuHeading, imgDataset, insCimuHeadingLogFileName);
-		runDoubleIntegration(cimuDataset, imgDataset);
-		runVINSAsync(cimuDataset, imgDataset, vinsLogFileName, false);
-		runVINSAsync(cimuDataset, imgDataset, vins15hzLogFileName, true);
-
-		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, breadcrumbWithCimuHeadingLogFileName, false);
-		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, breadcrumbWithCimuHeading15hzLogFileName, true);
+		// runINS(imuDataset, imgDataset, insLogFileName);
+		// runINS(imuDatasetWithCimuHeading, imgDataset,
+		// insCimuHeadingLogFileName);
+		// runDoubleIntegration(cimuDataset, imgDataset);
+		// runVINSAsync(cimuDataset, imgDataset, vinsLogFileName, false);
+		// runVINSAsync(cimuDataset, imgDataset, vins15hzLogFileName, true);
+		// runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset,
+		// breadcrumbWithCimuHeadingLogFileName, false);
+		// runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset,
+		// breadcrumbWithCimuHeading15hzLogFileName, true);
 		// runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 
@@ -131,7 +134,7 @@ public class MainDriver {
 
 			doubleIntegrationLog.append(doubleIntegration.getDeviceCoords() + "\n");
 		}
-
+		finalResultsStringBuilder.append("\r\n" + doubleIntegrationLogFileName + "\r\n");
 		finalResultsStringBuilder.append("Total distance traveled " + doubleIntegration.getTotalDistanceTraveled()
 				+ "\r\n");
 		finalResultsStringBuilder.append("Total Displacement = "
@@ -331,6 +334,7 @@ public class MainDriver {
 	/* Based on runBreadcrumbDummies */
 	private static void runBreadcrumbAsync(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String logFileName,
 			boolean isAsync) {
+		resetFeatureRelatedStaticVars();
 		System.out.println("init 1");
 		/* Initialize the controller and manager */
 		BreadcrumbDummiesController breadcrumb = new BreadcrumbDummiesController();
@@ -438,10 +442,15 @@ public class MainDriver {
 		breadcrumbLog.writeToFile();
 	}
 
-	private static void runVINSAsync(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String logFileName,
-			boolean isAsync) {
+	private static void resetFeatureRelatedStaticVars() {
 		FeatureScaler.resetInstance();
 		EKFScalingCorrecter.resetInstance();
+		FeatureData.resetCameraPositions();
+	}
+
+	private static void runVINSAsync(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String logFileName,
+			boolean isAsync) {
+		resetFeatureRelatedStaticVars();
 		System.out.println("init 1");
 		/* Initialize the controller and manager */
 		VINSController vins = new VINSController();
