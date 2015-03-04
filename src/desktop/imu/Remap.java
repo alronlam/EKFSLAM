@@ -8,18 +8,24 @@ import org.opencv.core.Size;
 import Jama.Matrix;
 
 public class Remap {
+	
+	static {
+		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+	}
 
-	// public static void main(String args[]) {
-	// double init[] = { 0, 0, 0 };
-	//
-	// Mat refMat = convertToRotMat(init);
-	//
-	// double samp[] = { 30, 0, 0 };
-	//
-	// double res[] = remapRotVec(samp, refMat);
-	//
-	// System.out.println(res[0]);
-	// }
+	 public static void main(String args[]) {
+	 double init[] = { 0, 0, 0 };
+	
+	 Mat refMat = convertToRotMat(init);
+	
+	 System.out.println(refMat.dump());
+	 
+	 double samp[] = { 30, 0, 0 };
+	
+	 double res[] = remapRotVec(samp, refMat);
+	
+	 System.out.println(res[0]);
+	 }
 
 	public static double mod(double a, double b) {
 		while (a < 0)

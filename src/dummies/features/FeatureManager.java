@@ -163,7 +163,8 @@ public class FeatureManager {
 			}
 			frames++;
 			CURRENT_STEP = this.STEP_IMAGE_CAPTURE;
-			return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
+			// return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
+			return null;
 		}
 		CURRENT_STEP = this.STEP_OPTICAL_FLOW;
 
@@ -230,12 +231,11 @@ public class FeatureManager {
 				if (this.DEBUG_MODE)
 					System.out.println("det(E) != 0 : " + Core.determinant(E));
 				P2 = Mat.zeros(3, 4, CvType.CV_64F);
-				return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
+				return null;// return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 			}
 
 			if (!decomposeEtoRandT(E))
-
-				return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
+				return null;// return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 
 			if (Core.determinant(R1) + 1.0 < 1e-09) {
 				// according to http://en.wikipedia.org/wiki/Essential_matrix#Showing_that_it_is_valid
@@ -246,7 +246,7 @@ public class FeatureManager {
 
 				if (!decomposeEtoRandT(E))
 
-					return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
+					return null;// return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 			}
 
 			P1.put(0, 0, 1, 0, 0, 0);
@@ -255,7 +255,7 @@ public class FeatureManager {
 
 			if (!checkCoherentRotation(Rot1)) {
 				P2 = Mat.zeros(3, 4, CvType.CV_64F);
-				return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
+				return null;// return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 			}
 
 			CURRENT_STEP = this.STEP_TRIANGULATION;
@@ -291,7 +291,7 @@ public class FeatureManager {
 					if (!checkCoherentRotation(Rot2)) {
 						P2 = Mat.zeros(3, 4, CvType.CV_64F);
 
-						return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
+						return null;// return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 					}
 					this.VALID_ROTATION = this.ROT_2;
 					this.VALID_TRANSLATION = this.TRAN_1;
@@ -321,7 +321,7 @@ public class FeatureManager {
 						if (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
 							// Triangulation failed.
 
-							return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
+							return null;// return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 						}
 					}
 				}
@@ -369,11 +369,11 @@ public class FeatureManager {
 
 			badPoints = finalBadPoints;
 			Collections.sort(badPoints);
-//			System.out.println(badPoints);
+			// System.out.println(badPoints);
 
 			currentSize = (int) opflowresult.getCurrentSize() - fMatResult.additionalBadPoints.size() + additionalBadPointsDuplicatesCount + badPointsDuplicatesCount;
 
-			System.out.println(opflowresult.getCurrentSize() + " " + additionalBadPointsDuplicatesCount + " " + badPointsDuplicatesCount);
+			// System.out.println(opflowresult.getCurrentSize() + " " + additionalBadPointsDuplicatesCount + " " + badPointsDuplicatesCount);
 		}
 		// if (this.VALID_ROTATION == this.ROT_1)
 		// System.out.println("Rotation Matrix 1 is Valid.");
@@ -396,6 +396,9 @@ public class FeatureManager {
 			zScale = 1;
 		}
 
+		System.out.println("Translation: \n" + validT.dump());
+		System.out.println("Rotation: \n" + validRot.dump());
+
 		Mat points4D = new Mat();
 		switch (this.TRIANGULATION_METHOD) {
 		case LS_TRIANGULATION:
@@ -410,11 +413,12 @@ public class FeatureManager {
 			points4D = points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, false);
 			break;
 		case OPENCV_TRIANGULATION:
+			System.out.println("using OPENCV");
 			Calib3d.triangulatePoints(P1, P2, goodOld, goodNew, points4D);
 			break;
 		}
 
-		for (int i = 0; i < points4D1.cols(); i++) {
+		for (int i = 0; i < points4D.cols(); i++) {
 			double w = points4D.get(3, i)[0];
 			double x = points4D.get(0, i)[0] / w;
 			double y = points4D.get(1, i)[0] / w;
@@ -441,15 +445,16 @@ public class FeatureManager {
 		nearImage.copyTo(checkpointImage);
 		frames++;
 
-		if (this.DEBUG_MODE){
+		if (this.DEBUG_MODE) {
 			System.out.println(update.getCurrentPoints().size() + update.getBadPointsIndex().size());
 			System.out.println(update.getCurrentPoints().size() + update.getNewPoints().size());
-			
+
 		}
 
 		CURRENT_STEP = this.STEP_VALID_UPDATE;
 		// System.out.println(update);
-		return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(update, cameraPosition);
+		return update;
+		// return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(update, cameraPosition);
 	}
 
 	static boolean first = true;
@@ -910,9 +915,9 @@ public class FeatureManager {
 		Core.gemm(K, p2, 1, nullMatF, 0, KP1); // line 188
 
 		for (int i = 0; i < goodOld.height(); i++) {
+
 			// Log.i("Triangulation", "Triangulating, attempt "+ i);
 			u1.put(0, 0, goodOld.get(i, 0)[0], goodOld.get(i, 0)[1], 1);
-
 			Core.gemm(Kinv, u1.t(), 1, nullMatF, 0, um1);
 
 			u2.put(0, 0, goodNew.get(i, 0)[0], goodNew.get(i, 0)[1], 1);
@@ -959,6 +964,7 @@ public class FeatureManager {
 		A.put(1, 0, arrMatA[1]);
 		A.put(2, 0, arrMatA[2]);
 		A.put(3, 0, arrMatA[3]);
+		// System.out.println("A: \n"+A.dump());
 
 		double arrMatB[][] = { { -(u.get(0, 0)[0] * p1.get(2, 3)[0] - p1.get(0, 3)[0]) }, { -(u.get(0, 1)[0] * p1.get(2, 3)[0] - p1.get(1, 3)[0]) },
 				{ -(u1.get(0, 0)[0] * p2.get(2, 3)[0] - p2.get(0, 3)[0]) }, { -(u1.get(0, 1)[0] * p2.get(2, 3)[0] - p2.get(1, 3)[0]) } };
@@ -969,9 +975,13 @@ public class FeatureManager {
 		B.put(2, 0, arrMatB[2]);
 		B.put(3, 0, arrMatB[3]);
 
+		// System.out.println("B: \n"+B.dump());
+
 		Mat x = Mat.zeros(0, 0, CvType.CV_64F);
 		Core.solve(A, B, x, Core.DECOMP_SVD);
 		x.push_back(Mat.ones(1, 1, CvType.CV_64F));
+
+		// System.out.println("X: \n"+x.dump());
 
 		return x;
 	}

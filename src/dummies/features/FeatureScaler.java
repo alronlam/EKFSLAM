@@ -12,9 +12,12 @@ public class FeatureScaler {
 	private static List<FeatureData> featureList;
 	private static boolean canReturnUpdate;
 	private static int scaledCurrEndIndex, scaledNewEndIndex, unscaledEndIndex;
+	private static List<PointDouble> featurePos = new ArrayList<>();
 
 	public static FeatureScaler featureScaler = new FeatureScaler();
 
+	private static int persist[]= new int[100];
+	
 	private FeatureScaler() {
 		previousUpdate = null;
 		featureList = new ArrayList<>();
@@ -28,6 +31,20 @@ public class FeatureScaler {
 		return featureScaler;
 	}
 
+	public int[] getFeaturePersist(){
+		return persist;
+	}
+	
+	public static String getFeatureLocations(){
+		StringBuilder sb = new StringBuilder();
+		
+		for(PointDouble pos :featurePos){
+			sb.append(pos.getX()+", "+pos.getY()+"\n");
+		}
+		
+		return sb.toString();
+	}
+	
 	// Queue:
 	// | Scaled Curr | Scaled New | Unscaled |
 	// unscaledEndIndex == size - 1
@@ -90,6 +107,8 @@ public class FeatureScaler {
 				} else {
 					// removing scaled feature
 
+					persist[featureList.get(index).relativePositionList.size()]++;
+					
 					this.unscaledEndIndex--;
 					scaledNewEndIndex--;
 					if (index < scaledCurrEndIndex)
@@ -116,7 +135,10 @@ public class FeatureScaler {
 
 			for (int i = 0; i < relativeFeatures.size(); ++i) {
 				if (i < scaledCurrEndIndex) {
-					currentPoints.add(featureList.get(i).getEstimatedPosition(relativeFeatures.get(i), cameraPosition));
+					PointDouble currP = featureList.get(i).getEstimatedPosition(relativeFeatures.get(i), cameraPosition);
+					if(featureList.get(i).relativePositionList.size() == 10)
+						featurePos.add(currP);
+					currentPoints.add(currP);
 				} else {
 					newPoints.add(featureList.get(i).getEstimatedPosition(relativeFeatures.get(i), cameraPosition));
 				}

@@ -23,6 +23,7 @@ import desktop.imu.IMULogReader;
 import desktop.imu.IMUReadingsBatch;
 import dummies.BreadcrumbDummiesController;
 import dummies.features.FeatureManager;
+import dummies.features.FeatureScaler;
 import dummies.features.FeatureUpdate;
 
 public class MainDriver {
@@ -60,14 +61,14 @@ public class MainDriver {
 		/* Change IMU Dataset with Camera Heading */
 		List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
 
-//		 runDoubleIntegration(cimuDataset, imgDataset);
-		 runVINS(cimuDataset, imgDataset);
+		// runDoubleIntegration(cimuDataset, imgDataset);
+		runVINS(cimuDataset, imgDataset);
 		// runINS(imuDataset, imgDataset, insLogFileName);
-//		 runINS(imuDatasetWithCimuHeading, imgDataset,
-//		 insCimuHeadingLogFileName);
+		// runINS(imuDatasetWithCimuHeading, imgDataset,
+		// insCimuHeadingLogFileName);
 		// runBreadcrumbDummies(imuDataset, imgDataset, breadcrumbLogFileName);
-//		 runBreadcrumbDummies(imuDatasetWithCimuHeading, imgDataset,
-//		 breadcrumbWithCimuHeadingLogFileName);
+		// runBreadcrumbDummies(imuDatasetWithCimuHeading, imgDataset,
+		// breadcrumbWithCimuHeadingLogFileName);
 		// runIDP(cimuDataset, imgDataset);
 		// runAltogether(imuDataset, imgDataset);
 
@@ -78,7 +79,7 @@ public class MainDriver {
 
 		List<IMUReadingsBatch> newIMUDataset = new ArrayList<IMUReadingsBatch>();
 
-		for (int i = 0; i < originalIMUDataset.size(); i++) {
+		for (int i = 0; i < Math.min(originalIMUDataset.size(), cimuDataset.size()); i++) {
 
 			IMUReadingsBatch imuBatchCopy = originalIMUDataset.get(i).getCopy();
 
@@ -325,7 +326,7 @@ public class MainDriver {
 		int valid[] = new int[4];
 		double prevX = 0;
 		double prevY = 0;
-		for (int i = 0; i < datasetSize; i++) {
+		for (int i = 0; i < datasetSize / 64; i++) {
 
 			System.out.println("\nTime Step " + (i + 1));
 
@@ -355,14 +356,23 @@ public class MainDriver {
 			// System.out.println("Finished updating.");
 
 			PointDouble deviceCoords = vins.getDeviceCoords();
+			
+			vinsLog.append(deviceCoords+"\n");
 
-			EKFScalingCorrecter.getEKFScalingResultCorrecter().updateCoords(deviceCoords, predictResult);
+//			EKFScalingCorrecter.getEKFScalingResultCorrecter().updateCoords(deviceCoords, predictResult);
 
 			/* Update the logs */
 			// vinsLog.append(vins.getDeviceCoords() + "\n");
 		}
 
-		vinsLog.append(EKFScalingCorrecter.getEKFScalingResultCorrecter().getCorrectedPositionsAsString());
+		int persist[] = FeatureScaler.getFeatureScaler().getFeaturePersist();
+//		for (int i = 0; i < 100; ++i)
+//			if (persist[i] > 0)
+//				System.out.println((i) + " , " + persist[i]);
+
+//		vinsLog.append(EKFScalingCorrecter.getEKFScalingResultCorrecter().getCorrectedPositionsAsString());
+//		vinsLog.append("\n");
+//		vinsLog.append(FeatureScaler.getFeatureLocations());
 
 		System.out.println("Rot 1 & Tran 1: " + valid[0]);
 		System.out.println("Rot 1 & Tran 2: " + valid[1]);
@@ -378,15 +388,15 @@ public class MainDriver {
 		System.out.println("Failed/Processed: " + (state[2] + state[3] + state[4]) + "/" + (state[5] - state[1]));
 		System.out.printf("Success Rate: %.3f%%\n", state[0] * 100.0 / (state[5] - state[1]));
 
-		finalResultsStringBuilder.append("Total distance traveled " + EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = " + EKFScalingCorrecter.getEKFScalingResultCorrecter().getFinalPosition().computeDistanceTo(new PointDouble(0, 0))
-				+ "\r\n");
+//		finalResultsStringBuilder.append("Total distance traveled " + EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + "\r\n");
+//		finalResultsStringBuilder.append("Total Displacement = " + EKFScalingCorrecter.getEKFScalingResultCorrecter().getFinalPosition().computeDistanceTo(new PointDouble(0, 0))
+//				+ "\r\n");
 
-		// finalResultsStringBuilder.append("Total distance traveled " +
-		// vins.getTotalDistanceTraveled() + "\r\n");
-		// finalResultsStringBuilder.append("Total Displacement = " +
-		// vins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) +
-		// "\r\n");
+		 finalResultsStringBuilder.append("Total distance traveled " +
+		 vins.getTotalDistanceTraveled() + "\r\n");
+		 finalResultsStringBuilder.append("Total Displacement = " +
+		 vins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) +
+		 "\r\n");
 
 		/* Log - Write to File */
 		vinsLog.writeToFile();
