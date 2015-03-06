@@ -83,6 +83,7 @@ public class FeatureManager {
 
 	private double xScale;
 	private double zScale;
+	boolean first = true;
 
 	// DANGER Gets assigned in triangulatePoints(). Too lazy to return properly.
 	private double reprojErr1, reprojErr2;
@@ -162,14 +163,14 @@ public class FeatureManager {
 		// System.out.println("Flowing features: " + flowingFeatures.size());
 		// System.out.println("Is Good Features: " + isGoodFeatures.size());
 	}
-	
+
 	private void asyncExit(List<Point> nextNewFeatures) {
 		if (first) {
 			first = false;
 			currentSize = (int) checkpointFeaturesList.size();
 			checkpointFeaturesList.addAll(nextNewFeatures);
 		}
-		
+
 		flowingFeatures = new ArrayList<>();
 		for (Point point : checkpointFeaturesList) {
 			flowingFeatures.add(new Point(point.x, point.y));
@@ -179,10 +180,10 @@ public class FeatureManager {
 		for (int i = 0; i < flowingFeatures.size(); i++) {
 			isGoodFeatures.add(true);
 		}
-		
+
 		System.out.println("Async exit. ENDING CPFL " + checkpointFeaturesList.size());
 	}
-	
+
 	private void nullExit(List<Point> nextNewFeatures) {
 		flowingFeatures = new ArrayList<>();
 		for (Point point : checkpointFeaturesList) {
@@ -193,12 +194,10 @@ public class FeatureManager {
 		for (int i = 0; i < flowingFeatures.size(); i++) {
 			isGoodFeatures.add(true);
 		}
-		
+
 		System.out.println("Null exit. ENDING CPFL " + checkpointFeaturesList.size());
 	}
-	
 
-	
 	public FeatureUpdate getAsyncFeatureUpdate(Mat currentImage, double translationX, double translationZ,
 			PointDouble cameraPosition) {
 		/* For first call. */
@@ -219,9 +218,9 @@ public class FeatureManager {
 		List<Point> nextNewFeatures = new ArrayList<>();
 		List<Point> goodCheckpointFeatures = new ArrayList<>();
 		List<Point> goodFlowedCheckpointFeatures = new ArrayList<>();
-		
+
 		int goodCurrents = 0;
-		
+
 		for (int i = 0; i < flowingFeatures.size(); i++) {
 			// Split off features into checkpoint and next new features.
 			if (i < checkpointFeaturesList.size()) {
@@ -229,22 +228,22 @@ public class FeatureManager {
 				if (isGoodFeatures.get(i)) {
 					if (i < currentSize) {
 						goodCurrents++;
-						
+
 					} else {
-						
+
 					}
 					goodCheckpointFeatures.add(checkpointFeaturesList.get(i));
 					goodFlowedCheckpointFeatures.add(flowingFeatures.get(i));
-					
-				// Add bad point indices of current features.
+
+					// Add bad point indices of current features.
 				} else if (i < currentSize) {
 					badPointsIndex.add(Integer.valueOf(i));
-					
+
 				}
 
 			} else {
 				nextNewFeatures.add(flowingFeatures.get(i));
-				
+
 			}
 		}
 		System.out.println("current size " + currentSize);
@@ -258,7 +257,7 @@ public class FeatureManager {
 		MatOfPoint2f goodNew = new MatOfPoint2f();
 		goodOld.fromList(goodCheckpointFeatures);
 		goodNew.fromList(goodFlowedCheckpointFeatures);
-		
+
 		// sketchy code ahead
 		if (goodOld.empty() || goodNew.empty()) {
 			asyncExit(nextNewFeatures);
@@ -266,7 +265,7 @@ public class FeatureManager {
 		}
 		FMatResult fMatResult = null;
 		points4D1 = new Mat();
-		
+
 		if (!goodOld.empty() && !goodNew.empty()) {
 
 			// does this work
@@ -286,11 +285,11 @@ public class FeatureManager {
 
 			kpGoodOld = convertMatOfPoint2fToListOfKeyPoints(goodOld);
 			kpGoodNew = convertMatOfPoint2fToListOfKeyPoints(goodNew);
-			
+
 			CURRENT_STEP = this.STEP_ESSENTIAL_MATRIX;
 			fMatResult = getFundamentalMat(kpGoodOld, kpGoodNew, badPointsIndex, goodCurrents);
 			F = fMatResult.F;
-			
+
 			// SOBRANG HASSLE
 			// A bit scary
 			goodOld = fMatResult.superGoodPoints1;
@@ -306,7 +305,7 @@ public class FeatureManager {
 				if (this.DEBUG_MODE)
 					System.out.println("det(E) != 0 : " + Core.determinant(E));
 				P2 = Mat.zeros(3, 4, CvType.CV_64F);
-				
+
 				nullExit(nextNewFeatures);
 				return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 			}
@@ -325,7 +324,7 @@ public class FeatureManager {
 
 				if (!decomposeEtoRandT(E))
 					nullExit(nextNewFeatures);
-					return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
+				return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
 			}
 
 			P1.put(0, 0, 1, 0, 0, 0);
@@ -412,9 +411,7 @@ public class FeatureManager {
 				}
 			}
 		}
-		
-		
-		
+
 		FeatureUpdate update = new FeatureUpdate();
 		List<PointDouble> currentPoints = new ArrayList<>();
 		List<PointDouble> newPoints = new ArrayList<>();
@@ -459,7 +456,9 @@ public class FeatureManager {
 
 			goodCurrents = goodCurrents - fMatResult.additionalBadPoints.size() + additionalBadPointsDuplicatesCount
 					+ badPointsDuplicatesCount;
-			// System.out.println(currentSize + " " + additionalBadPointsDuplicatesCount + " " + badPointsDuplicatesCount);
+			// System.out.println(currentSize + " " +
+			// additionalBadPointsDuplicatesCount + " " +
+			// badPointsDuplicatesCount);
 		}
 		// if (this.VALID_ROTATION == this.ROT_1)
 		// System.out.println("Rotation Matrix 1 is Valid.");
@@ -476,7 +475,7 @@ public class FeatureManager {
 
 		// double xScale = translationX / translationMatrix.get(0, 0)[0];
 		// double zScale = translationZ / translationMatrix.get(2, 0)[0];
-		
+
 		if (!USE_SCALE) { // HAHA WOT.
 			// xScale = 1;
 			// zScale = 1;
@@ -498,7 +497,7 @@ public class FeatureManager {
 			Calib3d.triangulatePoints(P1, P2, goodOld, goodNew, points4D);
 			break;
 		}
-		
+
 		for (int i = 0; i < points4D.cols(); i++) {
 			double w = points4D.get(3, i)[0];
 			double x = points4D.get(0, i)[0] / w;
@@ -523,7 +522,7 @@ public class FeatureManager {
 		checkpointFeaturesList = new ArrayList<>(checkpointFeatures.toList());
 		currentSize = checkpointFeaturesList.size();
 		checkpointFeaturesList.addAll(nextNewFeatures);
-		
+
 		flowingFeatures = new ArrayList<>();
 		for (Point point : checkpointFeaturesList) {
 			flowingFeatures.add(new Point(point.x, point.y));
@@ -852,8 +851,6 @@ public class FeatureManager {
 		return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(update, cameraPosition);
 	}
 
-	static boolean first = true;
-
 	private void logPoints4D() {
 		File dir = new File("trilogs");
 		File file = new File(dir + "\\points.csv");
@@ -1024,26 +1021,29 @@ public class FeatureManager {
 		for (int statusIndex = 0; statusIndex < status.size().height; statusIndex++) {
 			if (!badpointsList.isEmpty() && badpointsCompensation < badpointsList.size()
 					&& statusIndex + badpointsCompensation == badpointsList.get(badpointsCompensation)) {
-				// System.out.println((statusIndex + badpointsCompensation) + " existing bad");
+				// System.out.println((statusIndex + badpointsCompensation) +
+				// " existing bad");
 				badpointsCompensation++;
 				statusIndex--;
 				continue;
 			}
 			int actualStatus = (int) status.get(statusIndex, 0)[0];
 			if (actualStatus == 1) {
-				// System.out.println((statusIndex + badpointsCompensation) + " very good");
+				// System.out.println((statusIndex + badpointsCompensation) +
+				// " very good");
 				veryGoodpts1.push_back(pts1Mat.submat(statusIndex, statusIndex + 1, 0, 1));
 				veryGoodpts2.push_back(pts2Mat.submat(statusIndex, statusIndex + 1, 0, 1));
 
 			} else if (statusIndex < currentSize) {
 				Integer additionalBadpoint = statusIndex + badpointsCompensation;
 				additionaBadpoints.add(additionalBadpoint);
-				// System.out.println((statusIndex + badpointsCompensation) + " additional bad");
+				// System.out.println((statusIndex + badpointsCompensation) +
+				// " additional bad");
 			} else {
 				// System.out.println((statusIndex + badpointsCompensation));
 			}
 		}
-		
+
 		FMatResult result = new FMatResult(F, veryGoodpts1, veryGoodpts2, additionaBadpoints);
 		return result;
 	}
