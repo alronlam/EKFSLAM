@@ -4,14 +4,14 @@ import java.util.ArrayList;
 
 import stepbasedins.data.SensorEntry;
 
-public class SimpleHeadingDeterminer implements HeadingDeterminer {
+public class SmootheningHeadingDeterminer implements HeadingDeterminer {
 
 	private int batchCount;
 	private Double runningAvg;
 	private int windowSize = 3;
 	private ArrayList<Double> window;
 
-	public SimpleHeadingDeterminer() {
+	public SmootheningHeadingDeterminer() {
 		window = new ArrayList<Double>();
 	}
 
@@ -28,10 +28,6 @@ public class SimpleHeadingDeterminer implements HeadingDeterminer {
 		}
 
 		return runningAvg;
-
-		// Log.d("Average angle is ", avg+"");
-		// return avg;
-		// return getNearestDiscreteHeading(avg);
 	}
 
 }

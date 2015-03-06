@@ -7,9 +7,9 @@ import commondata.PointDouble;
 
 public class EKFScalingCorrecter {
 
-	private static List<PointDouble> cameraPositionList;
-	private static List<PointDouble> correctedCameraPositionList;
-	private static PointDouble offset;
+	private List<PointDouble> cameraPositionList;
+	private List<PointDouble> correctedCameraPositionList;
+	private PointDouble offset;
 
 	public static EKFScalingCorrecter ekfScalingCorrecter = new EKFScalingCorrecter();
 

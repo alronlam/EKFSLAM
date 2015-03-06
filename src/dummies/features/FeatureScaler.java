@@ -8,10 +8,10 @@ import commondata.PointDouble;
 
 public class FeatureScaler {
 
-	private static FeatureUpdate previousUpdate;
-	private static List<FeatureData> featureList;
-	private static boolean canReturnUpdate;
-	private static int scaledCurrEndIndex, scaledNewEndIndex, unscaledEndIndex;
+	private FeatureUpdate previousUpdate;
+	private List<FeatureData> featureList;
+	private boolean canReturnUpdate;
+	private int scaledCurrEndIndex, scaledNewEndIndex, unscaledEndIndex;
 
 	public static FeatureScaler featureScaler = new FeatureScaler();
 

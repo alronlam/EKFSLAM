@@ -22,6 +22,7 @@ import desktop.imu.IMULogReader;
 import desktop.imu.IMUReadingsBatch;
 import dummies.BreadcrumbDummiesController;
 import dummies.ekf.EKFScalingCorrecter;
+import dummies.features.FeatureData;
 import dummies.features.FeatureManager;
 import dummies.features.FeatureScaler;
 import dummies.features.FeatureUpdate;
@@ -47,12 +48,14 @@ public class MainDriver {
 
 	public static void main(String[] args) {
 		System.out.println("init 1");
-		String dataset = Constants.FOLDER_RECT1_MIGUEL2_S3;
+		String dataset = Constants.FOLDER_STRT1_SJ5_S4;
 		String targetFolder = "data/" + dataset;
 		boolean isDatasetAsync = false;
 		if (Constants.ASYNC_DATASETS.contains(dataset)) {
 			isDatasetAsync = true;
 		}
+
+		finalResultsStringBuilder.append(dataset);
 
 		System.out.println("init 2");
 		/* Load IMU Dataset */
@@ -72,16 +75,18 @@ public class MainDriver {
 		/* Change IMU Dataset with Camera Heading */
 		List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
 
-		runINS(imuDataset, imgDataset, insLogFileName);
-		runINS(imuDatasetWithCimuHeading, imgDataset, insCimuHeadingLogFileName);
-		runDoubleIntegration(cimuDataset, imgDataset);
-		runVINSAsync(cimuDataset, imgDataset, vinsLogFileName, false);
-		runVINSAsync(cimuDataset, imgDataset, vins15hzLogFileName, true);
+		runVINSDummy(cimuDataset, imgDataset, vinsLogFileName, false);
 
-		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, breadcrumbWithCimuHeadingLogFileName, false);
-		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, breadcrumbWithCimuHeading15hzLogFileName, true);
-		// runIDP(cimuDataset, imgDataset);
-		// runAltogether(imuDataset, imgDataset);
+		// runINS(imuDataset, imgDataset, insLogFileName);
+		// runINS(imuDatasetWithCimuHeading, imgDataset,
+		// insCimuHeadingLogFileName);
+		// runDoubleIntegration(cimuDataset, imgDataset);
+		runVINSAsync(cimuDataset, imgDataset, vinsLogFileName, false);
+		// runVINSAsync(cimuDataset, imgDataset, vins15hzLogFileName, true);
+		// runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset,
+		// breadcrumbWithCimuHeadingLogFileName, false);
+		// runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset,
+		// breadcrumbWithCimuHeading15hzLogFileName, true);
 
 		System.out.println(finalResultsStringBuilder.toString());
 	}
@@ -131,7 +136,7 @@ public class MainDriver {
 
 			doubleIntegrationLog.append(doubleIntegration.getDeviceCoords() + "\n");
 		}
-
+		finalResultsStringBuilder.append("\r\n" + doubleIntegrationLogFileName + "\r\n");
 		finalResultsStringBuilder.append("Total distance traveled " + doubleIntegration.getTotalDistanceTraveled()
 				+ "\r\n");
 		finalResultsStringBuilder.append("Total Displacement = "
@@ -331,6 +336,7 @@ public class MainDriver {
 	/* Based on runBreadcrumbDummies */
 	private static void runBreadcrumbAsync(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String logFileName,
 			boolean isAsync) {
+		resetFeatureRelatedStaticVars();
 		System.out.println("init 1");
 		/* Initialize the controller and manager */
 		BreadcrumbDummiesController breadcrumb = new BreadcrumbDummiesController();
@@ -438,10 +444,107 @@ public class MainDriver {
 		breadcrumbLog.writeToFile();
 	}
 
-	private static void runVINSAsync(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String logFileName,
-			boolean isAsync) {
+	private static void resetFeatureRelatedStaticVars() {
 		FeatureScaler.resetInstance();
 		EKFScalingCorrecter.resetInstance();
+		FeatureData.resetCameraPositions();
+	}
+
+	private static void runVINSDummy(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String logFileName,
+			boolean isAsync) {
+		resetFeatureRelatedStaticVars();
+
+		/* Initialize the controller and manager */
+		VINSController vins = new VINSController();
+		FeatureManager featureManager = new FeatureManager();
+
+		/* Initialize the logs */
+		FileLog vinsLog = new FileLog(logFolder + "/" + logFileName);
+		vinsLog.append(vins.getDeviceCoords() + "\n");
+
+		int state[] = new int[6];
+		int valid[] = new int[4];
+		double prevX = 0;
+		double prevY = 0;
+		PointDouble prevPoint = new PointDouble(Double.MAX_VALUE, Double.MAX_VALUE);
+
+		int imuIndex = 0;
+		int imgIndex = 0;
+		int elapsedTime = Constants.MS_IMU_DURATION;
+		int timeStep = 0;
+		while (true) {
+			if (imuIndex >= imuDataset.size() || imgIndex >= imgDataset.size()) {
+				break;
+			}
+
+			StringBuilder sb = new StringBuilder();
+			if (elapsedTime >= Constants.MS_IMU_DURATION) {
+				System.out.println("\nTime Step " + (timeStep + 1));
+				sb.append("Feature Update. ");
+				sb.append("img: " + imgIndex + " ");
+				sb.append("imu: " + imuIndex + " ");
+
+				// Get them fancy translations
+				// is this even correct
+				double transX = vins.getDeviceCoords().getX() - prevX;
+				double transY = vins.getDeviceCoords().getY() - prevY;
+
+				prevX = vins.getDeviceCoords().getX();
+				prevY = vins.getDeviceCoords().getY();
+
+				/* IMU Predict */
+				IMUReadingsBatch currIMUBatch = imuDataset.get(imuIndex);
+				vins.predict(currIMUBatch);
+				PointDouble predictResult = vins.getDeviceCoords();
+
+				/* Image Update */
+				if (prevPoint.getX() != predictResult.getX() || prevPoint.getY() != predictResult.getY()) {
+					FeatureUpdate featureUpdate = featureManager.getAsyncFeatureUpdate(imgDataset.get(imgIndex),
+							transX, transY, vins.getDeviceCoords());
+					valid[(FeatureManager.VALID_ROTATION == FeatureManager.ROT_1 ? 0 : 2)
+							+ (FeatureManager.VALID_TRANSLATION == FeatureManager.TRAN_1 ? 0 : 1)]++;
+					state[FeatureManager.CURRENT_STEP]++;
+					state[5]++;
+
+					vins.update(featureUpdate);
+				}
+				// System.out.println("Finished updating.");
+
+				// System.out.println("Finished updating.");
+
+				PointDouble deviceCoords = vins.getDeviceCoords();
+
+				EKFScalingCorrecter.getEKFScalingResultCorrecter().updateCoords(deviceCoords, predictResult);
+
+				imuIndex++;
+				elapsedTime = elapsedTime % Constants.MS_IMU_DURATION;
+				sb.append(elapsedTime + "ms");
+				/* Update the logs */
+				// breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
+				System.out.println(sb.toString());
+
+			} else {
+				// sb.append("Image Flow. ");
+				// sb.append("img: " + imgIndex + " ");
+				// sb.append(elapsedTime + "ms");
+				// System.out.println(sb.toString());
+				if (isAsync)
+					featureManager.flowImage(imgDataset.get(imgIndex));
+			}
+
+			imgIndex++;
+			if (isAsync)
+				elapsedTime += Constants.MS_IMG_DURATION;
+			else
+				elapsedTime += Constants.MS_IMU_DURATION;
+			timeStep++;
+		}
+
+	}
+
+	private static void runVINSAsync(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String logFileName,
+			boolean isAsync) {
+		resetFeatureRelatedStaticVars();
 		System.out.println("init 1");
 		/* Initialize the controller and manager */
 		VINSController vins = new VINSController();
