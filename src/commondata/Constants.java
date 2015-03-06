@@ -43,7 +43,11 @@ public class Constants {
 	public static final String FOLDER_RECT1_MIGUEL4_S4 = "Ivan Miguel 4th Floor 1 Pass S4 Mar 3";
 	public static final String FOLDER_RECT2_MIGUEL4_S4 = "Ivan Miguel 4th Floor 2 Pass S4 Mar 3";
 
-	public static final String FOLDER_RECT1_MIGUEL_S4_ALRON = "Alron Miguel 4th Floor 1 Pass Mar 5 - 122 Steps";
+	public static final String FOLDER_RECT1_MIGUEL_S4_ALRON_MAR5 = "Alron Miguel 4th Floor 1 Pass Mar 5 - 122 Steps";
+	public static final String FOLDER_RECT2_MIGUEL_S4_ALRON_MAR5 = "Alron Miguel 4th Floor 2 Pass Mar 5 - 246 Steps (2nd Run)";
+
+	public static final String FOLDER_STRT1_SJ6_S4_MAR5_BLACK_CAM = "Ivan SJ 6th Floor 1 Pass Mar 5 - 122 Steps Partial [Black Camera]";
+	public static final String FOLDER_STRT2_SJ6_S4_MAR5 = "Ivan SJ 6th Floor 2 Pass Mar 5 - 244 Steps Partial";
 
 	public static final String FOLDER_STRT1_SJ5_S4 = "Ivan SJ 5th Floor S4 Feb 26";
 	public static final String FOLDER_STRT2_SJ6_S4 = "Ivan SJ 6th Floor S4 Feb 26";

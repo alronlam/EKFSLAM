@@ -102,11 +102,16 @@ public class MainDriver {
 		// datasets.add(Constants.FOLDER_RECT1_MIGUEL3_S4);
 		// datasets.add(Constants.FOLDER_RECT1_MIGUEL4_S4);
 		// datasets.add(Constants.FOLDER_RECT2_MIGUEL4_S4);
-		datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_ALRON);
 		// datasets.add(Constants.FOLDER_STRT1_SJ5_S4);
 		// datasets.add(Constants.FOLDER_STRT1_SJ6_S4_MAR3);
 		// datasets.add(Constants.FOLDER_STRT2_SJ6_S4);
 		// datasets.add(Constants.FOLDER_STRT2_SJ6_S4_MAR3);
+
+		// datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_ALRON_MAR5);
+		datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_ALRON_MAR5);
+
+		datasets.add(Constants.FOLDER_STRT1_SJ6_S4_MAR5_BLACK_CAM);
+		datasets.add(Constants.FOLDER_STRT2_SJ6_S4_MAR5);
 
 		return datasets;
 	}
@@ -306,10 +311,9 @@ public class MainDriver {
 			}
 
 			imgIndex++;
-			if (isAsync)
-				elapsedTime += Constants.MS_IMG_DURATION;
-			else
-				elapsedTime += Constants.MS_IMU_DURATION;
+
+			elapsedTime += Constants.MS_IMG_DURATION;
+
 			timeStep++;
 		}
 
@@ -424,18 +428,16 @@ public class MainDriver {
 			}
 
 			imgIndex++;
-			if (isAsync)
-				elapsedTime += Constants.MS_IMG_DURATION;
-			else
-				elapsedTime += Constants.MS_IMU_DURATION;
+
+			elapsedTime += Constants.MS_IMG_DURATION;
+
 			timeStep++;
 		}
 
 		breadcrumbLog.append(EKFScalingCorrecter.getEKFScalingResultCorrecter().getCorrectedPositionsAsString());
 
 		finalResultsStringBuilder.append("\r\n" + logFileName + "\r\n");
-		// finalResultsStringBuilder.append("Total steps detected " +
-		// breadcrumb.totalStepsDetected + "\r\n");
+		finalResultsStringBuilder.append("Total steps detected " + breadcrumb.totalStepsDetected + "\r\n");
 		// finalResultsStringBuilder.append("Total distance traveled " +
 		// breadcrumb.getTotalDistanceTraveled() + "\r\n");
 		// finalResultsStringBuilder.append("Total Displacement = "
