@@ -109,12 +109,16 @@ public class MainDriver {
 
 		// datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_ALRON_MAR5);
 		// datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_ALRON_MAR5);
-		// datasets.add(Constants.FOLDER_STRT1_SJ6_S4_MAR5_BLACK_CAM);
-		// datasets.add(Constants.FOLDER_STRT2_SJ6_S4_MAR5);
+		// datasets.add(Constants.FOLDER_STRT1_SJ6_PARTIAL_S4_MAR5_BLACK_CAM);
+		// datasets.add(Constants.FOLDER_STRT2_SJ6_PARTIAL_S4_MAR5);
 		// datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_IVAN_MAR5);
 		// datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_IVAN_MAR5);
 
+		datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_IVAN_MAR6);
 		datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_IVAN_MAR6);
+		datasets.add(Constants.FOLDER_STRT1_SJ6_S4_MAR6);
+		datasets.add(Constants.FOLDER_STRT1_LS1_S3CAM_IVAN_MAR6);
+		datasets.add(Constants.FOLDER_STRT2_LS1_S3CAM_IVAN_MAR6);
 
 		return datasets;
 	}
