@@ -48,14 +48,14 @@ public class MainDriver {
 
 	public static void main(String[] args) {
 		System.out.println("init 1");
-		String dataset = Constants.FOLDER_STRT1_SJ5_S4;
-		String targetFolder = "data/" + dataset;
+		String datasetName = Constants.FOLDER_RECT1_MIGUEL3_S4;
+		String targetFolder = "data/" + datasetName;
 		boolean isDatasetAsync = false;
-		if (Constants.ASYNC_DATASETS.contains(dataset)) {
+		if (Constants.ASYNC_DATASETS.contains(datasetName)) {
 			isDatasetAsync = true;
 		}
 
-		finalResultsStringBuilder.append(dataset);
+		finalResultsStringBuilder.append(datasetName + "\r\n");
 
 		System.out.println("init 2");
 		/* Load IMU Dataset */
@@ -75,19 +75,25 @@ public class MainDriver {
 		/* Change IMU Dataset with Camera Heading */
 		List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
 
-		runVINSDummy(cimuDataset, imgDataset, vinsLogFileName, false);
-
+		// runVINSDummy(cimuDataset, imgDataset, vinsLogFileName, false);
+		//
 		// runINS(imuDataset, imgDataset, insLogFileName);
 		// runINS(imuDatasetWithCimuHeading, imgDataset,
 		// insCimuHeadingLogFileName);
 		// runDoubleIntegration(cimuDataset, imgDataset);
-		runVINSAsync(cimuDataset, imgDataset, vinsLogFileName, false);
-		// runVINSAsync(cimuDataset, imgDataset, vins15hzLogFileName, true);
+		// runVINSAsync(cimuDataset, imgDataset, datasetName, vinsLogFileName,
+		// false);
+		// runVINSAsync(cimuDataset, imgDataset, datasetName,
+		// vins15hzLogFileName, true);
 		// runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset,
-		// breadcrumbWithCimuHeadingLogFileName, false);
-		// runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset,
-		// breadcrumbWithCimuHeading15hzLogFileName, true);
+		// datasetName, breadcrumbWithCimuHeadingLogFileName,
+		// false);
+		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, datasetName,
+				breadcrumbWithCimuHeading15hzLogFileName, true);
 
+		FileLog finalResultsLog = new FileLog(logFolder + "/" + datasetName + "/" + datasetName + ".txt");
+		finalResultsLog.append(finalResultsStringBuilder.toString());
+		finalResultsLog.writeToFile();
 		System.out.println(finalResultsStringBuilder.toString());
 	}
 
@@ -334,8 +340,8 @@ public class MainDriver {
 	}
 
 	/* Based on runBreadcrumbDummies */
-	private static void runBreadcrumbAsync(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String logFileName,
-			boolean isAsync) {
+	private static void runBreadcrumbAsync(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String datasetName,
+			String logFileName, boolean isAsync) {
 		resetFeatureRelatedStaticVars();
 		System.out.println("init 1");
 		/* Initialize the controller and manager */
@@ -343,7 +349,7 @@ public class MainDriver {
 		FeatureManager featureManager = new FeatureManager();
 
 		/* Initialize the logs */
-		FileLog breadcrumbLog = new FileLog(logFolder + "/" + logFileName);
+		FileLog breadcrumbLog = new FileLog(logFolder + "/" + datasetName + "/" + logFileName);
 		breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
 
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
@@ -542,8 +548,8 @@ public class MainDriver {
 
 	}
 
-	private static void runVINSAsync(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String logFileName,
-			boolean isAsync) {
+	private static void runVINSAsync(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String datasetName,
+			String logFileName, boolean isAsync) {
 		resetFeatureRelatedStaticVars();
 		System.out.println("init 1");
 		/* Initialize the controller and manager */
@@ -551,7 +557,7 @@ public class MainDriver {
 		FeatureManager featureManager = new FeatureManager();
 
 		/* Initialize the logs */
-		FileLog vinsLog = new FileLog(logFolder + "/" + logFileName);
+		FileLog vinsLog = new FileLog(logFolder + "/" + datasetName + "/" + logFileName);
 		vinsLog.append(vins.getDeviceCoords() + "\n");
 
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
