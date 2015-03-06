@@ -44,50 +44,71 @@ public class MainDriver {
 	private static String idpLogFileName = "vinsidp.csv";
 	private static String doubleIntegrationLogFileName = "doubleintegration.csv";
 
-	private static StringBuilder finalResultsStringBuilder = new StringBuilder();
+	private static StringBuilder finalResultsStringBuilder;
 
 	public static void main(String[] args) {
 
-		String datasetName = Constants.FOLDER_RECT1_MIGUEL3_S4;
-		String targetFolder = "data/" + datasetName;
-		boolean isDatasetAsync = false;
-		if (Constants.ASYNC_DATASETS.contains(datasetName)) {
-			isDatasetAsync = true;
+		ArrayList<String> datasets = getDatasetsToRun();
+
+		for (String datasetName : datasets) {
+
+			String targetFolder = "data/" + datasetName;
+			// boolean isDatasetAsync = false;
+			// if (Constants.ASYNC_DATASETS.contains(datasetName)) {
+			// isDatasetAsync = true;
+			// }
+			finalResultsStringBuilder = new StringBuilder();
+			finalResultsStringBuilder.append(datasetName + "\r\n");
+
+			/* Load IMU Dataset */
+			IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
+			List<IMUReadingsBatch> imuDataset = imuLogReader.readSensorEntries();
+
+			IMULogReader cimuLogReader = new IMULogReader(targetFolder + "/cimu");
+			List<IMUReadingsBatch> cimuDataset = cimuLogReader.readSensorEntries();
+
+			/* Load Images Dataset */
+			ImgLogReader imgLogReader = new ImgLogReader(targetFolder + "/img");
+			List<Mat> imgDataset = imgLogReader.readImages();
+
+			/* Change IMU Dataset with Camera Heading */
+			List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
+
+			// runINS(imuDataset, imgDataset, datasetName, insLogFileName);
+			// runINS(imuDatasetWithCimuHeading, imgDataset, datasetName,
+			// insCimuHeadingLogFileName);
+			// runDoubleIntegration(cimuDataset, imgDataset, datasetName,
+			// doubleIntegrationLogFileName);
+			// runVINSAsync(cimuDataset, imgDataset, datasetName,
+			// vinsLogFileName,
+			// false);
+			// runVINSAsync(cimuDataset, imgDataset, datasetName,
+			// vins15hzLogFileName, true);
+			// runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset,
+			// datasetName, breadcrumbWithCimuHeadingLogFileName,
+			// false);
+			// runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset,
+			// datasetName,
+			// breadcrumbWithCimuHeading15hzLogFileName, true);
+			runAltogether(imuDataset, imuDatasetWithCimuHeading, cimuDataset, imgDataset, datasetName);
+			System.out.println(finalResultsStringBuilder.toString());
 		}
+	}
 
-		finalResultsStringBuilder.append(datasetName + "\r\n");
+	private static ArrayList<String> getDatasetsToRun() {
+		ArrayList<String> datasets = new ArrayList<String>();
+		// datasets.add(Constants.FOLDER_RECT1_MIGUEL2_S3);
+		// datasets.add(Constants.FOLDER_RECT1_MIGUEL3_S3);
+		// datasets.add(Constants.FOLDER_RECT1_MIGUEL3_S4);
+		// datasets.add(Constants.FOLDER_RECT1_MIGUEL4_S4);
+		// datasets.add(Constants.FOLDER_RECT2_MIGUEL4_S4);
+		datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_ALRON);
+		// datasets.add(Constants.FOLDER_STRT1_SJ5_S4);
+		// datasets.add(Constants.FOLDER_STRT1_SJ6_S4_MAR3);
+		// datasets.add(Constants.FOLDER_STRT2_SJ6_S4);
+		// datasets.add(Constants.FOLDER_STRT2_SJ6_S4_MAR3);
 
-		/* Load IMU Dataset */
-		IMULogReader imuLogReader = new IMULogReader(targetFolder + "/imu");
-		List<IMUReadingsBatch> imuDataset = imuLogReader.readSensorEntries();
-
-		IMULogReader cimuLogReader = new IMULogReader(targetFolder + "/cimu");
-		List<IMUReadingsBatch> cimuDataset = cimuLogReader.readSensorEntries();
-
-		/* Load Images Dataset */
-		ImgLogReader imgLogReader = new ImgLogReader(targetFolder + "/img");
-		List<Mat> imgDataset = imgLogReader.readImages();
-
-		/* Change IMU Dataset with Camera Heading */
-		List<IMUReadingsBatch> imuDatasetWithCimuHeading = changeHeading(imuDataset, cimuDataset);
-
-		// runINS(imuDataset, imgDataset, datasetName, insLogFileName);
-		// runINS(imuDatasetWithCimuHeading, imgDataset, datasetName,
-		// insCimuHeadingLogFileName);
-		// runDoubleIntegration(cimuDataset, imgDataset, datasetName,
-		// doubleIntegrationLogFileName);
-		// runVINSAsync(cimuDataset, imgDataset, datasetName, vinsLogFileName,
-		// false);
-		// runVINSAsync(cimuDataset, imgDataset, datasetName,
-		// vins15hzLogFileName, true);
-		// runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset,
-		// datasetName, breadcrumbWithCimuHeadingLogFileName,
-		// false);
-		// runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset,
-		// datasetName,
-		// breadcrumbWithCimuHeading15hzLogFileName, true);
-		runAltogether(imuDataset, imuDatasetWithCimuHeading, cimuDataset, imgDataset, datasetName);
-		System.out.println(finalResultsStringBuilder.toString());
+		return datasets;
 	}
 
 	private static void runAltogether(List<IMUReadingsBatch> imuDataset,
