@@ -37,6 +37,8 @@ public class Constants {
 	public static final String FOLDER_TriTest = "TriTest";
 
 	// Feb 2015 Datasets
+
+	/* Miguel Datasets */
 	public static final String FOLDER_RECT1_MIGUEL2_S3 = "Ivan Miguel 2nd Floor S3 Feb 23";
 	public static final String FOLDER_RECT1_MIGUEL3_S3 = "Ivan Miguel 3rd Floor S3 Feb 23";
 	public static final String FOLDER_RECT1_MIGUEL3_S4 = "Ivan Miguel 3rd Floor S4 Feb 24";
@@ -47,16 +49,22 @@ public class Constants {
 	public static final String FOLDER_RECT2_MIGUEL_S4_ALRON_MAR5 = "Alron Miguel 4th Floor 2 Pass Mar 5 - 246 Steps (2nd Run)";
 	public static final String FOLDER_RECT1_MIGUEL_S4_IVAN_MAR5 = "Ivan Miguel 4th Floor 1 Pass Mar 5 - 110 Steps";
 	public static final String FOLDER_RECT2_MIGUEL_S4_IVAN_MAR5 = "Ivan Miguel 4th Floor 2 Pass Mar 5 - 213 Steps";
+	public static final String FOLDER_RECT1_MIGUEL_S4_IVAN_MAR6 = "Ivan Miguel 4th Floor 1 Pass Mar 6 - 110 Steps S3cam";
 	public static final String FOLDER_RECT2_MIGUEL_S4_IVAN_MAR6 = "Ivan Miguel 4th Floor 2 Pass Mar 6 - 214 Steps S3cam";
 
-	public static final String FOLDER_STRT1_SJ6_S4_MAR5_BLACK_CAM = "Ivan SJ 6th Floor 1 Pass Mar 5 - 122 Steps Partial [Black Camera]";
-	public static final String FOLDER_STRT2_SJ6_S4_MAR5 = "Ivan SJ 6th Floor 2 Pass Mar 5 - 244 Steps Partial";
-
+	/* SJ Datasets */
 	public static final String FOLDER_STRT1_SJ5_S4 = "Ivan SJ 5th Floor S4 Feb 26";
 	public static final String FOLDER_STRT2_SJ6_S4 = "Ivan SJ 6th Floor S4 Feb 26";
-
 	public static final String FOLDER_STRT1_SJ6_S4_MAR3 = "Ivan SJ 6th Floor 1 Pass Mar S4 3";
 	public static final String FOLDER_STRT2_SJ6_S4_MAR3 = "Ivan SJ 6th Floor 2 Pass Mar S4 3";
+
+	public static final String FOLDER_STRT1_SJ6_PARTIAL_S4_MAR5_BLACK_CAM = "Ivan SJ 6th Floor 1 Pass Mar 5 - 122 Steps Partial [Black Camera]";
+	public static final String FOLDER_STRT2_SJ6_PARTIAL_S4_MAR5 = "Ivan SJ 6th Floor 2 Pass Mar 5 - 244 Steps Partial";
+	public static final String FOLDER_STRT1_SJ6_S4_MAR6 = "Ivan SJ 6th Floor 1 Pass Mar 6 - 147 Steps S3cam";
+
+	/* LS Datasets */
+	public static final String FOLDER_STRT1_LS1_S3CAM_IVAN_MAR6 = "Ivan LS 1st Floor 1 Pass Mar 6 - 162 Steps S3cam (2nd Run)";
+	public static final String FOLDER_STRT2_LS1_S3CAM_IVAN_MAR6 = "Ivan LS 1st Floor 2 Pass Mar 6 - 332 Steps S3cam";
 
 	public static final List<String> ASYNC_DATASETS;
 
