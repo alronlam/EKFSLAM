@@ -1,7 +1,7 @@
 % Breadcrumb: INS + VINS Dummies
-load breadcrumb.csv;
-breadcrumb_X = breadcrumb(:,1);
-breadcrumb_Y = breadcrumb(:,2);
+%load breadcrumb.csv;
+%breadcrumb_X = breadcrumb(:,1);
+%breadcrumb_Y = breadcrumb(:,2);
 
 % Breadcrumb: INS (with Cimu heading) + VINS Dummies
 load breadcrumbCimuHeading.csv;
@@ -41,43 +41,56 @@ vins15hz_X = vins15hz(:,1);
 vins15hz_Y = vins15hz(:,2);
 
 % VINS IDP
-load vinsidp.csv;    
-vinsidp_X = vinsidp(:,1);   
-vinsidp_Y = vinsidp(:,2);
+%load vinsidp.csv;    
+%vinsidp_X = vinsidp(:,1);   
+%vinsidp_Y = vinsidp(:,2);
+
+%Miguel 4th Ground Truth
+miguel4_x = [0.0, -24.867919469670156, -21.367919469670156, 3.4999999999999996, 0.0];
+miguel4_y = [0.0, -14.357499999999998, -20.419677826491068, -6.062177826491071, 0.0];
 
 
+% 0 to plot everything, 1 to plot only ins, vins, and breadcrumb
+plotMode = 0;
 
 figure
 hold on
 
-%Double Integration
-plot(doubleintegration_X,doubleintegration_Y, '-xm', 'DisplayName', 'Double Integration');
+% Ground Truth
 
-%V-INS
-plot(vins_X,vins_Y, ':xr', 'DisplayName', 'V-INS'); hold on;
+% Miguel 4th
+plot(miguel4_x, miguel4_y, 'k', 'LineWidth', 5, 'DisplayName', 'Miguel 4th Ground Truth');
 
-%V-INS 15Hz
-plot(vins15hz_X,vins15hz_Y, ':xg', 'DisplayName', 'V-INS 15Hz');
+if(plotMode == 0)
+    %Double Integration
+    plot(doubleintegration_X,doubleintegration_Y, '-xm', 'DisplayName', 'Double Integration');
 
-%INS
-%plot(ins_X,ins_Y, ':xb', 'DisplayName', 'INS');
+    %V-INS 15Hz
+    plot(vins15hz_X,vins15hz_Y, ':xg', 'DisplayName', 'V-INS 15Hz');
+    
+    %Breadcrumb with Cimu Heading 15Hz
+    plot(breadcrumbCimuHeading15hz_X,breadcrumbCimuHeading15hz_Y, ':ok', 'DisplayName', 'Breadcrumb 15Hz w/ Cimu Heading');
 
-%INS with Cimu Heading
-%plot(insCimuHeading_X,insCimuHeading_Y, ':xc', 'DisplayName', 'INS w/ Cimu Heading');
+end
+if(plotMode ~= -1)
+    %V-INS
+    plot(vins_X,vins_Y, ':xr', 'DisplayName', 'V-INS');
 
-%Breadcrumb
-%plot(breadcrumb_X,breadcrumb_Y, ':og', 'DisplayName', 'Breadcrumb');
+    %INS
+    plot(ins_X,ins_Y, '--xb', 'DisplayName', 'INS');
 
-%Breadcrumb with Cimu Heading
-plot(breadcrumbCimuHeading_X,breadcrumbCimuHeading_Y, ':oy', 'DisplayName', 'Breadcrumb w/ Cimu Heading'); hold on;
+    %INS with Cimu Heading
+    plot(insCimuHeading_X,insCimuHeading_Y, '--xc', 'DisplayName', 'INS w/ Cimu Heading');
 
-%Breadcrumb with Cimu Heading 15Hz
-plot(breadcrumbCimuHeading15hz_X,breadcrumbCimuHeading15hz_Y, ':ok', 'DisplayName', 'Breadcrumb 15Hz w/ Cimu Heading');
+    %Breadcrumb with Cimu Heading
+    plot(breadcrumbCimuHeading_X,breadcrumbCimuHeading_Y, ':oy', 'DisplayName', 'Breadcrumb w/ Cimu Heading'); hold on;
 
+    %Breadcrumb
+    %plot(breadcrumb_X,breadcrumb_Y, ':og', 'DisplayName', 'Breadcrumb');
 
-%V-INS IDP
-%plot(vinsidp_X,vinsidp_Y, ':oc', 'DisplayName', 'IDP');
-
+    %V-INS IDP
+    %plot(vinsidp_X,vinsidp_Y, ':oc', 'DisplayName', 'IDP');
+end
 legend('-DynamicLegend');
 
 
