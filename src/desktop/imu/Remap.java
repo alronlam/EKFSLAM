@@ -5,8 +5,6 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 
-import android.hardware.SensorManager;
-
 import Jama.Matrix;
 
 public class Remap {
