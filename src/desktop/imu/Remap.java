@@ -53,6 +53,46 @@ public class Remap {
 
 	}
 
+	// public static void main(String args[]){
+	// float init[] = {15, -10, 20};
+	//
+	//
+	// System.out.println(init[0]+", "+init[1]+", "+init[2]);
+	//
+	// float z = (float) Math.toRadians(init[0]);
+	// float x = (float) Math.toRadians(init[1]);
+	// float y = (float) Math.toRadians(init[2]);
+	//
+	// System.out.println(z+", "+x+", "+y);
+	//
+	// Mat rotM1 = getRx(y,true);
+	// Mat rotM2 = getRy(x,false);
+	// Mat rotM3 = getRz(z,true);
+	//
+	// Mat temp1 = new Mat(), rotM = new Mat(), nullMat = new Mat();
+	//
+	// Core.gemm(rotM1.t(), rotM2, 1, nullMat, 0, temp1);
+	// Core.gemm(temp1.t(), rotM3, 1, nullMat, 0, rotM);
+	//
+	// System.out.println(rotM.dump());
+	// float rotMat[] = {(float)rotM.get(0, 0)[0],(float)rotM.get(0, 1)[0],(float)rotM.get(0, 2)[0],
+	// (float)rotM.get(1, 0)[0],(float)rotM.get(1, 1)[0],(float)rotM.get(1, 2)[0],
+	// (float)rotM.get(2, 0)[0],(float)rotM.get(2, 1)[0],(float)rotM.get(2, 2)[0]};
+	//
+	// // for(int i = 0; i < 9 ; ++i)
+	// // System.out.println(rotMat[i]);
+	//
+	// // System.out.println(rotM.dump());
+	//
+	// float [] values = new float[3];
+	// values = getOrientation(rotMat, values);
+	// System.out.println(values[0]+", "+values[1]+", "+values[2]);
+	//
+	//
+	// System.out.println(Math.toDegrees(values[0])+", "+Math.toDegrees(values[1])+", "+Math.toDegrees(values[2]));
+	//
+	// }
+
 	public static final int AXIS_X = 1;
 	/** see {@link #remapCoordinateSystem} */
 	public static final int AXIS_Y = 2;
@@ -60,18 +100,17 @@ public class Remap {
 	public static final int AXIS_Z = 3;
 
 	public static void main(String args[]) {
-		
+
 	}
-	
-	public static float[] recoverOrient(float[] orient){
-	
-		
+
+	public static float[] recoverOrient(float[] orient) {
+
 		float[] rotMat = getRotationMatrix(orient);
 
 		float remap[] = new float[9];
 		remapCoordinateSystem(rotMat, AXIS_X, AXIS_Z, remap);
 		float remOrient[] = new float[3];
-		
+
 		getOrientation(remap, remOrient);
 
 		for (int i = 0; i < remOrient.length; ++i) {
@@ -79,7 +118,7 @@ public class Remap {
 			if (remOrient[i] < 0)
 				remOrient[i] += 360;
 		}
-		
+
 		return remOrient;
 	}
 
@@ -165,7 +204,7 @@ public class Remap {
 		float x = (float) Math.toRadians(orient[1]);
 		float y = (float) Math.toRadians(orient[2]);
 
-//		System.out.println(z + ", " + x + ", " + y);
+		// System.out.println(z + ", " + x + ", " + y);
 
 		Mat rotMX = getRx(x, true);
 		Mat rotMY = getRy(y, false);
@@ -176,7 +215,7 @@ public class Remap {
 		Core.gemm(rotMZ, rotMX, 1, nullMat, 0, temp1);
 		Core.gemm(temp1, rotMY, 1, nullMat, 0, rotM);
 
-//		System.out.println(rotM.dump());
+		// System.out.println(rotM.dump());
 		float rotMat[] = { (float) rotM.get(0, 0)[0], (float) rotM.get(0, 1)[0], (float) rotM.get(0, 2)[0], (float) rotM.get(1, 0)[0], (float) rotM.get(1, 1)[0],
 				(float) rotM.get(1, 2)[0], (float) rotM.get(2, 0)[0], (float) rotM.get(2, 1)[0], (float) rotM.get(2, 2)[0] };
 
