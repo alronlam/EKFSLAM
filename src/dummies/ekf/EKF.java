@@ -56,7 +56,7 @@ public class EKF {
 		return point;
 	}
 
-	private PointDouble getFeatureCoordsFromStateVector(int featureIndex) {
+	public PointDouble getFeatureCoordsFromStateVector(int featureIndex) {
 
 		int stateVectorIndexOfFeature = 3 + featureIndex * 2;
 		try {
