@@ -5,6 +5,8 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 
+import android.hardware.SensorManager;
+
 import Jama.Matrix;
 
 public class Remap {
@@ -64,13 +66,21 @@ public class Remap {
 	}
 	
 	public static float[] recoverOrient(float[] orient){
+	
+		
 		float[] rotMat = getRotationMatrix(orient);
 
 		float remap[] = new float[9];
-		remapCoordinateSystem(rotMat, AXIS_Z, AXIS_Y, remap);
+		remapCoordinateSystem(rotMat, AXIS_X, AXIS_Z, remap);
 		float remOrient[] = new float[3];
 		
 		getOrientation(remap, remOrient);
+
+		for (int i = 0; i < remOrient.length; ++i) {
+			remOrient[i] = (float) Math.toDegrees(remOrient[i]);
+			if (remOrient[i] < 0)
+				remOrient[i] += 360;
+		}
 		
 		return remOrient;
 	}
@@ -157,7 +167,7 @@ public class Remap {
 		float x = (float) Math.toRadians(orient[1]);
 		float y = (float) Math.toRadians(orient[2]);
 
-		System.out.println(z + ", " + x + ", " + y);
+//		System.out.println(z + ", " + x + ", " + y);
 
 		Mat rotMX = getRx(x, true);
 		Mat rotMY = getRy(y, false);
@@ -168,7 +178,7 @@ public class Remap {
 		Core.gemm(rotMZ, rotMX, 1, nullMat, 0, temp1);
 		Core.gemm(temp1, rotMY, 1, nullMat, 0, rotM);
 
-		System.out.println(rotM.dump());
+//		System.out.println(rotM.dump());
 		float rotMat[] = { (float) rotM.get(0, 0)[0], (float) rotM.get(0, 1)[0], (float) rotM.get(0, 2)[0], (float) rotM.get(1, 0)[0], (float) rotM.get(1, 1)[0],
 				(float) rotM.get(1, 2)[0], (float) rotM.get(2, 0)[0], (float) rotM.get(2, 1)[0], (float) rotM.get(2, 2)[0] };
 
