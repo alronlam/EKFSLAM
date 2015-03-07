@@ -76,7 +76,9 @@ public class EKFScalingCorrecter {
 	}
 
 	public double getTotalDistanceTraveled() {
-		double totalDistanceTraveled = 0;
+		double totalDistanceTraveled;
+		totalDistanceTraveled = 0;
+
 		totalDistanceTraveled += correctedCameraPositionList.get(0).computeDistanceTo(new PointDouble(0, 0));
 
 		for (int i = 1; i < correctedCameraPositionList.size() - 1; ++i)
