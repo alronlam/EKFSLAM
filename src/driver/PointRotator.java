@@ -6,9 +6,12 @@ import org.opencv.core.Point;
 
 public class PointRotator {
 
+	static double angle;
+	static String datasetName;
+
 	public static void main(String[] args) {
 
-		double angle = Math.toRadians(30);
+		// double angle = Math.toRadians(23);
 		ArrayList<Point> inputPoints = initInputPoints();
 		ArrayList<Point> rotatedPoints = rotatePoints(inputPoints, angle);
 		String result = generateOutputString(rotatedPoints);
@@ -16,11 +19,75 @@ public class PointRotator {
 	}
 
 	private static ArrayList<Point> initInputPoints() {
+		return initLSReversePoints();
+		// ArrayList<Point> points = new ArrayList<Point>();
+		// points.add(new Point(0, 0));
+		// points.add(new Point(-28.715, 0));
+		// points.add(new Point(-28.715, -7));
+		// points.add(new Point(0, -7));
+		// return points;
+	}
+
+	private static ArrayList<Point> initLSPoints() {
+		angle = Math.toRadians(-66);
+		datasetName = "ls";
+
 		ArrayList<Point> points = new ArrayList<Point>();
 		points.add(new Point(0, 0));
-		points.add(new Point(-28.715, 0));
-		points.add(new Point(-28.715, -7));
-		points.add(new Point(0, -7));
+		points.add(new Point(112.51, 0));
+		return points;
+	}
+
+	private static ArrayList<Point> initLSReversePoints() {
+		angle = Math.toRadians(114);
+		datasetName = "lsrev";
+
+		ArrayList<Point> points = new ArrayList<Point>();
+		points.add(new Point(0, 0));
+		points.add(new Point(112.51, 0));
+		return points;
+	}
+
+	private static ArrayList<Point> initSJPoints() {
+		angle = Math.toRadians(-66);
+		datasetName = "sj";
+
+		ArrayList<Point> points = new ArrayList<Point>();
+		points.add(new Point(0, 0));
+		points.add(new Point(-99.125, 0));
+		return points;
+	}
+
+	private static ArrayList<Point> initSJPartialPoints() {
+		angle = Math.toRadians(-66);
+		datasetName = "sjpart";
+
+		ArrayList<Point> points = new ArrayList<Point>();
+		points.add(new Point(0, 0));
+		points.add(new Point(-80.215, 0));
+		return points;
+	}
+
+	private static ArrayList<Point> initYuchSmallerRectPoints() {
+		// angle is 23.
+		angle = Math.toRadians(23);
+		datasetName = "yuchsmall";
+
+		ArrayList<Point> points = new ArrayList<Point>();
+		points.add(new Point(0, 0));
+		points.add(new Point(-10.48, 0));
+		points.add(new Point(-10.48, -6.6));
+		points.add(new Point(0, -6.6));
+		return points;
+	}
+
+	private static ArrayList<Point> initYuchLobbyPoints() {
+		// angle is 120.
+		ArrayList<Point> points = new ArrayList<Point>();
+		points.add(new Point(0, 0));
+		points.add(new Point(-24.4, 0));
+		points.add(new Point(-24.4, 7.7));
+		points.add(new Point(0, 7.7));
 		return points;
 	}
 
@@ -39,8 +106,8 @@ public class PointRotator {
 		StringBuilder x_sb = new StringBuilder();
 		StringBuilder y_sb = new StringBuilder();
 
-		x_sb.append("miguel4_x = [");
-		y_sb.append("miguel4_y = [");
+		x_sb.append(datasetName + "_x = [");
+		y_sb.append(datasetName + "_y = [");
 
 		for (int i = 0; i < rotatedPoints.size(); i++) {
 			Point point = rotatedPoints.get(i);
@@ -52,10 +119,10 @@ public class PointRotator {
 			y_sb.append(point.y);
 		}
 
-		if (rotatedPoints.size() > 0) {
-			x_sb.append(", " + rotatedPoints.get(0).x);
-			y_sb.append(", " + rotatedPoints.get(0).y);
-		}
+		// if (rotatedPoints.size() > 0) {
+		// x_sb.append(", " + rotatedPoints.get(0).x);
+		// y_sb.append(", " + rotatedPoints.get(0).y);
+		// }
 
 		x_sb.append("];");
 		y_sb.append("];");
