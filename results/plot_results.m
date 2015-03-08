@@ -57,6 +57,15 @@ yuch_y = [0.0, -21.1310198523403, -24.9810198523403, -3.8499999999999983, 0.0];
 yuchsmall_x = [0.0, -9.646890864181575, -7.068065416152368, 2.5788254480292063, 0.0];
 yuchsmall_y = [0.0, -4.094862226567589, -10.170194259353694, -6.075332032786106, 0.0];
 
+% SJ Ground Truth
+sj_x = [0.0, -40.317769744888714];
+sj_y = [0.0, 90.55519348882281];
+
+% SJ Partial Ground Truth
+sjpart_x = [0.0, -32.626379824325326];
+sjpart_y = [0.0, 73.28004888480123];
+
+
 % 0 to plot everything, 1 to plot only ins, vins, and breadcrumb
 plotMode = -1;
 
@@ -72,7 +81,13 @@ hold on
 %plot(yuch_x, yuch_y, 'k', 'LineWidth', 5, 'DisplayName', 'Yuch Lobby Ground Truth');
 
 % Yuch Smaller Rectangle
-plot(yuchsmall_x, yuchsmall_y, 'k', 'LineWidth', 5, 'DisplayName', 'Yuch Smaller Rectangle Ground Truth');
+%plot(yuchsmall_x, yuchsmall_y, 'k', 'LineWidth', 5, 'DisplayName', 'Yuch Smaller Rectangle Ground Truth');
+
+% SJ
+%plot(sj_x, sj_y, 'k', 'LineWidth', 5, 'DisplayName', 'SJ Ground Truth');
+
+% SJ
+plot(sjpart_x, sjpart_y, 'k', 'LineWidth', 5, 'DisplayName', 'SJ Partial Ground Truth');
 
 
 if(plotMode == 0)
