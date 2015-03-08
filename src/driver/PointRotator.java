@@ -8,7 +8,7 @@ public class PointRotator {
 
 	public static void main(String[] args) {
 
-		double angle = Math.toRadians(30);
+		double angle = Math.toRadians(23);
 		ArrayList<Point> inputPoints = initInputPoints();
 		ArrayList<Point> rotatedPoints = rotatePoints(inputPoints, angle);
 		String result = generateOutputString(rotatedPoints);
@@ -16,11 +16,30 @@ public class PointRotator {
 	}
 
 	private static ArrayList<Point> initInputPoints() {
+		return initYuchSmallerRectPoints();
+		// ArrayList<Point> points = new ArrayList<Point>();
+		// points.add(new Point(0, 0));
+		// points.add(new Point(-28.715, 0));
+		// points.add(new Point(-28.715, -7));
+		// points.add(new Point(0, -7));
+		// return points;
+	}
+
+	private static ArrayList<Point> initYuchSmallerRectPoints() {
 		ArrayList<Point> points = new ArrayList<Point>();
 		points.add(new Point(0, 0));
-		points.add(new Point(-28.715, 0));
-		points.add(new Point(-28.715, -7));
-		points.add(new Point(0, -7));
+		points.add(new Point(-10.48, 0));
+		points.add(new Point(-10.48, -6.6));
+		points.add(new Point(0, -6.6));
+		return points;
+	}
+
+	private static ArrayList<Point> initYuchLobbyPoints() {
+		ArrayList<Point> points = new ArrayList<Point>();
+		points.add(new Point(0, 0));
+		points.add(new Point(-24.4, 0));
+		points.add(new Point(-24.4, 7.7));
+		points.add(new Point(0, 7.7));
 		return points;
 	}
 
@@ -39,8 +58,8 @@ public class PointRotator {
 		StringBuilder x_sb = new StringBuilder();
 		StringBuilder y_sb = new StringBuilder();
 
-		x_sb.append("miguel4_x = [");
-		y_sb.append("miguel4_y = [");
+		x_sb.append("yuchsmall_x = [");
+		y_sb.append("yuchsmall_y = [");
 
 		for (int i = 0; i < rotatedPoints.size(); i++) {
 			Point point = rotatedPoints.get(i);

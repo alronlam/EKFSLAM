@@ -53,8 +53,12 @@ miguel4_y = [0.0, -14.357499999999998, -20.419677826491068, -6.062177826491071, 
 yuch_x = [-0.0, 12.199999999999994, 5.531604390859815, -6.668395609140179, -0.0];
 yuch_y = [0.0, -21.1310198523403, -24.9810198523403, -3.8499999999999983, 0.0];
 
+% Yuch Smaller Rectangle Ground Truth
+yuchsmall_x = [0.0, -9.646890864181575, -7.068065416152368, 2.5788254480292063, 0.0];
+yuchsmall_y = [0.0, -4.094862226567589, -10.170194259353694, -6.075332032786106, 0.0];
+
 % 0 to plot everything, 1 to plot only ins, vins, and breadcrumb
-plotMode = 1;
+plotMode = -1;
 
 figure
 hold on
@@ -65,7 +69,10 @@ hold on
 %plot(miguel4_x, miguel4_y, 'k', 'LineWidth', 5, 'DisplayName', 'Miguel 4th Ground Truth');
 
 % Yuch Lobby
-plot(yuch_x, yuch_y, 'k', 'LineWidth', 5, 'DisplayName', 'Yuch Lobby Ground Truth');
+%plot(yuch_x, yuch_y, 'k', 'LineWidth', 5, 'DisplayName', 'Yuch Lobby Ground Truth');
+
+% Yuch Smaller Rectangle
+plot(yuchsmall_x, yuchsmall_y, 'k', 'LineWidth', 5, 'DisplayName', 'Yuch Smaller Rectangle Ground Truth');
 
 
 if(plotMode == 0)
