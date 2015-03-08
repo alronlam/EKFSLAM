@@ -49,9 +49,12 @@ vins15hz_Y = vins15hz(:,2);
 miguel4_x = [0.0, -24.867919469670156, -21.367919469670156, 3.4999999999999996, 0.0];
 miguel4_y = [0.0, -14.357499999999998, -20.419677826491068, -6.062177826491071, 0.0];
 
+%Yuch Lobby Ground Truth
+yuch_x = [-0.0, 12.199999999999994, 5.531604390859815, -6.668395609140179, -0.0];
+yuch_y = [0.0, -21.1310198523403, -24.9810198523403, -3.8499999999999983, 0.0];
 
 % 0 to plot everything, 1 to plot only ins, vins, and breadcrumb
-plotMode = 0;
+plotMode = 1;
 
 figure
 hold on
@@ -59,7 +62,11 @@ hold on
 % Ground Truth
 
 % Miguel 4th
-plot(miguel4_x, miguel4_y, 'k', 'LineWidth', 5, 'DisplayName', 'Miguel 4th Ground Truth');
+%plot(miguel4_x, miguel4_y, 'k', 'LineWidth', 5, 'DisplayName', 'Miguel 4th Ground Truth');
+
+% Yuch Lobby
+plot(yuch_x, yuch_y, 'k', 'LineWidth', 5, 'DisplayName', 'Yuch Lobby Ground Truth');
+
 
 if(plotMode == 0)
     %Double Integration
@@ -80,7 +87,7 @@ if(plotMode ~= -1)
     plot(ins_X,ins_Y, '--xb', 'DisplayName', 'INS');
 
     %INS with Cimu Heading
-    plot(insCimuHeading_X,insCimuHeading_Y, '--xc', 'DisplayName', 'INS w/ Cimu Heading');
+    %plot(insCimuHeading_X,insCimuHeading_Y, '--xc', 'DisplayName', 'INS w/ Cimu Heading');
 
     %Breadcrumb with Cimu Heading
     plot(breadcrumbCimuHeading_X,breadcrumbCimuHeading_Y, ':oy', 'DisplayName', 'Breadcrumb w/ Cimu Heading'); hold on;
