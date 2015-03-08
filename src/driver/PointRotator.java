@@ -19,13 +19,33 @@ public class PointRotator {
 	}
 
 	private static ArrayList<Point> initInputPoints() {
-		return initSJPartialPoints();
+		return initLSReversePoints();
 		// ArrayList<Point> points = new ArrayList<Point>();
 		// points.add(new Point(0, 0));
 		// points.add(new Point(-28.715, 0));
 		// points.add(new Point(-28.715, -7));
 		// points.add(new Point(0, -7));
 		// return points;
+	}
+
+	private static ArrayList<Point> initLSPoints() {
+		angle = Math.toRadians(-66);
+		datasetName = "ls";
+
+		ArrayList<Point> points = new ArrayList<Point>();
+		points.add(new Point(0, 0));
+		points.add(new Point(112.51, 0));
+		return points;
+	}
+
+	private static ArrayList<Point> initLSReversePoints() {
+		angle = Math.toRadians(114);
+		datasetName = "lsrev";
+
+		ArrayList<Point> points = new ArrayList<Point>();
+		points.add(new Point(0, 0));
+		points.add(new Point(112.51, 0));
+		return points;
 	}
 
 	private static ArrayList<Point> initSJPoints() {

@@ -65,6 +65,13 @@ sj_y = [0.0, 90.55519348882281];
 sjpart_x = [0.0, -32.626379824325326];
 sjpart_y = [0.0, 73.28004888480123];
 
+% LS Ground Truth
+ls_x = [0.0, 45.7619397124583];
+ls_y = [0.0, -102.78299943936902];
+
+% LS Reverse Ground Truth
+lsrev_x = [-0.0, -45.76193971245827];
+lsrev_y = [0.0, 102.78299943936904];
 
 % 0 to plot everything, 1 to plot only ins, vins, and breadcrumb
 plotMode = -1;
@@ -87,7 +94,13 @@ hold on
 %plot(sj_x, sj_y, 'k', 'LineWidth', 5, 'DisplayName', 'SJ Ground Truth');
 
 % SJ
-plot(sjpart_x, sjpart_y, 'k', 'LineWidth', 5, 'DisplayName', 'SJ Partial Ground Truth');
+%plot(sjpart_x, sjpart_y, 'k', 'LineWidth', 5, 'DisplayName', 'SJ Partial Ground Truth');
+
+% LS
+%plot(ls_x, ls_y, 'k', 'LineWidth', 5, 'DisplayName', 'LS Ground Truth');
+
+% LS Reverse
+plot(lsrev_x, lsrev_y, 'k', 'LineWidth', 5, 'DisplayName', 'LS Reverse Ground Truth');
 
 
 if(plotMode == 0)
