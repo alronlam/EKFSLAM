@@ -125,13 +125,13 @@ public class MainDriver {
 
 	private static void runAltogether(List<IMUReadingsBatch> imuDataset, List<IMUReadingsBatch> imuDatasetWithCimuHeading, List<IMUReadingsBatch> cimuDataset,
 			List<Mat> imgDataset, String datasetName) {
-//		runINS(imuDataset, imgDataset, datasetName, insLogFileName);
-//		runINS(imuDatasetWithCimuHeading, imgDataset, datasetName, insCimuHeadingLogFileName);
-//		runDoubleIntegration(cimuDataset, imgDataset, datasetName, doubleIntegrationLogFileName);
+		runINS(imuDataset, imgDataset, datasetName, insLogFileName);
+		runINS(imuDatasetWithCimuHeading, imgDataset, datasetName, insCimuHeadingLogFileName);
+		runDoubleIntegration(cimuDataset, imgDataset, datasetName, doubleIntegrationLogFileName);
 		runVINSAsync(cimuDataset, imgDataset, datasetName, vinsLogFileName, false);
 		runVINSAsync(cimuDataset, imgDataset, datasetName, vins15hzLogFileName, true);
-//		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, datasetName, breadcrumbWithCimuHeadingLogFileName, false);
-//		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, datasetName, breadcrumbWithCimuHeading15hzLogFileName, true);
+		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, datasetName, breadcrumbWithCimuHeadingLogFileName, false);
+		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, datasetName, breadcrumbWithCimuHeading15hzLogFileName, true);
 
 		FileLog finalResultsLog = new FileLog(logFolder + "/" + datasetName + "/" + datasetName + ".txt");
 		finalResultsLog.append(finalResultsStringBuilder.toString());
@@ -294,6 +294,8 @@ public class MainDriver {
 		speedLog.writeToFile();
 	}
 
+	public static String currentFileName;
+
 	private static void runVINSAsync(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String datasetName, String logFileName, boolean isAsync) {
 		resetFeatureRelatedStaticVars();
 		System.out.println("init 1");
@@ -305,6 +307,7 @@ public class MainDriver {
 		FileLog vinsLog, summaryLog, speedLog;
 		String genericFileName = logFolder + "/" + datasetName + "/" + logFileName;
 		vinsLog = new FileLog(genericFileName);
+		currentFileName = genericFileName;
 		summaryLog = new FileLog(genericFileName.split("[.]")[0] + "_summary.txt");
 		speedLog = new FileLog(genericFileName.split("[.]")[0] + "_timeElapsed.csv");
 
@@ -363,12 +366,14 @@ public class MainDriver {
 
 				/* IMU Predict */
 				IMUReadingsBatch currIMUBatch = imuDataset.get(imuIndex);
+
+				double previousHeading = vins.getCurrentHeading();
 				vins.predict(currIMUBatch);
 				PointDouble predictResult = vins.getDeviceCoords();
 
 				/* Image Update */
 				if (prevPoint.getX() != predictResult.getX() || prevPoint.getY() != predictResult.getY()) {
-					FeatureUpdate featureUpdate = featureManager.getAsyncFeatureUpdate(imgDataset.get(imgIndex), transX, transY, vins.getDeviceCoords());
+					FeatureUpdate featureUpdate = featureManager.getAsyncFeatureUpdate(imgDataset.get(imgIndex), transX, transY, vins.getDeviceCoords(), previousHeading, vins);
 					valid[(FeatureManager.VALID_ROTATION == FeatureManager.ROT_1 ? 0 : 2) + (FeatureManager.VALID_TRANSLATION == FeatureManager.TRAN_1 ? 0 : 1)]++;
 					state[FeatureManager.CURRENT_STEP]++;
 					state[5]++;
@@ -419,6 +424,22 @@ public class MainDriver {
 
 			timeStep++;
 		}
+		/* Feature Logging */
+		// FileLog persistLog, featureLog;
+		// persistLog = new FileLog(genericFileName.split("[.]")[0] + "_featurePersistence.txt");
+		// featureLog = new FileLog(genericFileName.split("[.]")[0] + "_features.csv");
+
+		// int persist[] = FeatureScaler.getFeatureScaler().getFeaturePersist();
+		// for (int i = 0; i < 100; ++i)
+		// if (persist[i] > 0)
+		// persistLog.append((i) + " , " + persist[i] + "\n");
+		// featureLog.append(FeatureScaler.getFeatureLocations());
+		//
+		// persistLog.writeToFile();
+		// featureLog.writeToFile();
+
+		/* End Feature Logging */
+
 		vinsLog.append(EKFScalingCorrecter.getEKFScalingResultCorrecter().getCorrectedPositionsAsString());
 
 		summaryLog.append("Rot 1 & Tran 1: " + valid[0] + "\r\n");
@@ -530,6 +551,7 @@ public class MainDriver {
 
 				/* IMU Predict */
 				IMUReadingsBatch currIMUBatch = imuDataset.get(imuIndex);
+				double previousHeading = breadcrumb.getCurrentHeading();
 				breadcrumb.predict(currIMUBatch);
 
 				PointDouble predictResult = breadcrumb.getDeviceCoords();
@@ -537,7 +559,8 @@ public class MainDriver {
 
 				/* Image Update */
 				if (prevPoint.getX() != predictResult.getX() || prevPoint.getY() != predictResult.getY()) {
-					FeatureUpdate featureUpdate = featureManager.getAsyncFeatureUpdate(imgDataset.get(imgIndex), transX, transY, breadcrumb.getDeviceCoords());
+					FeatureUpdate featureUpdate = featureManager.getAsyncFeatureUpdate(imgDataset.get(imgIndex), transX, transY, breadcrumb.getDeviceCoords(), previousHeading,
+							breadcrumb);
 					valid[(FeatureManager.VALID_ROTATION == FeatureManager.ROT_1 ? 0 : 2) + (FeatureManager.VALID_TRANSLATION == FeatureManager.TRAN_1 ? 0 : 1)]++;
 					state[FeatureManager.CURRENT_STEP]++;
 					state[5]++;
@@ -709,8 +732,8 @@ public class MainDriver {
 
 			/* Image Update */
 			if (prevPoint.getX() != predictResult.getX() || prevPoint.getY() != predictResult.getY()) {
-				FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY, breadcrumb.getDeviceCoords());
-				breadcrumb.update(featureUpdate);
+				// FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY, breadcrumb.getDeviceCoords());
+				// breadcrumb.update(featureUpdate);
 				prevPoint = predictResult;
 			}
 			// System.out.println("Finished updating.");
@@ -781,12 +804,12 @@ public class MainDriver {
 			// System.out.println(vins.getDeviceCoords());
 
 			/* Image Update */
-			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY, vins.getDeviceCoords());
-			valid[(FeatureManager.VALID_ROTATION == FeatureManager.ROT_1 ? 0 : 2) + (FeatureManager.VALID_TRANSLATION == FeatureManager.TRAN_1 ? 0 : 1)]++;
-			state[FeatureManager.CURRENT_STEP]++;
-			state[5]++;
+			// FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY, vins.getDeviceCoords());
+			// valid[(FeatureManager.VALID_ROTATION == FeatureManager.ROT_1 ? 0 : 2) + (FeatureManager.VALID_TRANSLATION == FeatureManager.TRAN_1 ? 0 : 1)]++;
+			// state[FeatureManager.CURRENT_STEP]++;
+			// state[5]++;
 
-			vins.update(featureUpdate);
+			// vins.update(featureUpdate);
 			// System.out.println("Finished updating.");
 
 			PointDouble deviceCoords = vins.getDeviceCoords();
@@ -876,12 +899,12 @@ public class MainDriver {
 
 				/* Image Update */
 				if (prevPoint.getX() != predictResult.getX() || prevPoint.getY() != predictResult.getY()) {
-					FeatureUpdate featureUpdate = featureManager.getAsyncFeatureUpdate(imgDataset.get(imgIndex), transX, transY, vins.getDeviceCoords());
+					// FeatureUpdate featureUpdate = featureManager.getAsyncFeatureUpdate(imgDataset.get(imgIndex), transX, transY, vins.getDeviceCoords());
 					valid[(FeatureManager.VALID_ROTATION == FeatureManager.ROT_1 ? 0 : 2) + (FeatureManager.VALID_TRANSLATION == FeatureManager.TRAN_1 ? 0 : 1)]++;
 					state[FeatureManager.CURRENT_STEP]++;
 					state[5]++;
 
-					vins.update(featureUpdate);
+					// vins.update(featureUpdate);
 				}
 				// System.out.println("Finished updating.");
 
