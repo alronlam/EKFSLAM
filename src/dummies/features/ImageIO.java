@@ -32,7 +32,8 @@ public class ImageIO {
 		// Create directory
 		String imageLocationStr = PHOTO_DIRECTORY.toString() + File.separator + FOLDER;
 		File imageLocation = new File(imageLocationStr);
-		imageLocation.mkdir();
+		if(!imageLocation.exists())
+			imageLocation.mkdirs();
 		path = imageLocation;
 		
 		// Retrieve last digit for continuous saving
