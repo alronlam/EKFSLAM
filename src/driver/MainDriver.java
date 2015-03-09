@@ -180,7 +180,7 @@ public class MainDriver {
 		String genericFileName = logFolder + "/" + datasetName + "/" + logFileName;
 		insLog = new FileLog(genericFileName);
 		summaryLog = new FileLog(genericFileName.split("[.]")[0] + "_summary.txt");
-		speedLog = new FileLog(genericFileName.split("[.]")[0] + "_timeElapsed.csv");
+		speedLog = new FileLog(logFolder + "/" + datasetName + "/time/" + logFileName + "_timeElapsed.csv");
 
 		insLog.append(ins.getDeviceCoords() + "\n");
 
@@ -218,6 +218,13 @@ public class MainDriver {
 			loopDurationList.add(loopDuration);
 			totalTime += loopDuration;
 		}
+
+		finalResultsStringBuilder.append("\r\n" + logFileName + "\r\n");
+		finalResultsStringBuilder.append("Total Steps Detected = " + ins.totalStepsDetected + "\r\n");
+		finalResultsStringBuilder.append("Total distance traveled " + ins.totalDistanceTraveled + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = "
+				+ ins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+
 		summaryLog.append(logFileName + "\r\n\r\n");
 		summaryLog.append("Total steps detected: " + ins.totalStepsDetected + " steps\r\n");
 		summaryLog.append("Total distance traveled: " + ins.totalDistanceTraveled + " m\r\n");
@@ -247,7 +254,7 @@ public class MainDriver {
 		String genericFileName = logFolder + "/" + datasetName + "/" + logFileName;
 		doubleIntegrationLog = new FileLog(genericFileName);
 		summaryLog = new FileLog(genericFileName.split("[.]")[0] + "_summary.txt");
-		speedLog = new FileLog(genericFileName.split("[.]")[0] + "_timeElapsed.csv");
+		speedLog = new FileLog(logFolder + "/" + datasetName + "/time/" + logFileName + "_timeElapsed.csv");
 
 		doubleIntegrationLog.append(doubleIntegration.getDeviceCoords() + "\n");
 
@@ -285,6 +292,12 @@ public class MainDriver {
 			loopDurationList.add(loopDuration);
 			totalTime += loopDuration;
 		}
+
+		finalResultsStringBuilder.append("\r\n" + logFileName + "\r\nTotal distance traveled "
+				+ doubleIntegration.getTotalDistanceTraveled() + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = "
+				+ doubleIntegration.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+
 		summaryLog.append(logFileName + "\r\n\r\n");
 		summaryLog.append("Total distance traveled " + doubleIntegration.getTotalDistanceTraveled() + " m\r\n");
 		summaryLog.append("Total Displacement = "
@@ -320,7 +333,7 @@ public class MainDriver {
 		vinsLog = new FileLog(genericFileName);
 		currentFileName = genericFileName;
 		summaryLog = new FileLog(genericFileName.split("[.]")[0] + "_summary.txt");
-		speedLog = new FileLog(genericFileName.split("[.]")[0] + "_timeElapsed.csv");
+		speedLog = new FileLog(logFolder + "/" + datasetName + "/time/" + logFileName + "_timeElapsed.csv");
 
 		vinsLog.append(vins.getDeviceCoords() + "\n");
 
@@ -456,6 +469,11 @@ public class MainDriver {
 		/* End Feature Logging */
 
 		vinsLog.append(EKFScalingCorrecter.getEKFScalingResultCorrecter().getCorrectedPositionsAsString());
+		finalResultsStringBuilder.append("\r\n" + logFileName + "\r\nTotal distance traveled "
+				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = "
+				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getFinalPosition()
+						.computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		summaryLog.append("Rot 1 & Tran 1: " + valid[0] + "\r\n");
 		summaryLog.append("Rot 1 & Tran 2: " + valid[1] + "\r\n");
@@ -492,12 +510,6 @@ public class MainDriver {
 				+ String.format("%.3f", (totalFeatureCount / (double) featureCountList.size())) + " features\r\n");
 		summaryLog.append("Max Feature Count: " + maxFeatureCount + " features\r\n");
 
-		// finalResultsStringBuilder.append("Total distance traveled " +
-		// vins.getTotalDistanceTraveled() + "\r\n");
-		// finalResultsStringBuilder.append("Total Displacement = " +
-		// vins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) +
-		// "\r\n");
-
 		/* Log - Write to File */
 		vinsLog.writeToFile();
 		summaryLog.writeToFile();
@@ -518,7 +530,7 @@ public class MainDriver {
 		String genericFileName = logFolder + "/" + datasetName + "/" + logFileName;
 		breadcrumbLog = new FileLog(genericFileName);
 		summaryLog = new FileLog(genericFileName.split("[.]")[0] + "_summary.txt");
-		speedLog = new FileLog(genericFileName.split("[.]")[0] + "_timeElapsed.csv");
+		speedLog = new FileLog(logFolder + "/" + datasetName + "/time/" + logFileName + "_timeElapsed.csv");
 
 		breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
 
@@ -633,6 +645,13 @@ public class MainDriver {
 		}
 
 		breadcrumbLog.append(EKFScalingCorrecter.getEKFScalingResultCorrecter().getCorrectedPositionsAsString());
+		finalResultsStringBuilder.append("\r\n" + logFileName + "\r\n");
+		finalResultsStringBuilder.append("Total Steps Detected = " + breadcrumb.totalStepsDetected + "\r\n");
+		finalResultsStringBuilder.append("Total distance traveled "
+				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + "\r\n");
+		finalResultsStringBuilder.append("Total Displacement = "
+				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getFinalPosition()
+						.computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
 
 		summaryLog.append("Rot 1 & Tran 1: " + valid[0] + "\r\n");
 		summaryLog.append("Rot 1 & Tran 2: " + valid[1] + "\r\n");
@@ -652,11 +671,6 @@ public class MainDriver {
 
 		summaryLog.append(logFileName + "\r\n\r\n");
 		summaryLog.append("Total steps detected " + breadcrumb.totalStepsDetected + " steps\r\n");
-		// finalResultsStringBuilder.append("Total distance traveled " +
-		// breadcrumb.getTotalDistanceTraveled() + "\r\n");
-		// finalResultsStringBuilder.append("Total Displacement = "
-		// + breadcrumb.getDeviceCoords().computeDistanceTo(new PointDouble(0,
-		// 0)) + "\r\n");
 
 		summaryLog.append("Total distance traveled "
 				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + " m\r\n");
