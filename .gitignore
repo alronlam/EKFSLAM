@@ -9,6 +9,9 @@
 *.class
 .classpath
 
+# Thumbs .db files
+.db
+
 # Generated files
 bin/
 gen/
