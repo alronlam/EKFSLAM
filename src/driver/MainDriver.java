@@ -125,13 +125,13 @@ public class MainDriver {
 
 	private static void runAltogether(List<IMUReadingsBatch> imuDataset, List<IMUReadingsBatch> imuDatasetWithCimuHeading, List<IMUReadingsBatch> cimuDataset,
 			List<Mat> imgDataset, String datasetName) {
-		runINS(imuDataset, imgDataset, datasetName, insLogFileName);
-		runINS(imuDatasetWithCimuHeading, imgDataset, datasetName, insCimuHeadingLogFileName);
-		runDoubleIntegration(cimuDataset, imgDataset, datasetName, doubleIntegrationLogFileName);
+//		runINS(imuDataset, imgDataset, datasetName, insLogFileName);
+//		runINS(imuDatasetWithCimuHeading, imgDataset, datasetName, insCimuHeadingLogFileName);
+//		runDoubleIntegration(cimuDataset, imgDataset, datasetName, doubleIntegrationLogFileName);
 		runVINSAsync(cimuDataset, imgDataset, datasetName, vinsLogFileName, false);
 		runVINSAsync(cimuDataset, imgDataset, datasetName, vins15hzLogFileName, true);
-		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, datasetName, breadcrumbWithCimuHeadingLogFileName, false);
-		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, datasetName, breadcrumbWithCimuHeading15hzLogFileName, true);
+//		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, datasetName, breadcrumbWithCimuHeadingLogFileName, false);
+//		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, datasetName, breadcrumbWithCimuHeading15hzLogFileName, true);
 
 		FileLog finalResultsLog = new FileLog(logFolder + "/" + datasetName + "/" + datasetName + ".txt");
 		finalResultsLog.append(finalResultsStringBuilder.toString());

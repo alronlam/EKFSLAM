@@ -9,9 +9,9 @@ import Jama.Matrix;
 
 public class Remap {
 
-	static {
-		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-	}
+//	static {
+//		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+//	}
 
 	// public static void main(String args[]) {
 	// double init[] = { 0, 0, 0 };
