@@ -41,6 +41,10 @@ public class EKF {
 		return (ArrayList<ArrayList<Double>>) P.clone();
 	}
 
+	public int getFeatureCount() {
+		return (P.size() - 3) / 2;
+	}
+
 	public DevicePose getCurrDevicePose() {
 		PointDouble deviceCoords = getDeviceCoords();
 		DevicePose pose = new DevicePose(deviceCoords.getX(), deviceCoords.getY(), 0, getHeadingDegrees());

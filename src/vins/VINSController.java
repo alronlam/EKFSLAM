@@ -90,4 +90,7 @@ public class VINSController {
 		return distance;
 	}
 
+	public int getCurrentFeatureCount(){
+		return ekf.getFeatureCount();
+	}
 }
