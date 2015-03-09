@@ -12,9 +12,10 @@ import commondata.PointDouble;
 
 import desktop.imu.IMUReadingsBatch;
 import dummies.ekf.EKF;
+import dummies.ekf.EKFController;
 import dummies.features.FeatureUpdate;
 
-public class BreadcrumbDummiesController {
+public class BreadcrumbDummiesController implements EKFController {
 
 	private EKF ekf;
 	private StepBasedINSController ins;
@@ -92,6 +93,10 @@ public class BreadcrumbDummiesController {
 			// ekf.deleteAllFeatures();
 		}
 	}
+	
+	public double getCurrentHeading(){
+		return ekf.getHeadingDegrees();
+	}
 
 	public double getTotalDistanceTraveled() {
 		double distance = 0;
@@ -101,5 +106,14 @@ public class BreadcrumbDummiesController {
 		}
 
 		return distance;
+	}
+	
+	public int getCurrentFeatureCount(){
+		return ekf.getFeatureCount();
+	}
+
+	@Override
+	public PointDouble getFeaturePos(int index) {
+		return ekf.getFeatureCoordsFromStateVector(index);
 	}
 }

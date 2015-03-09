@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import commondata.PointDouble;
+import dummies.ekf.EKFController;
 
 public class FeatureScaler {
 
@@ -15,6 +16,9 @@ public class FeatureScaler {
 
 	public static FeatureScaler featureScaler = new FeatureScaler();
 
+	private static List<PointDouble> featurePos = new ArrayList<>();
+	private int persist[];
+
 	private FeatureScaler() {
 		previousUpdate = null;
 		featureList = new ArrayList<>();
@@ -22,6 +26,7 @@ public class FeatureScaler {
 		scaledCurrEndIndex = 0;
 		scaledNewEndIndex = 0;
 		unscaledEndIndex = 0;
+		persist = new int[100];
 	}
 
 	public static FeatureScaler getFeatureScaler() {
@@ -32,6 +37,20 @@ public class FeatureScaler {
 		featureScaler = new FeatureScaler();
 	}
 
+	public int[] getFeaturePersist() {
+		return persist;
+	}
+
+	public static String getFeatureLocations() {
+		StringBuilder sb = new StringBuilder();
+
+		for (PointDouble pos : featurePos) {
+			sb.append(pos.getX() + ", " + pos.getY() + "\n");
+		}
+
+		return sb.toString();
+	}
+
 	// Queue:
 	// | Scaled Curr | Scaled New | Unscaled |
 	// unscaledEndIndex == size - 1
@@ -40,7 +59,7 @@ public class FeatureScaler {
 	// Current Points = All Feature Points < scaledCurrEndIndex
 	// New Points = scaledCurrEndIndex < All Feature Points < scaledNewEndIndex
 
-	public FeatureUpdate getScaledFeatureUpdate(FeatureUpdate relativeFeatureUpdate, PointDouble cameraPosition) {
+	public FeatureUpdate getScaledFeatureUpdate(FeatureUpdate relativeFeatureUpdate, PointDouble cameraPosition, EKFController ekfController) {
 
 		// System.out.println("\ngetScaledFeatureUpdate called: " +
 		// relativeFeatureUpdate);
@@ -98,6 +117,8 @@ public class FeatureScaler {
 				} else {
 					// removing scaled feature
 
+					persist[featureList.get(index).relativePositionList.size()]++;
+
 					this.unscaledEndIndex--;
 					scaledNewEndIndex--;
 					if (index < scaledCurrEndIndex)
@@ -126,10 +147,15 @@ public class FeatureScaler {
 			scaledNewEndIndex = featureList.size();
 
 			for (int i = 0; i < relativeFeatures.size(); ++i) {
+				PointDouble featPos = ekfController.getFeaturePos(i);
+
 				if (i < scaledCurrEndIndex) {
-					currentPoints.add(featureList.get(i).getEstimatedPosition(relativeFeatures.get(i), cameraPosition));
+					PointDouble currP = featureList.get(i).getEstimatedPosition(relativeFeatures.get(i), cameraPosition, featPos);
+					if (featureList.get(i).relativePositionList.size() == 10)
+						featurePos.add(currP);
+					currentPoints.add(currP);
 				} else {
-					newPoints.add(featureList.get(i).getEstimatedPosition(relativeFeatures.get(i), cameraPosition));
+					newPoints.add(featureList.get(i).getEstimatedPosition(relativeFeatures.get(i), cameraPosition, featPos));
 				}
 
 			}
@@ -141,8 +167,7 @@ public class FeatureScaler {
 			if (featureList.size() < 0) {
 				System.out.println("Metric Position of First, MidPoint, and Last Feature: ");
 				for (int i = 0; i < Math.min(5, featureList.size()); ++i)
-					System.out.println("feature #" + featureList.get(i) + ": "
-							+ featureList.get(i).getSavedEstimatedPosition());
+					System.out.println("feature #" + featureList.get(i) + ": " + featureList.get(i).getSavedEstimatedPosition());
 				// System.out.println("feature #" + featureList.get(0) + ": " +
 				// featureList.get(0).getSavedEstimatedPosition());
 				// System.out.println("feature #" + featureList.get((int)

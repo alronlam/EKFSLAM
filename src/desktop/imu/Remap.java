@@ -5,6 +5,8 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 
+import commondata.PointDouble;
+
 import Jama.Matrix;
 
 public class Remap {
@@ -25,33 +27,101 @@ public class Remap {
 	// System.out.println(res[0]);
 	// }
 
-	public static void oldmain(String args[]) {
-		float init[] = { -15, -10, -20 };
+	public static PointDouble rotate2DPoint(PointDouble point, double rotation) {
+		Mat rotMZ, vec, nullMat= new Mat(), res = new Mat();
+		
+		rotMZ = getRz(Math.toRadians(rotation), true);
+
+		vec = Mat.ones(1, 3, CvType.CV_64F);
+		vec.put(0, 0, point.getX(), point.getY(), 1);
+		
+		Core.gemm(vec, rotMZ, 1, nullMat, 0, res);
+		
+		return new PointDouble(res.get(0, 0)[0],res.get(0, 1)[0]);
+	}
+	
+	public static PointDouble transform2DPoint(PointDouble point, double rotation, PointDouble translation) {
+		Mat rotMZ, vec, nullMat= new Mat(), res = new Mat();
+		
+		rotMZ = getRz(Math.toRadians(rotation), true);
+		rotMZ.put(0, 2, translation.getX());
+		rotMZ.put(1, 2, translation.getY());
+
+		vec = Mat.ones(1, 3, CvType.CV_64F);
+		vec.put(0, 0, point.getX(), point.getY(), 1);
+		
+		Core.gemm(vec, rotMZ, 1, nullMat, 0, res);
+		
+		return new PointDouble(res.get(0, 0)[0],res.get(0, 1)[0]);
+	}
+
+	public static void main(String args[]) {
+		float init[] = { 90, -10, -20 };
 
 		float z = (float) Math.toRadians(init[0]);
 		float x = (float) Math.toRadians(init[1]);
 		float y = (float) Math.toRadians(init[2]);
 
 		System.out.println(z + ", " + x + ", " + y);
+		System.out.println(Math.cos(Math.PI / 2));
+		System.out.println(Math.cos(z));
+		System.out.println(Math.cos(Math.toRadians(90)));
+		System.out.println(Math.cos(Math.toRadians(90)) * Math.PI);
 
-		Mat rotMX = getRx(x, true);
-		Mat rotMY = getRy(y, false);
 		Mat rotMZ = getRz(z, true);
+		// Mat rotMX = getRy(x, false);
+		// Mat rotMY = getRz(y, false);
 
 		Mat temp1 = new Mat(), rotM = new Mat(), nullMat = new Mat();
 
-		Core.gemm(rotMZ, rotMX, 1, nullMat, 0, temp1);
-		Core.gemm(temp1, rotMY, 1, nullMat, 0, rotM);
+		// Core.gemm(rotMZ, rotMX, 1, nullMat, 0, temp1);
+		// Core.gemm(temp1, rotMY, 1, nullMat, 0, rotM);
 
 		System.out.println(rotM.dump());
-		float rotMat[] = { (float) rotM.get(0, 0)[0], (float) rotM.get(0, 1)[0], (float) rotM.get(0, 2)[0], (float) rotM.get(1, 0)[0], (float) rotM.get(1, 1)[0],
-				(float) rotM.get(1, 2)[0], (float) rotM.get(2, 0)[0], (float) rotM.get(2, 1)[0], (float) rotM.get(2, 2)[0] };
 
-		float[] values = new float[3];
-		values = getOrientation(rotMat, values);
-		System.out.println(values[0] + ", " + values[1] + ", " + values[2]);
+		Mat point = Mat.ones(1, 3, CvType.CV_64F);
+		point.put(0, 0, 1, 0, 0);
+		Mat res = new Mat();
+		Core.gemm(point, rotMZ, 1, nullMat, 0, res);
+
+		System.out.print(res.dump());
+
+		// float rotMat[] = { (float) rotM.get(0, 0)[0], (float) rotM.get(0, 1)[0], (float) rotM.get(0, 2)[0], (float) rotM.get(1, 0)[0], (float) rotM.get(1, 1)[0],
+		// (float) rotM.get(1, 2)[0], (float) rotM.get(2, 0)[0], (float) rotM.get(2, 1)[0], (float) rotM.get(2, 2)[0] };
+
+		// float[] values = new float[3];
+		// values = getOrientation(rotMat, values);
+		// System.out.println(values[0] + ", " + values[1] + ", " + values[2]);
 
 	}
+
+	// public static void oldmain(String args[]) {
+	// float init[] = { -15, -10, -20 };
+	//
+	// float z = (float) Math.toRadians(init[0]);
+	// float x = (float) Math.toRadians(init[1]);
+	// float y = (float) Math.toRadians(init[2]);
+	//
+	// System.out.println(z + ", " + x + ", " + y);
+	//
+	// Mat rotMX = getRx(x, true);
+	// Mat rotMY = getRy(y, false);
+	// Mat rotMZ = getRz(z, true);
+	//
+	// Mat temp1 = new Mat(), rotM = new Mat(), nullMat = new Mat();
+	//
+	// Core.gemm(rotMZ, rotMX, 1, nullMat, 0, temp1);
+	// Core.gemm(temp1, rotMY, 1, nullMat, 0, rotM);
+	//
+	// System.out.println(rotM.dump());
+	// float rotMat[] = { (float) rotM.get(0, 0)[0], (float) rotM.get(0, 1)[0], (float) rotM.get(0, 2)[0], (float) rotM.get(1, 0)[0], (float) rotM.get(1, 1)[0],
+	// (float) rotM.get(1, 2)[0], (float) rotM.get(2, 0)[0], (float) rotM.get(2, 1)[0], (float) rotM.get(2, 2)[0] };
+	//
+	// float[] values = new float[3];
+	// values = getOrientation(rotMat, values);
+	// System.out.println(values[0] + ", " + values[1] + ", " + values[2]);
+	//
+	// }
 
 	// public static void main(String args[]){
 	// float init[] = {15, -10, 20};
@@ -99,9 +169,9 @@ public class Remap {
 	/** see {@link #remapCoordinateSystem} */
 	public static final int AXIS_Z = 3;
 
-	public static void main(String args[]) {
-
-	}
+	// public static void main(String args[]) {
+	//
+	// }
 
 	public static float[] recoverOrient(float[] orient) {
 

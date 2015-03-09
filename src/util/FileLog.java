@@ -38,7 +38,7 @@ public class FileLog {
 
 	public void writeToFile() {
 		try {
-			File file = new File(filePath + "\\");
+			File file = new File(filePath);
 			file.getParentFile().mkdirs();
 
 			FileWriter fw = new FileWriter(file);

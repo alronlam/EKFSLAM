@@ -110,8 +110,8 @@ public class MainDriver {
 		// datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_ALRON_MAR5);
 		// datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_ALRON_MAR5);
 		// datasets.add(Constants.FOLDER_STRT1_SJ6_PARTIAL_S4_MAR5_BLACK_CAM);
-		datasets.add(Constants.FOLDER_STRT2_SJ6_PARTIAL_S4_MAR5);
-		// datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_IVAN_MAR5);
+		// datasets.add(Constants.FOLDER_STRT2_SJ6_PARTIAL_S4_MAR5);
+		datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_IVAN_MAR5);
 		// datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_IVAN_MAR5);
 
 		// datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_IVAN_MAR6);
@@ -164,21 +164,42 @@ public class MainDriver {
 
 	}
 
+	private static void resetFeatureRelatedStaticVars() {
+		FeatureScaler.resetInstance();
+		EKFScalingCorrecter.resetInstance();
+		FeatureData.resetCameraPositions();
+	}
+
 	private static void runINS(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String datasetName,
 			String logFileName) {
 		/* Initialize the controller */
 		INSController ins = new INSController();
 
 		/* Initialize the logs */
-		FileLog insLog = new FileLog(logFolder + "/" + datasetName + "/" + logFileName);
+		FileLog insLog, summaryLog, speedLog;
+		String genericFileName = logFolder + "/" + datasetName + "/" + logFileName;
+		insLog = new FileLog(genericFileName);
+		summaryLog = new FileLog(genericFileName.split("[.]")[0] + "_summary.txt");
+		speedLog = new FileLog(genericFileName.split("[.]")[0] + "_timeElapsed.csv");
+
 		insLog.append(ins.getDeviceCoords() + "\n");
+
+		/* Speed recording variables */
+		long startTime, endTime, loopDuration, maxTime, totalTime;
+		List<Long> loopDurationList;
+
+		loopDurationList = new ArrayList<>();
+		totalTime = 0;
+		maxTime = 0;
 
 		/* Their sizes may not match due to logging problems */
 		int datasetSize = Math.min(imuDataset.size(), imgDataset.size());
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
-		for (int i = 0; i < datasetSize; i++) {
 
-			// System.out.println("\n\nTime Step " + (i + 1));
+		for (int i = 0; i < datasetSize; i++) {
+			System.out.println("\n\nTime Step " + (i + 1));
+
+			startTime = System.currentTimeMillis();
 
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
@@ -187,15 +208,34 @@ public class MainDriver {
 			/* Update the logs */
 			insLog.append(ins.getDeviceCoords() + "\n");
 
+			/* Measure time elapsed */
+			endTime = System.currentTimeMillis();
+
+			loopDuration = endTime - startTime;
+
+			if (maxTime < loopDuration)
+				maxTime = loopDuration;
+			loopDurationList.add(loopDuration);
+			totalTime += loopDuration;
 		}
-		finalResultsStringBuilder.append("\r\n" + logFileName + "\r\n");
-		finalResultsStringBuilder.append("Total steps detected: " + ins.totalStepsDetected + "\r\n");
-		finalResultsStringBuilder.append("Total distance traveled: " + ins.totalDistanceTraveled + "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = "
-				+ ins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+		summaryLog.append(logFileName + "\r\n\r\n");
+		summaryLog.append("Total steps detected: " + ins.totalStepsDetected + " steps\r\n");
+		summaryLog.append("Total distance traveled: " + ins.totalDistanceTraveled + " m\r\n");
+		summaryLog.append("Total Displacement = " + ins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0))
+				+ " m\r\n\r\n");
+
+		for (Long loopTime : loopDurationList) {
+			speedLog.append(loopTime + "\n");
+		}
+		summaryLog.append("Total Time Elapsed: " + totalTime + " ms\r\n");
+		summaryLog.append("Average Time: " + String.format("%.3f", (totalTime / (double) loopDurationList.size()))
+				+ " ms\r\n");
+		summaryLog.append("Max Time: " + maxTime + " ms\r\n");
 
 		/* Log - Write to File */
 		insLog.writeToFile();
+		summaryLog.writeToFile();
+		speedLog.writeToFile();
 	}
 
 	private static void runDoubleIntegration(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset,
@@ -203,16 +243,30 @@ public class MainDriver {
 		DoubleIntegrationController doubleIntegration = new DoubleIntegrationController();
 
 		/* Initialize the logs for all three techniques */
-		FileLog doubleIntegrationLog = new FileLog(logFolder + "/" + datasetName + "/" + logFileName);
+		FileLog doubleIntegrationLog, summaryLog, speedLog;
+		String genericFileName = logFolder + "/" + datasetName + "/" + logFileName;
+		doubleIntegrationLog = new FileLog(genericFileName);
+		summaryLog = new FileLog(genericFileName.split("[.]")[0] + "_summary.txt");
+		speedLog = new FileLog(genericFileName.split("[.]")[0] + "_timeElapsed.csv");
+
 		doubleIntegrationLog.append(doubleIntegration.getDeviceCoords() + "\n");
+
+		/* Speed recording variables */
+		long startTime, endTime, loopDuration, maxTime, totalTime;
+		List<Long> loopDurationList;
+
+		loopDurationList = new ArrayList<>();
+		totalTime = 0;
+		maxTime = 0;
 
 		/* Their sizes may not match due to logging problems */
 		int datasetSize = Math.min(imuDataset.size(), imgDataset.size());
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
 
 		for (int i = 0; i < datasetSize; i++) {
-
 			System.out.println("\n\nTime Step " + (i + 1));
+
+			startTime = System.currentTimeMillis();
 
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
@@ -220,17 +274,37 @@ public class MainDriver {
 			// System.out.println("Finished predicting.");
 
 			doubleIntegrationLog.append(doubleIntegration.getDeviceCoords() + "\n");
+
+			/* Measure time elapsed */
+			endTime = System.currentTimeMillis();
+
+			loopDuration = endTime - startTime;
+
+			if (maxTime < loopDuration)
+				maxTime = loopDuration;
+			loopDurationList.add(loopDuration);
+			totalTime += loopDuration;
 		}
-		finalResultsStringBuilder.append("\r\n" + doubleIntegrationLogFileName + "\r\n");
-		finalResultsStringBuilder.append("Total distance traveled " + doubleIntegration.getTotalDistanceTraveled()
-				+ "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = "
-				+ doubleIntegration.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+		summaryLog.append(logFileName + "\r\n\r\n");
+		summaryLog.append("Total distance traveled " + doubleIntegration.getTotalDistanceTraveled() + " m\r\n");
+		summaryLog.append("Total Displacement = "
+				+ doubleIntegration.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + " m\r\n\r\n");
+
+		for (Long loopTime : loopDurationList) {
+			speedLog.append(loopTime + "\n");
+		}
+		summaryLog.append("Total Time Elapsed: " + totalTime + " ms\r\n");
+		summaryLog.append("Average Time: " + String.format("%.3f", (totalTime / (double) loopDurationList.size()))
+				+ " ms\r\n");
+		summaryLog.append("Max Time: " + maxTime + " ms\r\n");
 
 		/* Log - Write to File */
 		doubleIntegrationLog.writeToFile();
-
+		summaryLog.writeToFile();
+		speedLog.writeToFile();
 	}
+
+	public static String currentFileName;
 
 	private static void runVINSAsync(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String datasetName,
 			String logFileName, boolean isAsync) {
@@ -240,8 +314,14 @@ public class MainDriver {
 		VINSController vins = new VINSController();
 		FeatureManager featureManager = new FeatureManager();
 
-		/* Initialize the logs */
-		FileLog vinsLog = new FileLog(logFolder + "/" + datasetName + "/" + logFileName);
+		/* Initialize the logs for all three techniques */
+		FileLog vinsLog, summaryLog, speedLog;
+		String genericFileName = logFolder + "/" + datasetName + "/" + logFileName;
+		vinsLog = new FileLog(genericFileName);
+		currentFileName = genericFileName;
+		summaryLog = new FileLog(genericFileName.split("[.]")[0] + "_summary.txt");
+		speedLog = new FileLog(genericFileName.split("[.]")[0] + "_timeElapsed.csv");
+
 		vinsLog.append(vins.getDeviceCoords() + "\n");
 
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
@@ -257,14 +337,32 @@ public class MainDriver {
 		int imgIndex = 0;
 		int elapsedTime = Constants.MS_IMU_DURATION;
 		int timeStep = 0;
+
+		/* Speed recording variables */
+		long startTime, endTime, loopDuration, maxTime, totalTime;
+		int featureCount, maxFeatureCount, totalFeatureCount;
+		List<Long> loopDurationList;
+		List<Integer> featureCountList;
+
+		loopDurationList = new ArrayList<>();
+		featureCountList = new ArrayList<>();
+		totalTime = 0;
+		maxTime = 0;
+		totalFeatureCount = 0;
+		maxFeatureCount = 0;
+
 		while (true) {
 			if (imuIndex >= imuDataset.size() || imgIndex >= imgDataset.size()) {
 				break;
 			}
 
 			StringBuilder sb = new StringBuilder();
+
 			if (elapsedTime >= Constants.MS_IMU_DURATION) {
 				System.out.println("\nTime Step " + (timeStep + 1));
+
+				startTime = System.currentTimeMillis();
+
 				sb.append("Feature Update. ");
 				sb.append("img: " + imgIndex + " ");
 				sb.append("imu: " + imuIndex + " ");
@@ -279,13 +377,15 @@ public class MainDriver {
 
 				/* IMU Predict */
 				IMUReadingsBatch currIMUBatch = imuDataset.get(imuIndex);
+
+				double previousHeading = vins.getCurrentHeading();
 				vins.predict(currIMUBatch);
 				PointDouble predictResult = vins.getDeviceCoords();
 
 				/* Image Update */
 				if (prevPoint.getX() != predictResult.getX() || prevPoint.getY() != predictResult.getY()) {
 					FeatureUpdate featureUpdate = featureManager.getAsyncFeatureUpdate(imgDataset.get(imgIndex),
-							transX, transY, vins.getDeviceCoords());
+							transX, transY, vins.getDeviceCoords(), previousHeading, vins);
 					valid[(FeatureManager.VALID_ROTATION == FeatureManager.ROT_1 ? 0 : 2)
 							+ (FeatureManager.VALID_TRANSLATION == FeatureManager.TRAN_1 ? 0 : 1)]++;
 					state[FeatureManager.CURRENT_STEP]++;
@@ -308,6 +408,20 @@ public class MainDriver {
 				// breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
 				System.out.println(sb.toString());
 
+				/* Measure time elapsed */
+				endTime = System.currentTimeMillis();
+
+				loopDuration = endTime - startTime;
+				featureCount = vins.getCurrentFeatureCount();
+
+				if (maxTime < loopDuration)
+					maxTime = loopDuration;
+				if (maxFeatureCount < featureCount)
+					maxFeatureCount = featureCount;
+				loopDurationList.add(loopDuration);
+				featureCountList.add(featureCount);
+				totalTime += loopDuration;
+				totalFeatureCount += featureCount;
 			} else {
 				// sb.append("Image Flow. ");
 				// sb.append("img: " + imgIndex + " ");
@@ -323,28 +437,60 @@ public class MainDriver {
 
 			timeStep++;
 		}
+		/* Feature Logging */
+		// FileLog persistLog, featureLog;
+		// persistLog = new FileLog(genericFileName.split("[.]")[0] +
+		// "_featurePersistence.txt");
+		// featureLog = new FileLog(genericFileName.split("[.]")[0] +
+		// "_features.csv");
+
+		// int persist[] = FeatureScaler.getFeatureScaler().getFeaturePersist();
+		// for (int i = 0; i < 100; ++i)
+		// if (persist[i] > 0)
+		// persistLog.append((i) + " , " + persist[i] + "\n");
+		// featureLog.append(FeatureScaler.getFeatureLocations());
+		//
+		// persistLog.writeToFile();
+		// featureLog.writeToFile();
+
+		/* End Feature Logging */
 
 		vinsLog.append(EKFScalingCorrecter.getEKFScalingResultCorrecter().getCorrectedPositionsAsString());
 
-		System.out.println("Rot 1 & Tran 1: " + valid[0]);
-		System.out.println("Rot 1 & Tran 2: " + valid[1]);
-		System.out.println("Rot 2 & Tran 1: " + valid[2]);
-		System.out.println("Rot 1 & Tran 2: " + valid[3]);
-		System.out.println("Success/Processed: " + state[0] + "/" + (state[5] - state[1]));
-		System.out.println("Initial Delay: " + state[1]);
-		System.out.println("Failed due to optical flow: " + state[2]);
-		System.out.println("Failed due to essential matrix: " + state[3]);
-		System.out.println("Failed due to triangulation: " + state[4]);
-		System.out.println("Success/Processed: " + state[0] + "/" + (state[5] - state[1]));
-		System.out.println("Failed/Processed: " + (state[2] + state[3] + state[4]) + "/" + (state[5] - state[1]));
-		System.out.printf("Success Rate: %.3f%%\n", state[0] * 100.0 / (state[5] - state[1]));
+		summaryLog.append("Rot 1 & Tran 1: " + valid[0] + "\r\n");
+		summaryLog.append("Rot 1 & Tran 2: " + valid[1] + "\r\n");
+		summaryLog.append("Rot 2 & Tran 1: " + valid[2] + "\r\n");
+		summaryLog.append("Rot 1 & Tran 2: " + valid[3] + "\r\n");
+		summaryLog.append("Success/Processed: " + state[0] + "/" + (state[5] - state[1]) + "\r\n");
+		summaryLog.append("Initial Delay: " + state[1] + "\r\n");
+		summaryLog.append("Failed due to optical flow: " + state[2] + "\r\n");
+		summaryLog.append("Failed due to essential matrix: " + state[3] + "\r\n");
+		summaryLog.append("Failed due to triangulation: " + state[4] + "\r\n");
+		summaryLog.append("Success/Processed: " + state[0] + "/" + (state[5] - state[1]) + "\r\n");
+		summaryLog.append("Failed/Processed: " + (state[2] + state[3] + state[4]) + "/" + (state[5] - state[1])
+				+ "\r\n");
+		summaryLog
+				.append("Success Rate: " + String.format("%.3f", (state[0] * 100.0 / (state[5] - state[1]))) + "\r\n");
+		summaryLog.append("\r\n");
 
-		finalResultsStringBuilder.append("\r\n" + logFileName + "\r\n");
-		finalResultsStringBuilder.append("Total distance traveled "
-				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = "
+		summaryLog.append(logFileName + "\r\n\r\n");
+		summaryLog.append("Total distance traveled "
+				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + " m\r\n");
+		summaryLog.append("Total Displacement = "
 				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getFinalPosition()
-						.computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+						.computeDistanceTo(new PointDouble(0, 0)) + " m\r\n\r\n");
+
+		for (int i = 0; i < loopDurationList.size(); ++i) {
+			speedLog.append(loopDurationList.get(i) + "," + featureCountList.get(i) + "\n");
+		}
+		summaryLog.append("Total Time Elapsed: " + totalTime + " ms\r\n");
+		summaryLog.append("Average Time: " + String.format("%.3f", (totalTime / (double) loopDurationList.size()))
+				+ " ms\r\n");
+		summaryLog.append("Max Time: " + maxTime + " ms\r\n\r\n");
+
+		summaryLog.append("Average Feature Count: "
+				+ String.format("%.3f", (totalFeatureCount / (double) featureCountList.size())) + " features\r\n");
+		summaryLog.append("Max Feature Count: " + maxFeatureCount + " features\r\n");
 
 		// finalResultsStringBuilder.append("Total distance traveled " +
 		// vins.getTotalDistanceTraveled() + "\r\n");
@@ -354,6 +500,8 @@ public class MainDriver {
 
 		/* Log - Write to File */
 		vinsLog.writeToFile();
+		summaryLog.writeToFile();
+		speedLog.writeToFile();
 	}
 
 	/* Based on runBreadcrumbDummies */
@@ -366,10 +514,19 @@ public class MainDriver {
 		FeatureManager featureManager = new FeatureManager();
 
 		/* Initialize the logs */
-		FileLog breadcrumbLog = new FileLog(logFolder + "/" + datasetName + "/" + logFileName);
+		FileLog breadcrumbLog, summaryLog, speedLog;
+		String genericFileName = logFolder + "/" + datasetName + "/" + logFileName;
+		breadcrumbLog = new FileLog(genericFileName);
+		summaryLog = new FileLog(genericFileName.split("[.]")[0] + "_summary.txt");
+		speedLog = new FileLog(genericFileName.split("[.]")[0] + "_timeElapsed.csv");
+
 		breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
 
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
+
+		/* Visual correction Success variables */
+		int state[] = new int[6];
+		int valid[] = new int[4];
 
 		double prevX = 0;
 		double prevY = 0;
@@ -379,6 +536,20 @@ public class MainDriver {
 		int imgIndex = 0;
 		int elapsedTime = Constants.MS_IMU_DURATION;
 		int timeStep = 0;
+
+		/* Speed recording variables */
+		long startTime, endTime, loopDuration, maxTime, totalTime;
+		int featureCount, maxFeatureCount, totalFeatureCount;
+		List<Long> loopDurationList;
+		List<Integer> featureCountList;
+
+		loopDurationList = new ArrayList<>();
+		featureCountList = new ArrayList<>();
+		totalTime = 0;
+		maxTime = 0;
+		totalFeatureCount = 0;
+		maxFeatureCount = 0;
+
 		while (true) {
 			if (imuIndex >= imuDataset.size() || imgIndex >= imgDataset.size()) {
 				break;
@@ -386,6 +557,8 @@ public class MainDriver {
 
 			StringBuilder sb = new StringBuilder();
 			if (elapsedTime >= Constants.MS_IMU_DURATION) {
+				startTime = System.currentTimeMillis();
+
 				System.out.println("\nTime Step " + (timeStep + 1));
 				sb.append("Feature Update. ");
 				sb.append("img: " + imgIndex + " ");
@@ -401,6 +574,7 @@ public class MainDriver {
 
 				/* IMU Predict */
 				IMUReadingsBatch currIMUBatch = imuDataset.get(imuIndex);
+				double previousHeading = breadcrumb.getCurrentHeading();
 				breadcrumb.predict(currIMUBatch);
 
 				PointDouble predictResult = breadcrumb.getDeviceCoords();
@@ -409,13 +583,16 @@ public class MainDriver {
 				/* Image Update */
 				if (prevPoint.getX() != predictResult.getX() || prevPoint.getY() != predictResult.getY()) {
 					FeatureUpdate featureUpdate = featureManager.getAsyncFeatureUpdate(imgDataset.get(imgIndex),
-							transX, transY, breadcrumb.getDeviceCoords());
+							transX, transY, breadcrumb.getDeviceCoords(), previousHeading, breadcrumb);
+					valid[(FeatureManager.VALID_ROTATION == FeatureManager.ROT_1 ? 0 : 2)
+							+ (FeatureManager.VALID_TRANSLATION == FeatureManager.TRAN_1 ? 0 : 1)]++;
+					state[FeatureManager.CURRENT_STEP]++;
+					state[5]++;
 
 					breadcrumb.update(featureUpdate);
 					prevPoint = predictResult;
 				}
 				// System.out.println("Finished updating.");
-
 				System.out.println(breadcrumb.getDeviceCoords() + "");
 
 				PointDouble deviceCoords = breadcrumb.getDeviceCoords();
@@ -429,6 +606,20 @@ public class MainDriver {
 				// breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
 				System.out.println(sb.toString());
 
+				/* Measure time elapsed */
+				endTime = System.currentTimeMillis();
+
+				loopDuration = endTime - startTime;
+				featureCount = breadcrumb.getCurrentFeatureCount();
+
+				if (maxTime < loopDuration)
+					maxTime = loopDuration;
+				if (maxFeatureCount < featureCount)
+					maxFeatureCount = featureCount;
+				loopDurationList.add(loopDuration);
+				featureCountList.add(featureCount);
+				totalTime += loopDuration;
+				totalFeatureCount += featureCount;
 			} else {
 				if (isAsync)
 					featureManager.flowImage(imgDataset.get(imgIndex));
@@ -443,24 +634,55 @@ public class MainDriver {
 
 		breadcrumbLog.append(EKFScalingCorrecter.getEKFScalingResultCorrecter().getCorrectedPositionsAsString());
 
-		finalResultsStringBuilder.append("\r\n" + logFileName + "\r\n");
-		finalResultsStringBuilder.append("Total steps detected " + breadcrumb.totalStepsDetected + "\r\n");
+		summaryLog.append("Rot 1 & Tran 1: " + valid[0] + "\r\n");
+		summaryLog.append("Rot 1 & Tran 2: " + valid[1] + "\r\n");
+		summaryLog.append("Rot 2 & Tran 1: " + valid[2] + "\r\n");
+		summaryLog.append("Rot 1 & Tran 2: " + valid[3] + "\r\n");
+		summaryLog.append("Success/Processed: " + state[0] + "/" + (state[5] - state[1]) + "\r\n");
+		summaryLog.append("Initial Delay: " + state[1] + "\r\n");
+		summaryLog.append("Failed due to optical flow: " + state[2] + "\r\n");
+		summaryLog.append("Failed due to essential matrix: " + state[3] + "\r\n");
+		summaryLog.append("Failed due to triangulation: " + state[4] + "\r\n");
+		summaryLog.append("Success/Processed: " + state[0] + "/" + (state[5] - state[1]) + "\r\n");
+		summaryLog.append("Failed/Processed: " + (state[2] + state[3] + state[4]) + "/" + (state[5] - state[1])
+				+ "\r\n");
+		summaryLog
+				.append("Success Rate: " + String.format("%.3f", (state[0] * 100.0 / (state[5] - state[1]))) + "\r\n");
+		summaryLog.append("\r\n");
+
+		summaryLog.append(logFileName + "\r\n\r\n");
+		summaryLog.append("Total steps detected " + breadcrumb.totalStepsDetected + " steps\r\n");
 		// finalResultsStringBuilder.append("Total distance traveled " +
 		// breadcrumb.getTotalDistanceTraveled() + "\r\n");
 		// finalResultsStringBuilder.append("Total Displacement = "
 		// + breadcrumb.getDeviceCoords().computeDistanceTo(new PointDouble(0,
 		// 0)) + "\r\n");
 
-		finalResultsStringBuilder.append("Total distance traveled "
-				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + "\r\n");
-		finalResultsStringBuilder.append("Total Displacement = "
+		summaryLog.append("Total distance traveled "
+				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getTotalDistanceTraveled() + " m\r\n");
+		summaryLog.append("Total Displacement = "
 				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getFinalPosition()
-						.computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+						.computeDistanceTo(new PointDouble(0, 0)) + " m\r\n\r\n");
+
+		for (int i = 0; i < loopDurationList.size(); ++i) {
+			speedLog.append(loopDurationList.get(i) + "," + featureCountList.get(i) + "\n");
+		}
+		summaryLog.append("Total Time Elapsed: " + totalTime + " ms\r\n");
+		summaryLog.append("Average Time: " + String.format("%.3f", (totalTime / (double) loopDurationList.size()))
+				+ " ms\r\n");
+		summaryLog.append("Max Time: " + maxTime + " ms\r\n\r\n");
+
+		summaryLog.append("Average Feature Count: "
+				+ String.format("%.3f", (totalFeatureCount / (double) featureCountList.size())) + " features\r\n");
+		summaryLog.append("Max Feature Count: " + maxFeatureCount + " features\r\n");
 
 		/* Log - Write to File */
 		breadcrumbLog.writeToFile();
+		summaryLog.writeToFile();
+		speedLog.writeToFile();
 	}
 
+	/** Depreciated **/
 	private static void runIDP(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset) {
 		/* Initialize the contrller and manager */
 		VINSIDPController vinsIDP = new VINSIDPController();
@@ -504,6 +726,7 @@ public class MainDriver {
 		vinsIDPLog.writeToFile();
 	}
 
+	/** Depreciated **/
 	private static void runBreadcrumbDummies(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String logFileName) {
 		/* Initialize the controller and manager */
 		BreadcrumbDummiesController breadcrumb = new BreadcrumbDummiesController();
@@ -541,9 +764,10 @@ public class MainDriver {
 
 			/* Image Update */
 			if (prevPoint.getX() != predictResult.getX() || prevPoint.getY() != predictResult.getY()) {
-				FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY,
-						breadcrumb.getDeviceCoords());
-				breadcrumb.update(featureUpdate);
+				// FeatureUpdate featureUpdate =
+				// featureManager.getFeatureUpdate(imgDataset.get(i), transX,
+				// transY, breadcrumb.getDeviceCoords());
+				// breadcrumb.update(featureUpdate);
 				prevPoint = predictResult;
 			}
 			// System.out.println("Finished updating.");
@@ -577,6 +801,7 @@ public class MainDriver {
 		breadcrumbLog.writeToFile();
 	}
 
+	/** Depreciated **/
 	private static void runVINS(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset) {
 		/* Initialize the controller and manager */
 		VINSController vins = new VINSController();
@@ -615,14 +840,16 @@ public class MainDriver {
 			// System.out.println(vins.getDeviceCoords());
 
 			/* Image Update */
-			FeatureUpdate featureUpdate = featureManager.getFeatureUpdate(imgDataset.get(i), transX, transY,
-					vins.getDeviceCoords());
-			valid[(FeatureManager.VALID_ROTATION == FeatureManager.ROT_1 ? 0 : 2)
-					+ (FeatureManager.VALID_TRANSLATION == FeatureManager.TRAN_1 ? 0 : 1)]++;
-			state[FeatureManager.CURRENT_STEP]++;
-			state[5]++;
+			// FeatureUpdate featureUpdate =
+			// featureManager.getFeatureUpdate(imgDataset.get(i), transX,
+			// transY, vins.getDeviceCoords());
+			// valid[(FeatureManager.VALID_ROTATION == FeatureManager.ROT_1 ? 0
+			// : 2) + (FeatureManager.VALID_TRANSLATION == FeatureManager.TRAN_1
+			// ? 0 : 1)]++;
+			// state[FeatureManager.CURRENT_STEP]++;
+			// state[5]++;
 
-			vins.update(featureUpdate);
+			// vins.update(featureUpdate);
 			// System.out.println("Finished updating.");
 
 			PointDouble deviceCoords = vins.getDeviceCoords();
@@ -665,12 +892,7 @@ public class MainDriver {
 		vinsLog.writeToFile();
 	}
 
-	private static void resetFeatureRelatedStaticVars() {
-		FeatureScaler.resetInstance();
-		EKFScalingCorrecter.resetInstance();
-		FeatureData.resetCameraPositions();
-	}
-
+	/** Depreciated **/
 	private static void runVINSDummy(List<IMUReadingsBatch> imuDataset, List<Mat> imgDataset, String logFileName,
 			boolean isAsync) {
 		resetFeatureRelatedStaticVars();
@@ -720,14 +942,15 @@ public class MainDriver {
 
 				/* Image Update */
 				if (prevPoint.getX() != predictResult.getX() || prevPoint.getY() != predictResult.getY()) {
-					FeatureUpdate featureUpdate = featureManager.getAsyncFeatureUpdate(imgDataset.get(imgIndex),
-							transX, transY, vins.getDeviceCoords());
+					// FeatureUpdate featureUpdate =
+					// featureManager.getAsyncFeatureUpdate(imgDataset.get(imgIndex),
+					// transX, transY, vins.getDeviceCoords());
 					valid[(FeatureManager.VALID_ROTATION == FeatureManager.ROT_1 ? 0 : 2)
 							+ (FeatureManager.VALID_TRANSLATION == FeatureManager.TRAN_1 ? 0 : 1)]++;
 					state[FeatureManager.CURRENT_STEP]++;
 					state[5]++;
 
-					vins.update(featureUpdate);
+					// vins.update(featureUpdate);
 				}
 				// System.out.println("Finished updating.");
 
