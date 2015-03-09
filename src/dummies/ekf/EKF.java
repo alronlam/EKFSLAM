@@ -25,8 +25,8 @@ public class EKF {
 	public static double P_DIAGONAL_INITIAL = 0;
 	public static double Q_NOISE = 0.01;
 
-	public static double VRV_DISTANCE_VARIANCE = 10;
-	public static double VRV_HEADING_NOISE = Math.toRadians(2.625);
+	public static double VRV_DISTANCE_VARIANCE = 35;
+	public static double VRV_HEADING_NOISE = Math.toRadians(0.1);
 
 	public EKF() {
 		X = createX();
