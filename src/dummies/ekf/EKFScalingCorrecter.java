@@ -42,7 +42,7 @@ public class EKFScalingCorrecter {
 		double dist = correctedCameraPositionList.get(correctedCameraPositionList.size() - 1).computeDistanceTo(
 				deviceCoords);
 
-		if (dist > .1 && dist < .7) {
+		if (dist < .7) {
 			// valid point
 
 			correctedCameraPositionList.add(deviceCoords);
@@ -73,6 +73,10 @@ public class EKFScalingCorrecter {
 			return finalPosition;
 		} else
 			return new PointDouble(0, 0);
+	}
+
+	public PointDouble getLastPoint() {
+		return correctedCameraPositionList.get(correctedCameraPositionList.size() - 1);
 	}
 
 	public double getTotalDistanceTraveled() {

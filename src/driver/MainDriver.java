@@ -8,6 +8,7 @@ import java.util.List;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 
+import pathcomparison.PathManager;
 import stepbasedins.INSController;
 import stepbasedins.data.SensorEntry;
 import util.FileLog;
@@ -109,10 +110,10 @@ public class MainDriver {
 
 		// datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_ALRON_MAR5);
 		// datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_ALRON_MAR5);
-		// datasets.add(Constants.FOLDER_STRT1_SJ6_PARTIAL_S4_MAR5_BLACK_CAM);
-		// datasets.add(Constants.FOLDER_STRT2_SJ6_PARTIAL_S4_MAR5);
+		datasets.add(Constants.FOLDER_STRT1_SJ6_PARTIAL_S4_MAR5_BLACK_CAM);
+		datasets.add(Constants.FOLDER_STRT2_SJ6_PARTIAL_S4_MAR5);
 		datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_IVAN_MAR5);
-		// datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_IVAN_MAR5);
+		datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_IVAN_MAR5);
 
 		// datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_IVAN_MAR6);
 		// datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_IVAN_MAR6);
@@ -192,6 +193,9 @@ public class MainDriver {
 		totalTime = 0;
 		maxTime = 0;
 
+		/* PathManager for keeping track of points and their accuracy */
+		PathManager pathManager = new PathManager(datasetName);
+
 		/* Their sizes may not match due to logging problems */
 		int datasetSize = Math.min(imuDataset.size(), imgDataset.size());
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
@@ -204,6 +208,9 @@ public class MainDriver {
 			/* IMU Predict */
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
 			ins.predict(currIMUBatch);
+
+			/* Update Path Manager */
+			pathManager.addPoint(ins.getDeviceCoords());
 
 			/* Update the logs */
 			insLog.append(ins.getDeviceCoords() + "\n");
@@ -224,6 +231,7 @@ public class MainDriver {
 		finalResultsStringBuilder.append("Total distance traveled " + ins.totalDistanceTraveled + "\r\n");
 		finalResultsStringBuilder.append("Total Displacement = "
 				+ ins.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+		finalResultsStringBuilder.append("Average Error = " + pathManager.getAccuracy() + "\r\n");
 
 		summaryLog.append(logFileName + "\r\n\r\n");
 		summaryLog.append("Total steps detected: " + ins.totalStepsDetected + " steps\r\n");
@@ -266,6 +274,9 @@ public class MainDriver {
 		totalTime = 0;
 		maxTime = 0;
 
+		/* Path Manager */
+		PathManager pathManager = new PathManager(datasetName);
+
 		/* Their sizes may not match due to logging problems */
 		int datasetSize = Math.min(imuDataset.size(), imgDataset.size());
 		System.out.println("DATASET SIZE: IMU = " + imuDataset.size() + " and  IMG = " + imgDataset.size());
@@ -279,6 +290,9 @@ public class MainDriver {
 			IMUReadingsBatch currIMUBatch = imuDataset.get(i);
 			doubleIntegration.predict(currIMUBatch);
 			// System.out.println("Finished predicting.");
+
+			/* Update Path Manager */
+			pathManager.addPoint(doubleIntegration.getDeviceCoords());
 
 			doubleIntegrationLog.append(doubleIntegration.getDeviceCoords() + "\n");
 
@@ -297,6 +311,7 @@ public class MainDriver {
 				+ doubleIntegration.getTotalDistanceTraveled() + "\r\n");
 		finalResultsStringBuilder.append("Total Displacement = "
 				+ doubleIntegration.getDeviceCoords().computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+		finalResultsStringBuilder.append("Average Error = " + pathManager.getAccuracy() + "\r\n");
 
 		summaryLog.append(logFileName + "\r\n\r\n");
 		summaryLog.append("Total distance traveled " + doubleIntegration.getTotalDistanceTraveled() + " m\r\n");
@@ -364,6 +379,8 @@ public class MainDriver {
 		totalFeatureCount = 0;
 		maxFeatureCount = 0;
 
+		PathManager pathManager = new PathManager(datasetName);
+
 		while (true) {
 			if (imuIndex >= imuDataset.size() || imgIndex >= imgDataset.size()) {
 				break;
@@ -413,6 +430,9 @@ public class MainDriver {
 				PointDouble deviceCoords = vins.getDeviceCoords();
 
 				EKFScalingCorrecter.getEKFScalingResultCorrecter().updateCoords(deviceCoords, predictResult);
+
+				/* Update Path Manager */
+				pathManager.addPoint(EKFScalingCorrecter.getEKFScalingResultCorrecter().getLastPoint());
 
 				imuIndex++;
 				elapsedTime = elapsedTime % Constants.MS_IMU_DURATION;
@@ -474,6 +494,7 @@ public class MainDriver {
 		finalResultsStringBuilder.append("Total Displacement = "
 				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getFinalPosition()
 						.computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+		finalResultsStringBuilder.append("Average Error = " + pathManager.getAccuracy() + "\r\n");
 
 		summaryLog.append("Rot 1 & Tran 1: " + valid[0] + "\r\n");
 		summaryLog.append("Rot 1 & Tran 2: " + valid[1] + "\r\n");
@@ -562,6 +583,8 @@ public class MainDriver {
 		totalFeatureCount = 0;
 		maxFeatureCount = 0;
 
+		PathManager pathManager = new PathManager(datasetName);
+
 		while (true) {
 			if (imuIndex >= imuDataset.size() || imgIndex >= imgDataset.size()) {
 				break;
@@ -611,6 +634,9 @@ public class MainDriver {
 
 				EKFScalingCorrecter.getEKFScalingResultCorrecter().updateCoords(deviceCoords, predictResult);
 
+				/* Update Path Manager */
+				pathManager.addPoint(EKFScalingCorrecter.getEKFScalingResultCorrecter().getLastPoint());
+
 				imuIndex++;
 				elapsedTime = elapsedTime % Constants.MS_IMU_DURATION;
 				sb.append(elapsedTime + "ms");
@@ -652,6 +678,7 @@ public class MainDriver {
 		finalResultsStringBuilder.append("Total Displacement = "
 				+ EKFScalingCorrecter.getEKFScalingResultCorrecter().getFinalPosition()
 						.computeDistanceTo(new PointDouble(0, 0)) + "\r\n");
+		finalResultsStringBuilder.append("Average Error = " + pathManager.getAccuracy() + "\r\n");
 
 		summaryLog.append("Rot 1 & Tran 1: " + valid[0] + "\r\n");
 		summaryLog.append("Rot 1 & Tran 2: " + valid[1] + "\r\n");
