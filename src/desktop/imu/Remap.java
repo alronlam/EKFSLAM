@@ -56,6 +56,18 @@ public class Remap {
 	}
 
 	public static void main(String args[]) {
+		
+		Mat point = Mat.ones(2, 2, CvType.CV_64F);
+		point.put(0, 0, 1, 2);
+		point.put(1, 0, 3, 4);
+		System.out.println(point.mul(Mat.ones(point.size(), point.type()), -1).dump());
+		System.out.println(point.t().dump());
+		Mat res = new Mat();
+		Core.gemm(point, Mat.eye(2, 2, CvType.CV_64F), 1, new Mat(), 0, res);
+		System.out.println(res.dump());
+	}
+	
+	public static void olololomain(String args[]) {
 		float init[] = { 90, -10, -20 };
 
 		float z = (float) Math.toRadians(init[0]);

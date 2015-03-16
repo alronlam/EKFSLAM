@@ -97,7 +97,7 @@ public class MainDriver {
 
 	private static ArrayList<String> getDatasetsToRun() {
 		ArrayList<String> datasets = new ArrayList<String>();
-		// datasets.add(Constants.FOLDER_RECT1_MIGUEL2_S3);
+//		datasets.add(Constants.FOLDER_RECT1_MIGUEL2_S3);
 		// datasets.add(Constants.FOLDER_RECT1_MIGUEL3_S3);
 		// datasets.add(Constants.FOLDER_RECT1_MIGUEL3_S4);
 		// datasets.add(Constants.FOLDER_RECT1_MIGUEL4_S4);
@@ -111,13 +111,13 @@ public class MainDriver {
 		// datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_ALRON_MAR5);
 		// datasets.add(Constants.FOLDER_STRT1_SJ6_PARTIAL_S4_MAR5_BLACK_CAM);
 		// datasets.add(Constants.FOLDER_STRT2_SJ6_PARTIAL_S4_MAR5);
-		datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_IVAN_MAR5);
+		// datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_IVAN_MAR5);
 		// datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_IVAN_MAR5);
 
 		// datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_IVAN_MAR6);
 		// datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_IVAN_MAR6);
 		// datasets.add(Constants.FOLDER_STRT1_SJ6_S4_MAR6);
-		// datasets.add(Constants.FOLDER_STRT1_LS1_S3CAM_IVAN_MAR6);
+		 datasets.add(Constants.FOLDER_STRT1_LS1_S3CAM_IVAN_MAR6);
 		// datasets.add(Constants.FOLDER_STRT2_LS1_S3CAM_IVAN_MAR6);
 
 		return datasets;
@@ -125,13 +125,13 @@ public class MainDriver {
 
 	private static void runAltogether(List<IMUReadingsBatch> imuDataset, List<IMUReadingsBatch> imuDatasetWithCimuHeading, List<IMUReadingsBatch> cimuDataset,
 			List<Mat> imgDataset, String datasetName) {
-		runINS(imuDataset, imgDataset, datasetName, insLogFileName);
-		runINS(imuDatasetWithCimuHeading, imgDataset, datasetName, insCimuHeadingLogFileName);
-		runDoubleIntegration(cimuDataset, imgDataset, datasetName, doubleIntegrationLogFileName);
+		// runINS(imuDataset, imgDataset, datasetName, insLogFileName);
+		// runINS(imuDatasetWithCimuHeading, imgDataset, datasetName, insCimuHeadingLogFileName);
+		// runDoubleIntegration(cimuDataset, imgDataset, datasetName, doubleIntegrationLogFileName);
 		runVINSAsync(cimuDataset, imgDataset, datasetName, vinsLogFileName, false);
 		runVINSAsync(cimuDataset, imgDataset, datasetName, vins15hzLogFileName, true);
-		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, datasetName, breadcrumbWithCimuHeadingLogFileName, false);
-		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, datasetName, breadcrumbWithCimuHeading15hzLogFileName, true);
+		// runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, datasetName, breadcrumbWithCimuHeadingLogFileName, false);
+		// runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, datasetName, breadcrumbWithCimuHeading15hzLogFileName, true);
 
 		FileLog finalResultsLog = new FileLog(logFolder + "/" + datasetName + "/" + datasetName + ".txt");
 		finalResultsLog.append(finalResultsStringBuilder.toString());
@@ -392,7 +392,7 @@ public class MainDriver {
 				elapsedTime = elapsedTime % Constants.MS_IMU_DURATION;
 				sb.append(elapsedTime + "ms");
 				/* Update the logs */
-				// breadcrumbLog.append(breadcrumb.getDeviceCoords() + "\n");
+				// vinsLog.append(vins.getDeviceCoords() + "\n");
 				System.out.println(sb.toString());
 
 				/* Measure time elapsed */
