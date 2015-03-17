@@ -35,7 +35,7 @@ public class FeatureManager {
 
 	// Boolean things (how does one even name this)
 	private final boolean USE_SCALE = true;
-	private final boolean SWAP_IMAGES = true;
+	private final boolean SWAP_IMAGES = false;
 
 	private static final int LS_TRIANGULATION = 0;
 	private static final int ITER_LS_TRIANGULATION = 1;
@@ -270,10 +270,6 @@ public class FeatureManager {
 		FMatResult fMatResult = null;
 		points4D1 = new Mat();
 
-		
-		Mat correctedOld = null;
-		Mat correctedNew = null;
-		
 		if (!goodOld.empty() && !goodNew.empty()) {
 
 			// does this work
@@ -298,22 +294,65 @@ public class FeatureManager {
 			fMatResult = getFundamentalMat(kpGoodOld, kpGoodNew, badPointsIndex, goodCurrents);
 			F = fMatResult.F;
 
-			
 			if (fMatResult.superGoodPoints1.rows() > 0) {
 				// System.out.println(fMatResult.superGoodPoints1.rows());
 				// System.out.println(fMatResult.superGoodPoints2.rows());
 				// System.out.println(fMatResult.superGoodPoints1.cols());
 				// System.out.println(fMatResult.superGoodPoints2.cols());
-//				Mat correctedOld = fMatResult.superGoodPoints1.t();
-//				Mat correctedNew = fMatResult.superGoodPoints2.t();
-				correctedOld = fMatResult.superGoodPoints1.t();
-				correctedNew = fMatResult.superGoodPoints2.t();
+				Mat correctedOld = fMatResult.superGoodPoints1.t();
+				Mat correctedNew = fMatResult.superGoodPoints2.t();
+
 				// System.out.println(correctedOld.size());
 				// System.out.println(correctedNew.size());
 				Calib3d.correctMatches(F, fMatResult.superGoodPoints1.t(), fMatResult.superGoodPoints2.t(), correctedOld, correctedNew);
 
+				for (int i = 0; i < correctedOld.cols(); ++i) {
+					// double oldPair[] = { correctedOld.get(0, i)[1], -(correctedOld.get(0, i)[0] - this.imageSize.height) };
+					// correctedOld.put(0, i, oldPair);
+					// double newPair[] = { correctedNew.get(0, i)[1], -(correctedNew.get(0, i)[0] - this.imageSize.height) };
+					// correctedNew.put(0, i, newPair);
+					double x, y, rx, ry;
+					x = correctedOld.get(0, i)[1];
+					y = -(correctedOld.get(0, i)[0] - this.imageSize.height); // TODO: this should be height
+					rx = y;
+					ry = this.imageSize.width - x;
+
+					double oldPair[] = { x, y };
+					correctedOld.put(0, i, oldPair);
+
+					x = correctedNew.get(0, i)[1];
+					y = -(correctedNew.get(0, i)[0] - this.imageSize.height);
+					rx = y;
+					ry = this.imageSize.width - x;
+					double newPair[] = { x, y };
+					correctedNew.put(0, i, newPair);
+				}
+				System.out.println(this.imageSize + " :: " + prevImage.size());
+
 				goodOld = new MatOfPoint2f(correctedOld.t());
 				goodNew = new MatOfPoint2f(correctedNew.t());
+
+				if (iter < 10) {
+					firstOFLog = new FileLog(MainDriver.currentFileName.split("[.]")[0] + "_OF_" + (iter + 1) + ".csv");
+					firstOFCMLog = new FileLog(MainDriver.currentFileName.split("[.]")[0] + "_OFCM_" + (iter + 1) + ".csv");
+					Mat OFold = fMatResult.superGoodPoints1.t();
+					Mat OFnew = fMatResult.superGoodPoints2.t();
+					Mat OFCMold = new MatOfPoint2f(correctedOld.t());
+					Mat OFCMnew = new MatOfPoint2f(correctedNew.t());
+
+					for (int i = 0; i < OFold.cols(); ++i) {
+						firstOFLog.append(OFold.get(0, i)[0] + ", " + OFold.get(0, i)[1] + ", ");
+						firstOFLog.append(OFnew.get(0, i)[0] + ", " + OFnew.get(0, i)[1] + "\n");
+					}
+
+					for (int i = 0; i < OFCMold.rows(); ++i) {
+						firstOFCMLog.append(OFCMold.get(i, 0)[0] + ", " + OFCMold.get(i, 0)[1] + ", ");
+						firstOFCMLog.append(OFCMnew.get(i, 0)[0] + ", " + OFCMnew.get(i, 0)[1] + "\n");
+					}
+
+					firstOFLog.writeToFile();
+					firstOFCMLog.writeToFile();
+				}
 			} else {
 				goodOld = fMatResult.superGoodPoints1;
 				goodNew = fMatResult.superGoodPoints2;
@@ -524,7 +563,7 @@ public class FeatureManager {
 		// Logging Points
 		FileLog P4DLog = null;
 		FileLog P2DLog = null;
-		if (iter < 10) {
+		if (iter < 30) {
 			if (iter == 0) {
 				first10P4DLog = new FileLog(MainDriver.currentFileName.split("[.]")[0] + "_first10P4D.csv");
 				first10P2DLog = new FileLog(MainDriver.currentFileName.split("[.]")[0] + "_first10P2D.csv");
@@ -537,18 +576,6 @@ public class FeatureManager {
 			first10P2DLog.writeToFile();
 			iter = 0;
 		}
-
-//		if (iter == 0) {
-//			firstOFLog = new FileLog(MainDriver.currentFileName.split("[.]")[0] + "_firstOF.csv");
-//			firstOFCMLog = new FileLog(MainDriver.currentFileName.split("[.]")[0] + "_firstOFCM.csv");
-//			Mat OFold = fMatResult.superGoodPoints1.t();
-//			Mat OFnew = fMatResult.superGoodPoints2.t();
-//			Mat OFCMold = new MatOfPoint2f(correctedOld.t());
-//			Mat OFCMnew = new MatOfPoint2f(correctedNew.t());
-//			
-//			firstOFLog.writeToFile();
-//			firstOFCMLog.writeToFile();
-//		}
 
 		for (int i = 0; i < points4D.cols(); i++) {
 			double w = points4D.get(3, i)[0];
@@ -1006,7 +1033,8 @@ public class FeatureManager {
 
 		Core.gemm(u, W.t(), 1, nullMatF, 0, tempMat);
 		Core.gemm(tempMat, vt, 1, nullMatF, 0, Rot2);
-		T2 = u.col(2).mul(Mat.ones(3, 1, CvType.CV_64F), -1);
+		
+		T2 = u.col(2).mul(Mat.ones(u.col(2).size(), CvType.CV_64F), -1);
 
 		return true;
 	}

@@ -41,7 +41,7 @@ public class EKFScalingCorrecter {
 
 		double dist = correctedCameraPositionList.get(correctedCameraPositionList.size() - 1).computeDistanceTo(deviceCoords);
 
-		if ((dist > .1 && dist < .7) || (dist > -0.0000001 && dist < 0.0000001)) {
+		if ((dist < .7) || (dist > -0.0000001 && dist < 0.0000001)) {
 			// valid point
 
 			correctedCameraPositionList.add(deviceCoords);
