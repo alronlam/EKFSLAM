@@ -66,6 +66,20 @@ public class Constants {
 	public static final String FOLDER_STRT1_LS1_S3CAM_IVAN_MAR6 = "Ivan LS 1st Floor 1 Pass Mar 6 - 162 Steps S3cam (2nd Run)";
 	public static final String FOLDER_STRT2_LS1_S3CAM_IVAN_MAR6 = "Ivan LS 1st Floor 2 Pass Mar 6 - 332 Steps S3cam";
 
+	public static final List<String> SJ_PARTIAL_DATASETS;
+	static {
+		SJ_PARTIAL_DATASETS = new ArrayList<String>();
+		SJ_PARTIAL_DATASETS.add(FOLDER_STRT1_SJ6_PARTIAL_S4_MAR5_BLACK_CAM);
+		SJ_PARTIAL_DATASETS.add(FOLDER_STRT2_SJ6_PARTIAL_S4_MAR5);
+	}
+
+	public static final List<String> MIGUEL_DATASETS;
+	static {
+		MIGUEL_DATASETS = new ArrayList<String>();
+		MIGUEL_DATASETS.add(FOLDER_RECT1_MIGUEL_S4_IVAN_MAR5);
+		MIGUEL_DATASETS.add(FOLDER_RECT2_MIGUEL_S4_IVAN_MAR5);
+	}
+
 	public static final List<String> ASYNC_DATASETS;
 
 	static {
