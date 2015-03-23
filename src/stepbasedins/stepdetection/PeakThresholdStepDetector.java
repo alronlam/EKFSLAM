@@ -7,7 +7,7 @@ import stepbasedins.data.SensorEntry;
 
 public class PeakThresholdStepDetector implements StepDetector {
 
-	private final double PEAK_THRESHOLD = 12;
+	private final double PEAK_THRESHOLD = 13.75;
 	private final double TIME_GAP = 350; // ms
 
 	private DetectedEntry lastDetectedEntry;
