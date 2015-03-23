@@ -39,10 +39,9 @@ public class EKFScalingCorrecter {
 		predictResult.setX(predictResult.getX() - offset.getX());
 		predictResult.setY(predictResult.getY() - offset.getY());
 
-		double dist = correctedCameraPositionList.get(correctedCameraPositionList.size() - 1).computeDistanceTo(
-				deviceCoords);
+		double dist = correctedCameraPositionList.get(correctedCameraPositionList.size() - 1).computeDistanceTo(deviceCoords);
 
-		if (dist > .1 && dist < .7) {
+		if ((dist < .7) || (dist > -0.0000001 && dist < 0.0000001)) {
 			// valid point
 
 			correctedCameraPositionList.add(deviceCoords);
@@ -52,6 +51,7 @@ public class EKFScalingCorrecter {
 			offset.setX(offset.getX() + deviceCoords.getX() - predictResult.getX());
 			offset.setY(offset.getY() + deviceCoords.getY() - predictResult.getY());
 
+			// predictResult.setX(predictResult.getX()+1000);
 			correctedCameraPositionList.add(predictResult);
 		}
 	}
@@ -82,8 +82,7 @@ public class EKFScalingCorrecter {
 		totalDistanceTraveled += correctedCameraPositionList.get(0).computeDistanceTo(new PointDouble(0, 0));
 
 		for (int i = 1; i < correctedCameraPositionList.size() - 1; ++i)
-			totalDistanceTraveled += correctedCameraPositionList.get(i).computeDistanceTo(
-					correctedCameraPositionList.get(i + 1));
+			totalDistanceTraveled += correctedCameraPositionList.get(i).computeDistanceTo(correctedCameraPositionList.get(i + 1));
 
 		return totalDistanceTraveled;
 	}

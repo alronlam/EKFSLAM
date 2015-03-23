@@ -35,7 +35,7 @@ public class FeatureManager {
 
 	// Boolean things (how does one even name this)
 	private final boolean USE_SCALE = true;
-	private final boolean SWAP_IMAGES = true;
+	private final boolean SWAP_IMAGES = false;
 
 	private static final int LS_TRIANGULATION = 0;
 	private static final int ITER_LS_TRIANGULATION = 1;
@@ -202,8 +202,8 @@ public class FeatureManager {
 		System.out.println("Null exit. ENDING CPFL " + checkpointFeaturesList.size());
 	}
 
-	
-	public FeatureUpdate getAsyncFeatureUpdate(Mat currentImage, double translationX, double translationZ, PointDouble cameraPosition, double currentHeading, EKFController ekfController) {
+	public FeatureUpdate getAsyncFeatureUpdate(Mat currentImage, double translationX, double translationZ, PointDouble cameraPosition, double currentHeading,
+			EKFController ekfController) {
 		/* For first call. */
 		if (prevImage == null) {
 			prevImage = new Mat(); // not sure if needed
@@ -295,18 +295,64 @@ public class FeatureManager {
 			F = fMatResult.F;
 
 			if (fMatResult.superGoodPoints1.rows() > 0) {
-//				System.out.println(fMatResult.superGoodPoints1.rows());
-//				System.out.println(fMatResult.superGoodPoints2.rows());
-//				System.out.println(fMatResult.superGoodPoints1.cols());
-//				System.out.println(fMatResult.superGoodPoints2.cols());
+				// System.out.println(fMatResult.superGoodPoints1.rows());
+				// System.out.println(fMatResult.superGoodPoints2.rows());
+				// System.out.println(fMatResult.superGoodPoints1.cols());
+				// System.out.println(fMatResult.superGoodPoints2.cols());
 				Mat correctedOld = fMatResult.superGoodPoints1.t();
 				Mat correctedNew = fMatResult.superGoodPoints2.t();
-//				System.out.println(correctedOld.size());
-//				System.out.println(correctedNew.size());
+
+				// System.out.println(correctedOld.size());
+				// System.out.println(correctedNew.size());
 				Calib3d.correctMatches(F, fMatResult.superGoodPoints1.t(), fMatResult.superGoodPoints2.t(), correctedOld, correctedNew);
+
+				for (int i = 0; i < correctedOld.cols(); ++i) {
+					// double oldPair[] = { correctedOld.get(0, i)[1], -(correctedOld.get(0, i)[0] - this.imageSize.height) };
+					// correctedOld.put(0, i, oldPair);
+					// double newPair[] = { correctedNew.get(0, i)[1], -(correctedNew.get(0, i)[0] - this.imageSize.height) };
+					// correctedNew.put(0, i, newPair);
+					double x, y, rx, ry;
+					x = correctedOld.get(0, i)[1];
+					y = -(correctedOld.get(0, i)[0] - this.imageSize.height); // TODO: this should be height
+					rx = y;
+					ry = this.imageSize.width - x;
+
+					double oldPair[] = { x, y };
+					correctedOld.put(0, i, oldPair);
+
+					x = correctedNew.get(0, i)[1];
+					y = -(correctedNew.get(0, i)[0] - this.imageSize.height);
+					rx = y;
+					ry = this.imageSize.width - x;
+					double newPair[] = { x, y };
+					correctedNew.put(0, i, newPair);
+				}
+				System.out.println(this.imageSize + " :: " + prevImage.size());
 
 				goodOld = new MatOfPoint2f(correctedOld.t());
 				goodNew = new MatOfPoint2f(correctedNew.t());
+
+				if (iter < 10) {
+					firstOFLog = new FileLog(MainDriver.currentFileName.split("[.]")[0] + "_OF_" + (iter + 1) + ".csv");
+					firstOFCMLog = new FileLog(MainDriver.currentFileName.split("[.]")[0] + "_OFCM_" + (iter + 1) + ".csv");
+					Mat OFold = fMatResult.superGoodPoints1.t();
+					Mat OFnew = fMatResult.superGoodPoints2.t();
+					Mat OFCMold = new MatOfPoint2f(correctedOld.t());
+					Mat OFCMnew = new MatOfPoint2f(correctedNew.t());
+
+					for (int i = 0; i < OFold.cols(); ++i) {
+						firstOFLog.append(OFold.get(0, i)[0] + ", " + OFold.get(0, i)[1] + ", ");
+						firstOFLog.append(OFnew.get(0, i)[0] + ", " + OFnew.get(0, i)[1] + "\n");
+					}
+
+					for (int i = 0; i < OFCMold.rows(); ++i) {
+						firstOFCMLog.append(OFCMold.get(i, 0)[0] + ", " + OFCMold.get(i, 0)[1] + ", ");
+						firstOFCMLog.append(OFCMnew.get(i, 0)[0] + ", " + OFCMnew.get(i, 0)[1] + "\n");
+					}
+
+					firstOFLog.writeToFile();
+					firstOFCMLog.writeToFile();
+				}
 			} else {
 				goodOld = fMatResult.superGoodPoints1;
 				goodNew = fMatResult.superGoodPoints2;
@@ -342,11 +388,10 @@ public class FeatureManager {
 
 				if (this.DEBUG_MODE)
 					System.out.println("det(R) == -1 [" + Core.determinant(R1) + "]: flip E's sign");
+
 				E = E.mul(Mat.ones(E.size(), E.type()), -1);
 
-				if (!decomposeEtoRandT(E))
-					nullExit(nextNewFeatures);
-				return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition, ekfController);
+				decomposeEtoRandT(E);
 			}
 
 			P1.put(0, 0, 1, 0, 0, 0);
@@ -508,28 +553,29 @@ public class FeatureManager {
 			P2.put(1, 0, validRot.get(1, 0)[0], validRot.get(1, 1)[0], validRot.get(1, 2)[0], validT.get(1, 0)[0]);
 			P2.put(2, 0, validRot.get(2, 0)[0], validRot.get(2, 1)[0], validRot.get(2, 2)[0], validT.get(2, 0)[0]);
 
-			points4D = points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, false);
+			points4D = points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, false, false);
 			break;
 		case OPENCV_TRIANGULATION:
 			Calib3d.triangulatePoints(P1, P2, goodOld, goodNew, points4D);
 			break;
 		}
 
-		// FileLog P4DLog = null;
-		// FileLog P2DLog = null;
-		// if (iter < 10) {
-		// if (iter == 0){
-		// first10P4DLog = new FileLog(MainDriver.currentFileName + "_first10P4D.csv");
-		// first10P2DLog = new FileLog(MainDriver.currentFileName + "_first10P2D.csv");
-		// }
-		// iter++;
-		// P4DLog = new FileLog(MainDriver.currentFileName + "_P4D_" + (iter) + ".csv");
-		// P2DLog = new FileLog(MainDriver.currentFileName + "_P2D_" + (iter) + ".csv");
-		// } else if (iter == 10) {
-		// first10P4DLog.writeToFile();
-		// first10P2DLog.writeToFile();
-		// iter = 0;
-		// }
+		// Logging Points
+		FileLog P4DLog = null;
+		FileLog P2DLog = null;
+		if (iter < 30) {
+			if (iter == 0) {
+				first10P4DLog = new FileLog(MainDriver.currentFileName.split("[.]")[0] + "_first10P4D.csv");
+				first10P2DLog = new FileLog(MainDriver.currentFileName.split("[.]")[0] + "_first10P2D.csv");
+			}
+			iter++;
+			P4DLog = new FileLog(MainDriver.currentFileName.split("[.]")[0] + "_P4D_" + (iter) + ".csv");
+			P2DLog = new FileLog(MainDriver.currentFileName.split("[.]")[0] + "_P2D_" + (iter) + ".csv");
+		} else if (iter == 10) {
+			first10P4DLog.writeToFile();
+			first10P2DLog.writeToFile();
+			iter = 0;
+		}
 
 		for (int i = 0; i < points4D.cols(); i++) {
 			double w = points4D.get(3, i)[0];
@@ -540,12 +586,12 @@ public class FeatureManager {
 			PointDouble point = new PointDouble(x, z);
 			point = Remap.transform2DPoint(point, currentHeading, cameraPosition);
 
-//			if (P4DLog != null) {
-//				P4DLog.append(x + ", " + y + ", " + z + "\n");
-//				P2DLog.append(point.getX() + ", " + point.getY() + "\n");
-//				first10P4DLog.append(x + ", " + y + ", " + z + "\n");
-//				first10P2DLog.append(point.getX() + ", " + point.getY() + "\n");
-//			}
+			if (P4DLog != null) {
+				P4DLog.append(x + ", " + y + ", " + z + "\n");
+				P2DLog.append(point.getX() + ", " + point.getY() + "\n");
+				first10P4DLog.append(x + ", " + y + ", " + z + "\n");
+				first10P2DLog.append(point.getX() + ", " + point.getY() + "\n");
+			}
 
 			// System.out.println(point);
 			if (i < goodCurrents) {
@@ -555,10 +601,10 @@ public class FeatureManager {
 			}
 		}
 
-		// if (P4DLog != null){
-		// P4DLog.writeToFile();
-		// P2DLog.writeToFile();
-		// }
+		if (P4DLog != null) {
+			P4DLog.writeToFile();
+			P2DLog.writeToFile();
+		}
 
 		update.setCurrentPoints(currentPoints);
 		update.setBadPointsIndex(badPoints);
@@ -591,311 +637,164 @@ public class FeatureManager {
 		return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(update, cameraPosition, ekfController);
 	}
 
-//	static int iter = 0;
-//	static FileLog first10P4DLog;
-//	static FileLog first10P2DLog;
-	
-	
-/* Depreciated 
-	public FeatureUpdate getFeatureUpdate(Mat currentImage, double translationX, double translationZ, PointDouble cameraPosition) {
-		if (!framesReady) {
-			Mat toAdd = new Mat();
-			currentImage.copyTo(toAdd);
-			images.add(toAdd);
-			if (frames == FRAME_INTERVAL + 1) {
-				images.get(0).copyTo(checkpointImage);
-				images.remove(0);
-				framesReady = true;
-			}
-			frames++;
-			CURRENT_STEP = this.STEP_IMAGE_CAPTURE;
-			return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
-		}
-		CURRENT_STEP = this.STEP_OPTICAL_FLOW;
+	static int iter = 0;
+	static FileLog first10P4DLog;
+	static FileLog first10P2DLog;
 
-		Mat nearImage = new Mat();
-		images.get(0).copyTo(nearImage);
-		Mat farImage = new Mat();
-		currentImage.copyTo(farImage);
-		images.add(farImage);
-		images.remove(0);
+	static FileLog firstOFLog;
+	static FileLog firstOFCMLog;
 
-		OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, farImage, checkpointFeatures);
-		// OpticalFlowResult opflowresult =
-		// opticalFlow.getFeatures(checkpointImage, nearImage,
-		// checkpointFeatures);
+	/*
+	 * Depreciated public FeatureUpdate getFeatureUpdate(Mat currentImage, double translationX, double translationZ, PointDouble cameraPosition) { if (!framesReady) { Mat toAdd =
+	 * new Mat(); currentImage.copyTo(toAdd); images.add(toAdd); if (frames == FRAME_INTERVAL + 1) { images.get(0).copyTo(checkpointImage); images.remove(0); framesReady = true; }
+	 * frames++; CURRENT_STEP = this.STEP_IMAGE_CAPTURE; return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition); } CURRENT_STEP =
+	 * this.STEP_OPTICAL_FLOW;
+	 * 
+	 * Mat nearImage = new Mat(); images.get(0).copyTo(nearImage); Mat farImage = new Mat(); currentImage.copyTo(farImage); images.add(farImage); images.remove(0);
+	 * 
+	 * OpticalFlowResult opflowresult = opticalFlow.getFeatures(checkpointImage, nearImage, farImage, checkpointFeatures); // OpticalFlowResult opflowresult = //
+	 * opticalFlow.getFeatures(checkpointImage, nearImage, // checkpointFeatures);
+	 * 
+	 * MatOfPoint2f goodOld = opflowresult.getNearFeatures(); MatOfPoint2f goodNew = opflowresult.getFarFeatures();
+	 * 
+	 * FMatResult fMatResult = null; points4D1 = new Mat();
+	 * 
+	 * if (!goodOld.empty() && !goodNew.empty()) { System.out.println("has good old"); // does this work if (SWAP_IMAGES) { MatOfPoint2f temp = goodOld; goodOld = goodNew; goodNew
+	 * = temp; }
+	 * 
+	 * // SOLVING FOR THE ROTATION AND TRANSLATION MATRICES
+	 * 
+	 * // GETTING THE FUNDAMENTAL MATRIX
+	 * 
+	 * // There is a case that fundamental matrix is not found
+	 * 
+	 * List<KeyPoint> kpGoodOld = new ArrayList<KeyPoint>(), kpGoodNew = new ArrayList<KeyPoint>();
+	 * 
+	 * kpGoodOld = convertMatOfPoint2fToListOfKeyPoints(goodOld); kpGoodNew = convertMatOfPoint2fToListOfKeyPoints(goodNew);
+	 * 
+	 * CURRENT_STEP = this.STEP_ESSENTIAL_MATRIX; fMatResult = getFundamentalMat(kpGoodOld, kpGoodNew, opflowresult.getBadPointsIndex(), opflowresult.getCurrentSize()); F =
+	 * fMatResult.F;
+	 * 
+	 * // SOBRANG HASSLE // A bit scary goodOld = fMatResult.superGoodPoints1; goodNew = fMatResult.superGoodPoints2;
+	 * 
+	 * tempMat = nullMatF.clone(); E = nullMatF.clone();
+	 * 
+	 * // GETTING THE ESSENTIAL MATRIX Core.gemm(cameraMatrix.t(), F, 1, nullMatF, 0, tempMat); Core.gemm(tempMat, cameraMatrix, 1, nullMatF, 0, E);
+	 * 
+	 * if (Math.abs(Core.determinant(E)) > 1e-07) { if (this.DEBUG_MODE) System.out.println("det(E) != 0 : " + Core.determinant(E)); P2 = Mat.zeros(3, 4, CvType.CV_64F); return
+	 * FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition); }
+	 * 
+	 * if (!decomposeEtoRandT(E))
+	 * 
+	 * return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
+	 * 
+	 * if (Core.determinant(R1) + 1.0 < 1e-09) { // according to // http://en.wikipedia.org/wiki/Essential_matrix#Showing_that_it_is_valid
+	 * 
+	 * if (this.DEBUG_MODE) System.out.println("det(R) == -1 [" + Core.determinant(R1) + "]: flip E's sign"); E = E.mul(Mat.ones(E.size(), E.type()), -1);
+	 * 
+	 * if (!decomposeEtoRandT(E))
+	 * 
+	 * return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition); }
+	 * 
+	 * P1.put(0, 0, 1, 0, 0, 0); P1.put(1, 0, 0, 1, 0, 0); P1.put(2, 0, 0, 0, 1, 0);
+	 * 
+	 * if (!checkCoherentRotation(Rot1)) { P2 = Mat.zeros(3, 4, CvType.CV_64F); return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition); }
+	 * 
+	 * CURRENT_STEP = this.STEP_TRIANGULATION;
+	 * 
+	 * this.VALID_ROTATION = this.ROT_1; this.VALID_TRANSLATION = this.TRAN_1; validRot = Rot1; validT = T1;
+	 * 
+	 * // Combination 1 P2.put(0, 0, Rot1.get(0, 0)[0], Rot1.get(0, 1)[0], Rot1.get(0, 2)[0], T1.get(0, 0)[0]); P2.put(1, 0, Rot1.get(1, 0)[0], Rot1.get(1, 1)[0], Rot1.get(1,
+	 * 2)[0], T1.get(1, 0)[0]); P2.put(2, 0, Rot1.get(2, 0)[0], Rot1.get(2, 1)[0], Rot1.get(2, 2)[0], T1.get(2, 0)[0]);
+	 * 
+	 * points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true); points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
+	 * 
+	 * if (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation, this.VALID_ROTATION =
+	 * this.ROT_1; this.VALID_TRANSLATION = this.TRAN_2; validRot = Rot1; validT = T2;
+	 * 
+	 * // Combination 2 P2.put(0, 0, Rot1.get(0, 0)[0], Rot1.get(0, 1)[0], Rot1.get(0, 2)[0], T2.get(0, 0)[0]); P2.put(1, 0, Rot1.get(1, 0)[0], Rot1.get(1, 1)[0], Rot1.get(1,
+	 * 2)[0], T2.get(1, 0)[0]); P2.put(2, 0, Rot1.get(2, 0)[0], Rot1.get(2, 1)[0], Rot1.get(2, 2)[0], T2.get(2, 0)[0]);
+	 * 
+	 * points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true); points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
+	 * 
+	 * if (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation if
+	 * (!checkCoherentRotation(Rot2)) { P2 = Mat.zeros(3, 4, CvType.CV_64F);
+	 * 
+	 * return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition); } this.VALID_ROTATION = this.ROT_2; this.VALID_TRANSLATION = this.TRAN_1; validRot =
+	 * Rot2; validT = T1;
+	 * 
+	 * // Combination 3 P2.put(0, 0, Rot2.get(0, 0)[0], Rot2.get(0, 1)[0], Rot2.get(0, 2)[0], T1.get(0, 0)[0]); P2.put(1, 0, Rot2.get(1, 0)[0], Rot2.get(1, 1)[0], Rot2.get(1,
+	 * 2)[0], T1.get(1, 0)[0]); P2.put(2, 0, Rot2.get(2, 0)[0], Rot2.get(2, 1)[0], Rot2.get(2, 2)[0], T1.get(2, 0)[0]);
+	 * 
+	 * points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true); points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false); if
+	 * (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation this.VALID_ROTATION =
+	 * this.ROT_2; this.VALID_TRANSLATION = this.TRAN_2; validRot = Rot2; validT = T2;
+	 * 
+	 * // Combination 4 P2.put(0, 0, Rot2.get(0, 0)[0], Rot2.get(0, 1)[0], Rot2.get(0, 2)[0], T2.get(0, 0)[0]); P2.put(1, 0, Rot2.get(1, 0)[0], Rot2.get(1, 1)[0], Rot2.get(1,
+	 * 2)[0], T2.get(1, 0)[0]); P2.put(2, 0, Rot2.get(2, 0)[0], Rot2.get(2, 1)[0], Rot2.get(2, 2)[0], T2.get(2, 0)[0]);
+	 * 
+	 * points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true); points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false); if
+	 * (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test // Triangulation // Triangulation failed.
+	 * 
+	 * return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition); } } } } }
+	 * 
+	 * FeatureUpdate update = new FeatureUpdate(); List<PointDouble> currentPoints = new ArrayList<>(); List<PointDouble> newPoints = new ArrayList<>();
+	 * 
+	 * // Appending additional bad points from Fundamental Matrix calculation List<Integer> badPoints = opflowresult.getBadPointsIndex(); List<Integer> additionalBadPoints =
+	 * fMatResult.additionalBadPoints; int currentSize; { List<Integer> finalBadPoints = new ArrayList<>();
+	 * 
+	 * int badPointsDuplicatesCount = 0;
+	 * 
+	 * for (Integer index : badPoints) { if (finalBadPoints.contains(index)) { badPointsDuplicatesCount++; } else { finalBadPoints.add(index); } } List<Integer>
+	 * noDuplicatesAdditionalBadPoints = new ArrayList<>();
+	 * 
+	 * int additionalBadPointsDuplicatesCount = 0; for (Integer index : additionalBadPoints) { if (noDuplicatesAdditionalBadPoints.contains(index)) {
+	 * additionalBadPointsDuplicatesCount++; } else { noDuplicatesAdditionalBadPoints.add(index); } }
+	 * 
+	 * for (Integer index : noDuplicatesAdditionalBadPoints) { if (finalBadPoints.contains(index)) { badPointsDuplicatesCount++; } else { finalBadPoints.add(index); } }
+	 * 
+	 * badPoints = finalBadPoints; Collections.sort(badPoints); // System.out.println(badPoints);
+	 * 
+	 * currentSize = (int) opflowresult.getCurrentSize() - fMatResult.additionalBadPoints.size() + additionalBadPointsDuplicatesCount + badPointsDuplicatesCount;
+	 * 
+	 * System.out.println(opflowresult.getCurrentSize() + " " + additionalBadPointsDuplicatesCount + " " + badPointsDuplicatesCount); } // if (this.VALID_ROTATION == this.ROT_1) //
+	 * System.out.println("Rotation Matrix 1 is Valid."); // else // System.out.println("Rotation Matrix 2 is Valid."); // if (this.VALID_TRANSLATION == this.TRAN_1) //
+	 * System.out.println("Translation Vector 1 is Valid."); // else // System.out.println("Translation Vector 2 is Valid.");
+	 * 
+	 * Mat translationMatrix = T2; if (this.VALID_TRANSLATION == this.TRAN_1) translationMatrix = T1;
+	 * 
+	 * double xScale = translationX / translationMatrix.get(0, 0)[0]; double zScale = translationZ / translationMatrix.get(2, 0)[0];
+	 * 
+	 * if (!USE_SCALE) { // HAHA WOT. xScale = 1; zScale = 1; }
+	 * 
+	 * Mat points4D = new Mat(); switch (this.TRIANGULATION_METHOD) { case LS_TRIANGULATION: points4D = points4D1; break;
+	 * 
+	 * case ITER_LS_TRIANGULATION: P2.put(0, 0, validRot.get(0, 0)[0], validRot.get(0, 1)[0], validRot.get(0, 2)[0], validT.get(0, 0)[0]); P2.put(1, 0, validRot.get(1, 0)[0],
+	 * validRot.get(1, 1)[0], validRot.get(1, 2)[0], validT.get(1, 0)[0]); P2.put(2, 0, validRot.get(2, 0)[0], validRot.get(2, 1)[0], validRot.get(2, 2)[0], validT.get(2, 0)[0]);
+	 * 
+	 * points4D = points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, false); break; case OPENCV_TRIANGULATION: Calib3d.triangulatePoints(P1, P2, goodOld,
+	 * goodNew, points4D); break; }
+	 * 
+	 * for (int i = 0; i < points4D1.cols(); i++) { double w = points4D.get(3, i)[0]; double x = points4D.get(0, i)[0] / w; double y = points4D.get(1, i)[0] / w; double z =
+	 * points4D.get(2, i)[0] / w;
+	 * 
+	 * PointDouble point = new PointDouble(x, z); // System.out.println(point); if (i < currentSize) { currentPoints.add(point); } else { newPoints.add(point); } }
+	 * 
+	 * // BADPOINTS MOVED UP
+	 * 
+	 * update.setCurrentPoints(currentPoints); update.setBadPointsIndex(badPoints); update.setNewPoints(newPoints);
+	 * 
+	 * // Assignment of values for next cycle // Only gets called when nothing went wrong fMatResult.superGoodPoints1.copyTo(checkpointFeatures); nearImage.copyTo(checkpointImage);
+	 * frames++;
+	 * 
+	 * if (this.DEBUG_MODE) { System.out.println(update.getCurrentPoints().size() + update.getBadPointsIndex().size()); System.out.println(update.getCurrentPoints().size() +
+	 * update.getNewPoints().size());
+	 * 
+	 * }
+	 * 
+	 * CURRENT_STEP = this.STEP_VALID_UPDATE; // System.out.println(update); return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(update, cameraPosition); }
+	 */
 
-		MatOfPoint2f goodOld = opflowresult.getNearFeatures();
-		MatOfPoint2f goodNew = opflowresult.getFarFeatures();
-
-		FMatResult fMatResult = null;
-		points4D1 = new Mat();
-
-		if (!goodOld.empty() && !goodNew.empty()) {
-			System.out.println("has good old");
-			// does this work
-			if (SWAP_IMAGES) {
-				MatOfPoint2f temp = goodOld;
-				goodOld = goodNew;
-				goodNew = temp;
-			}
-
-			// SOLVING FOR THE ROTATION AND TRANSLATION MATRICES
-
-			// GETTING THE FUNDAMENTAL MATRIX
-
-			// There is a case that fundamental matrix is not found
-
-			List<KeyPoint> kpGoodOld = new ArrayList<KeyPoint>(), kpGoodNew = new ArrayList<KeyPoint>();
-
-			kpGoodOld = convertMatOfPoint2fToListOfKeyPoints(goodOld);
-			kpGoodNew = convertMatOfPoint2fToListOfKeyPoints(goodNew);
-
-			CURRENT_STEP = this.STEP_ESSENTIAL_MATRIX;
-			fMatResult = getFundamentalMat(kpGoodOld, kpGoodNew, opflowresult.getBadPointsIndex(), opflowresult.getCurrentSize());
-			F = fMatResult.F;
-
-			// SOBRANG HASSLE
-			// A bit scary
-			goodOld = fMatResult.superGoodPoints1;
-			goodNew = fMatResult.superGoodPoints2;
-
-			tempMat = nullMatF.clone();
-			E = nullMatF.clone();
-
-			// GETTING THE ESSENTIAL MATRIX
-			Core.gemm(cameraMatrix.t(), F, 1, nullMatF, 0, tempMat);
-			Core.gemm(tempMat, cameraMatrix, 1, nullMatF, 0, E);
-
-			if (Math.abs(Core.determinant(E)) > 1e-07) {
-				if (this.DEBUG_MODE)
-					System.out.println("det(E) != 0 : " + Core.determinant(E));
-				P2 = Mat.zeros(3, 4, CvType.CV_64F);
-				return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
-			}
-
-			if (!decomposeEtoRandT(E))
-
-				return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
-
-			if (Core.determinant(R1) + 1.0 < 1e-09) {
-				// according to
-				// http://en.wikipedia.org/wiki/Essential_matrix#Showing_that_it_is_valid
-
-				if (this.DEBUG_MODE)
-					System.out.println("det(R) == -1 [" + Core.determinant(R1) + "]: flip E's sign");
-				E = E.mul(Mat.ones(E.size(), E.type()), -1);
-
-				if (!decomposeEtoRandT(E))
-
-					return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
-			}
-
-			P1.put(0, 0, 1, 0, 0, 0);
-			P1.put(1, 0, 0, 1, 0, 0);
-			P1.put(2, 0, 0, 0, 1, 0);
-
-			if (!checkCoherentRotation(Rot1)) {
-				P2 = Mat.zeros(3, 4, CvType.CV_64F);
-				return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
-			}
-
-			CURRENT_STEP = this.STEP_TRIANGULATION;
-
-			this.VALID_ROTATION = this.ROT_1;
-			this.VALID_TRANSLATION = this.TRAN_1;
-			validRot = Rot1;
-			validT = T1;
-
-			// Combination 1
-			P2.put(0, 0, Rot1.get(0, 0)[0], Rot1.get(0, 1)[0], Rot1.get(0, 2)[0], T1.get(0, 0)[0]);
-			P2.put(1, 0, Rot1.get(1, 0)[0], Rot1.get(1, 1)[0], Rot1.get(1, 2)[0], T1.get(1, 0)[0]);
-			P2.put(2, 0, Rot1.get(2, 0)[0], Rot1.get(2, 1)[0], Rot1.get(2, 2)[0], T1.get(2, 0)[0]);
-
-			points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
-			points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
-
-			if (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation,
-				this.VALID_ROTATION = this.ROT_1;
-				this.VALID_TRANSLATION = this.TRAN_2;
-				validRot = Rot1;
-				validT = T2;
-
-				// Combination 2
-				P2.put(0, 0, Rot1.get(0, 0)[0], Rot1.get(0, 1)[0], Rot1.get(0, 2)[0], T2.get(0, 0)[0]);
-				P2.put(1, 0, Rot1.get(1, 0)[0], Rot1.get(1, 1)[0], Rot1.get(1, 2)[0], T2.get(1, 0)[0]);
-				P2.put(2, 0, Rot1.get(2, 0)[0], Rot1.get(2, 1)[0], Rot1.get(2, 2)[0], T2.get(2, 0)[0]);
-
-				points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
-				points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
-
-				if (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
-					if (!checkCoherentRotation(Rot2)) {
-						P2 = Mat.zeros(3, 4, CvType.CV_64F);
-
-						return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
-					}
-					this.VALID_ROTATION = this.ROT_2;
-					this.VALID_TRANSLATION = this.TRAN_1;
-					validRot = Rot2;
-					validT = T1;
-
-					// Combination 3
-					P2.put(0, 0, Rot2.get(0, 0)[0], Rot2.get(0, 1)[0], Rot2.get(0, 2)[0], T1.get(0, 0)[0]);
-					P2.put(1, 0, Rot2.get(1, 0)[0], Rot2.get(1, 1)[0], Rot2.get(1, 2)[0], T1.get(1, 0)[0]);
-					P2.put(2, 0, Rot2.get(2, 0)[0], Rot2.get(2, 1)[0], Rot2.get(2, 2)[0], T1.get(2, 0)[0]);
-
-					points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
-					points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
-					if (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test Triangulation
-						this.VALID_ROTATION = this.ROT_2;
-						this.VALID_TRANSLATION = this.TRAN_2;
-						validRot = Rot2;
-						validT = T2;
-
-						// Combination 4
-						P2.put(0, 0, Rot2.get(0, 0)[0], Rot2.get(0, 1)[0], Rot2.get(0, 2)[0], T2.get(0, 0)[0]);
-						P2.put(1, 0, Rot2.get(1, 0)[0], Rot2.get(1, 1)[0], Rot2.get(1, 2)[0], T2.get(1, 0)[0]);
-						P2.put(2, 0, Rot2.get(2, 0)[0], Rot2.get(2, 1)[0], Rot2.get(2, 2)[0], T2.get(2, 0)[0]);
-
-						points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, true);
-						points4D2 = triangulatePoints(goodNew, goodOld, cameraMatrix, P2, P1, false);
-						if (!testTriangulation(points4D2, P1) || !testTriangulation(points4D1, P2) || reprojErr1 > 100 || reprojErr2 > 100) { // TODO: Test
-																																				// Triangulation
-							// Triangulation failed.
-
-							return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(null, cameraPosition);
-						}
-					}
-				}
-			}
-		}
-
-		FeatureUpdate update = new FeatureUpdate();
-		List<PointDouble> currentPoints = new ArrayList<>();
-		List<PointDouble> newPoints = new ArrayList<>();
-
-		// Appending additional bad points from Fundamental Matrix calculation
-		List<Integer> badPoints = opflowresult.getBadPointsIndex();
-		List<Integer> additionalBadPoints = fMatResult.additionalBadPoints;
-		int currentSize;
-		{
-			List<Integer> finalBadPoints = new ArrayList<>();
-
-			int badPointsDuplicatesCount = 0;
-
-			for (Integer index : badPoints) {
-				if (finalBadPoints.contains(index)) {
-					badPointsDuplicatesCount++;
-				} else {
-					finalBadPoints.add(index);
-				}
-			}
-			List<Integer> noDuplicatesAdditionalBadPoints = new ArrayList<>();
-
-			int additionalBadPointsDuplicatesCount = 0;
-			for (Integer index : additionalBadPoints) {
-				if (noDuplicatesAdditionalBadPoints.contains(index)) {
-					additionalBadPointsDuplicatesCount++;
-				} else {
-					noDuplicatesAdditionalBadPoints.add(index);
-				}
-			}
-
-			for (Integer index : noDuplicatesAdditionalBadPoints) {
-				if (finalBadPoints.contains(index)) {
-					badPointsDuplicatesCount++;
-				} else {
-					finalBadPoints.add(index);
-				}
-			}
-
-			badPoints = finalBadPoints;
-			Collections.sort(badPoints);
-			// System.out.println(badPoints);
-
-			currentSize = (int) opflowresult.getCurrentSize() - fMatResult.additionalBadPoints.size() + additionalBadPointsDuplicatesCount + badPointsDuplicatesCount;
-
-			System.out.println(opflowresult.getCurrentSize() + " " + additionalBadPointsDuplicatesCount + " " + badPointsDuplicatesCount);
-		}
-		// if (this.VALID_ROTATION == this.ROT_1)
-		// System.out.println("Rotation Matrix 1 is Valid.");
-		// else
-		// System.out.println("Rotation Matrix 2 is Valid.");
-		// if (this.VALID_TRANSLATION == this.TRAN_1)
-		// System.out.println("Translation Vector 1 is Valid.");
-		// else
-		// System.out.println("Translation Vector 2 is Valid.");
-
-		Mat translationMatrix = T2;
-		if (this.VALID_TRANSLATION == this.TRAN_1)
-			translationMatrix = T1;
-
-		double xScale = translationX / translationMatrix.get(0, 0)[0];
-		double zScale = translationZ / translationMatrix.get(2, 0)[0];
-
-		if (!USE_SCALE) { // HAHA WOT.
-			xScale = 1;
-			zScale = 1;
-		}
-
-		Mat points4D = new Mat();
-		switch (this.TRIANGULATION_METHOD) {
-		case LS_TRIANGULATION:
-			points4D = points4D1;
-			break;
-
-		case ITER_LS_TRIANGULATION:
-			P2.put(0, 0, validRot.get(0, 0)[0], validRot.get(0, 1)[0], validRot.get(0, 2)[0], validT.get(0, 0)[0]);
-			P2.put(1, 0, validRot.get(1, 0)[0], validRot.get(1, 1)[0], validRot.get(1, 2)[0], validT.get(1, 0)[0]);
-			P2.put(2, 0, validRot.get(2, 0)[0], validRot.get(2, 1)[0], validRot.get(2, 2)[0], validT.get(2, 0)[0]);
-
-			points4D = points4D1 = triangulatePoints(goodOld, goodNew, cameraMatrix, P1, P2, false);
-			break;
-		case OPENCV_TRIANGULATION:
-			Calib3d.triangulatePoints(P1, P2, goodOld, goodNew, points4D);
-			break;
-		}
-
-		for (int i = 0; i < points4D1.cols(); i++) {
-			double w = points4D.get(3, i)[0];
-			double x = points4D.get(0, i)[0] / w;
-			double y = points4D.get(1, i)[0] / w;
-			double z = points4D.get(2, i)[0] / w;
-
-			PointDouble point = new PointDouble(x, z);
-			// System.out.println(point);
-			if (i < currentSize) {
-				currentPoints.add(point);
-			} else {
-				newPoints.add(point);
-			}
-		}
-
-		// BADPOINTS MOVED UP
-
-		update.setCurrentPoints(currentPoints);
-		update.setBadPointsIndex(badPoints);
-		update.setNewPoints(newPoints);
-
-		// Assignment of values for next cycle
-		// Only gets called when nothing went wrong
-		fMatResult.superGoodPoints1.copyTo(checkpointFeatures);
-		nearImage.copyTo(checkpointImage);
-		frames++;
-
-		if (this.DEBUG_MODE) {
-			System.out.println(update.getCurrentPoints().size() + update.getBadPointsIndex().size());
-			System.out.println(update.getCurrentPoints().size() + update.getNewPoints().size());
-
-		}
-
-		CURRENT_STEP = this.STEP_VALID_UPDATE;
-		// System.out.println(update);
-		return FeatureScaler.getFeatureScaler().getScaledFeatureUpdate(update, cameraPosition);
-	}
-*/
-	
 	private void logPoints4D() {
 		File dir = new File("trilogs");
 		File file = new File(dir + "\\points.csv");
@@ -1134,7 +1033,8 @@ public class FeatureManager {
 
 		Core.gemm(u, W.t(), 1, nullMatF, 0, tempMat);
 		Core.gemm(tempMat, vt, 1, nullMatF, 0, Rot2);
-		T2 = u.col(2).mul(Mat.ones(3, 1, CvType.CV_64F), -1);
+		
+		T2 = u.col(2).mul(Mat.ones(u.col(2).size(), CvType.CV_64F), -1);
 
 		return true;
 	}
@@ -1367,7 +1267,7 @@ public class FeatureManager {
 		// DANGER dunno what's happening with all the transposes in other
 		// gemm()'s and shit
 		// GEMM I just stuffed the things there as described in the source
-		Core.gemm(K, p2, 1, nullMatF, 0, KP1); // line 188
+		Core.gemm(K, p1, 1, nullMatF, 0, KP1); // line 188
 
 		for (int i = 0; i < goodOld.height(); i++) {
 			// Log.i("Triangulation", "Triangulating, attempt "+ i);
