@@ -7,10 +7,10 @@ import commondata.PointDouble;
 public class PathManager {
 
 	private ArrayList<PointDouble> points;
-	private ArrayList<PointDouble> correctPoints;
+	private String datasetName;
 
 	public PathManager(String datasetName) {
-		correctPoints = PathGenerator.generate(datasetName);
+		this.datasetName = datasetName;
 		points = new ArrayList<PointDouble>();
 	}
 
@@ -19,6 +19,8 @@ public class PathManager {
 	}
 
 	public double getAccuracy() {
+
+		ArrayList<PointDouble> correctPoints = PathGenerator.generate(datasetName, points.size());
 		return PathComparator.compare(points, correctPoints);
 	}
 

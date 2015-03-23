@@ -54,6 +54,10 @@ public class PointDouble {
 		return new PointDouble(x + offsetX, y + offsetY);
 	}
 
+	public PointDouble getCopy() {
+		return new PointDouble(x, y);
+	}
+
 	public String toString() {
 		return x + " , " + y;
 	}
