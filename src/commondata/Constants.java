@@ -52,6 +52,11 @@ public class Constants {
 	public static final String FOLDER_RECT1_MIGUEL_S4_IVAN_MAR6 = "Ivan Miguel 4th Floor 1 Pass Mar 6 - 110 Steps S3cam";
 	public static final String FOLDER_RECT2_MIGUEL_S4_IVAN_MAR6 = "Ivan Miguel 4th Floor 2 Pass Mar 6 - 214 Steps S3cam";
 
+	public static final String FOLDER_RECT1_MIGUEL_S4_IVAN_MAR27_1 = "Ivan Miguel 4th Floor 1 Pass Mar 27 Trial 1 - 109 Steps";
+	public static final String FOLDER_RECT1_MIGUEL_S4_IVAN_MAR27_2 = "Ivan Miguel 4th Floor 1 Pass Mar 27 Trial 2 - 106 Steps";
+	public static final String FOLDER_RECT2_MIGUEL_S4_IVAN_MAR24_1 = "Ivan Miguel 4th Floor 2 Pass Mar 24 Trial 1 - 203 Steps";
+	public static final String FOLDER_RECT2_MIGUEL_S4_IVAN_MAR24_2 = "Ivan Miguel 4th Floor 2 Pass Mar 24 Trial 2 - 204 Steps";
+
 	/* SJ Datasets */
 	public static final String FOLDER_STRT1_SJ5_S4 = "Ivan SJ 5th Floor S4 Feb 26";
 	public static final String FOLDER_STRT2_SJ6_S4 = "Ivan SJ 6th Floor S4 Feb 26";
@@ -62,9 +67,25 @@ public class Constants {
 	public static final String FOLDER_STRT2_SJ6_PARTIAL_S4_MAR5 = "Ivan SJ 6th Floor 2 Pass Mar 5 - 244 Steps Partial";
 	public static final String FOLDER_STRT1_SJ6_S4_MAR6 = "Ivan SJ 6th Floor 1 Pass Mar 6 - 147 Steps S3cam";
 
+	public static final String FOLDER_STRT1_SJ6_IVAN_MAR27_1 = "Ivan SJ 6th Floor 1 Pass Mar 27 Trial 1 - 137 Steps";
+	public static final String FOLDER_STRT1_SJ6_IVAN_MAR27_2 = "Ivan SJ 6th Floor 1 Pass Mar 27 Trial 2 - 138 Steps";
+	public static final String FOLDER_STRT2_SJ6_IVAN_MAR24 = "Ivan SJ 6th Floor 2 Pass Mar 24 Trial 1 - 282 Steps";
+	public static final String FOLDER_STRT2_SJ6_IVAN_MAR27 = "Ivan SJ 6th Floor 2 Pass Mar 27 Trial 1 - 287 Steps";
+
 	/* LS Datasets */
 	public static final String FOLDER_STRT1_LS1_S3CAM_IVAN_MAR6 = "Ivan LS 1st Floor 1 Pass Mar 6 - 162 Steps S3cam (2nd Run)";
 	public static final String FOLDER_STRT2_LS1_S3CAM_IVAN_MAR6 = "Ivan LS 1st Floor 2 Pass Mar 6 - 332 Steps S3cam";
+
+	public static final String FOLDER_STRT1_LS1_IVAN_MAR27_1 = "Ivan LS 1st Floor 1 Pass Mar 27 Trial 1 - 151 Steps";
+	public static final String FOLDER_STRT1_LS1_IVAN_MAR27_2 = "Ivan LS 1st Floor 1 Pass Mar 27 Trial 2 - 158 Steps";
+	public static final String FOLDER_STRT2_LS1_IVAN_MAR27_1 = "Ivan LS 1st Floor 2 Pass Mar 27 Trial 1 - 310 Steps";
+	public static final String FOLDER_STRT2_LS1_IVAN_MAR27_2 = "Ivan LS 1st Floor 2 Pass Mar 27 Trial 2 - 317 Steps";
+
+	/* Razon Datasets */
+	public static final String FOLDER_OVAL1_RAZON8_IVAN_MAR24_1 = "Ivan Razon 8th Floor 1 Pass Mar 24 Trial 1 - 222 Steps";
+	public static final String FOLDER_OVAL1_RAZON8_IVAN_MAR24_2 = "Ivan Razon 8th Floor 1 Pass Mar 24 Trial 2 - 225 Steps";
+	public static final String FOLDER_OVAL2_RAZON8_IVAN_MAR24 = "Ivan Razon 8th Floor 2 Pass Mar 24 Trial 2 - 441 Steps";
+	public static final String FOLDER_OVAL2_RAZON8_IVAN_MAR27 = "Ivan Razon 8th Floor 2 Pass Mar 27 Trial 1 - 440 Steps";
 
 	public static final List<String> SJ_PARTIAL_DATASETS;
 	static {
@@ -73,11 +94,34 @@ public class Constants {
 		SJ_PARTIAL_DATASETS.add(FOLDER_STRT2_SJ6_PARTIAL_S4_MAR5);
 	}
 
+	public static final List<String> SJ_DATASETS;
+	static {
+		SJ_DATASETS = new ArrayList<String>();
+		SJ_DATASETS.add(FOLDER_STRT1_SJ6_IVAN_MAR27_1);
+		SJ_DATASETS.add(FOLDER_STRT1_SJ6_IVAN_MAR27_2);
+		SJ_DATASETS.add(FOLDER_STRT2_SJ6_IVAN_MAR24);
+		SJ_DATASETS.add(FOLDER_STRT2_SJ6_IVAN_MAR27);
+	}
+
+	public static final List<String> LS_DATASETS;
+	static {
+		LS_DATASETS = new ArrayList<String>();
+		LS_DATASETS.add(FOLDER_STRT1_LS1_IVAN_MAR27_1);
+		LS_DATASETS.add(FOLDER_STRT1_LS1_IVAN_MAR27_2);
+		LS_DATASETS.add(FOLDER_STRT2_LS1_IVAN_MAR27_1);
+		LS_DATASETS.add(FOLDER_STRT2_LS1_IVAN_MAR27_2);
+	}
+
 	public static final List<String> MIGUEL_DATASETS;
 	static {
 		MIGUEL_DATASETS = new ArrayList<String>();
+
 		MIGUEL_DATASETS.add(FOLDER_RECT1_MIGUEL_S4_IVAN_MAR5);
+		MIGUEL_DATASETS.add(FOLDER_RECT1_MIGUEL_S4_IVAN_MAR27_1);
+		MIGUEL_DATASETS.add(FOLDER_RECT1_MIGUEL_S4_IVAN_MAR27_2);
 		MIGUEL_DATASETS.add(FOLDER_RECT2_MIGUEL_S4_IVAN_MAR5);
+		MIGUEL_DATASETS.add(FOLDER_RECT2_MIGUEL_S4_IVAN_MAR24_1);
+		MIGUEL_DATASETS.add(FOLDER_RECT2_MIGUEL_S4_IVAN_MAR24_2);
 	}
 
 	public static final List<String> ASYNC_DATASETS;
