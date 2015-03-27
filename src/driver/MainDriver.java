@@ -111,16 +111,35 @@ public class MainDriver {
 		// datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_ALRON_MAR5);
 		// datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_ALRON_MAR5);
 
-		datasets.add(Constants.FOLDER_STRT1_SJ6_PARTIAL_S4_MAR5_BLACK_CAM);
-		datasets.add(Constants.FOLDER_STRT2_SJ6_PARTIAL_S4_MAR5);
-		datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_IVAN_MAR5);
-		datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_IVAN_MAR5);
-
 		// datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_IVAN_MAR6);
 		// datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_IVAN_MAR6);
 		// datasets.add(Constants.FOLDER_STRT1_SJ6_S4_MAR6);
 		// datasets.add(Constants.FOLDER_STRT1_LS1_S3CAM_IVAN_MAR6);
 		// datasets.add(Constants.FOLDER_STRT2_LS1_S3CAM_IVAN_MAR6);
+
+		// datasets.add(Constants.FOLDER_STRT1_SJ6_PARTIAL_S4_MAR5_BLACK_CAM);
+		// datasets.add(Constants.FOLDER_STRT2_SJ6_PARTIAL_S4_MAR5);
+		// datasets.add(Constants.FOLDER_STRT1_SJ6_IVAN_MAR27_1);
+		// datasets.add(Constants.FOLDER_STRT1_SJ6_IVAN_MAR27_2);
+		// datasets.add(Constants.FOLDER_STRT2_SJ6_IVAN_MAR24);
+		// datasets.add(Constants.FOLDER_STRT2_SJ6_IVAN_MAR27);
+
+		datasets.add(Constants.FOLDER_STRT1_LS1_IVAN_MAR27_1);
+		datasets.add(Constants.FOLDER_STRT1_LS1_IVAN_MAR27_2);
+		datasets.add(Constants.FOLDER_STRT2_LS1_IVAN_MAR27_1);
+		datasets.add(Constants.FOLDER_STRT2_LS1_IVAN_MAR27_2);
+
+		datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_IVAN_MAR5);
+		datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_IVAN_MAR5);
+		datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_IVAN_MAR27_1);
+		datasets.add(Constants.FOLDER_RECT1_MIGUEL_S4_IVAN_MAR27_2);
+		datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_IVAN_MAR24_1);
+		datasets.add(Constants.FOLDER_RECT2_MIGUEL_S4_IVAN_MAR24_2);
+
+		datasets.add(Constants.FOLDER_OVAL1_RAZON8_IVAN_MAR24_1);
+		datasets.add(Constants.FOLDER_OVAL1_RAZON8_IVAN_MAR24_2);
+		datasets.add(Constants.FOLDER_OVAL2_RAZON8_IVAN_MAR24);
+		datasets.add(Constants.FOLDER_OVAL2_RAZON8_IVAN_MAR27);
 
 		return datasets;
 	}
@@ -128,20 +147,15 @@ public class MainDriver {
 	private static void runAltogether(List<IMUReadingsBatch> imuDataset,
 			List<IMUReadingsBatch> imuDatasetWithCimuHeading, List<IMUReadingsBatch> cimuDataset, List<Mat> imgDataset,
 			String datasetName) {
-		// runINS(imuDataset, imgDataset, datasetName, insLogFileName);
-		// runINS(imuDatasetWithCimuHeading, imgDataset, datasetName,
-		// insCimuHeadingLogFileName);
-		// runDoubleIntegration(cimuDataset, imgDataset, datasetName,
-		// doubleIntegrationLogFileName);
-		// runVINSAsync(cimuDataset, imgDataset, datasetName, vinsLogFileName,
-		// false);
+		runINS(imuDataset, imgDataset, datasetName, insLogFileName);
+		runINS(imuDatasetWithCimuHeading, imgDataset, datasetName, insCimuHeadingLogFileName);
+		runDoubleIntegration(cimuDataset, imgDataset, datasetName, doubleIntegrationLogFileName);
+		runVINSAsync(cimuDataset, imgDataset, datasetName, vinsLogFileName, false);
 		runVINSAsync(cimuDataset, imgDataset, datasetName, vins15hzLogFileName, true);
-		// runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset,
-		// datasetName, breadcrumbWithCimuHeadingLogFileName,
-		// false);
-		// runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset,
-		// datasetName,
-		// breadcrumbWithCimuHeading15hzLogFileName, true);
+		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, datasetName, breadcrumbWithCimuHeadingLogFileName,
+				false);
+		runBreadcrumbAsync(imuDatasetWithCimuHeading, imgDataset, datasetName,
+				breadcrumbWithCimuHeading15hzLogFileName, true);
 
 		FileLog finalResultsLog = new FileLog(logFolder + "/" + datasetName + "/" + datasetName + ".txt");
 		finalResultsLog.append(finalResultsStringBuilder.toString());
