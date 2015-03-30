@@ -20,7 +20,7 @@ import stepbasedins.data.DetectedEntry;
 public class LinearStrideLengthEstimator implements StrideLengthEstimator {
 
 	public final double a = -0.0273;
-	public final double b = 0.7014;
+	public final double b = 0.66;
 
 	/*
 	 * stepRate : step rate per second
