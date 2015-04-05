@@ -38,6 +38,19 @@ public class CSVReader {
 		return filterCSVFiles(targetFolder.listFiles());
 	}
 
+	public static ArrayList<File> getFolders(String rootFolderName) {
+		File rootFolder = new File(rootFolderName);
+		ArrayList<File> folders = new ArrayList<File>();
+
+		File[] files = rootFolder.listFiles();
+		for (File file : files)
+			if (file.isDirectory()) {
+				folders.add(file);
+			}
+
+		return folders;
+	}
+
 	public static ArrayList<File> filterCSVFiles(File[] files) {
 		ArrayList<File> csvFiles = new ArrayList<File>();
 		for (File file : files) {

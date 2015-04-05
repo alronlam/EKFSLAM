@@ -1,5 +1,7 @@
 package commondata;
 
+import pathcomparison.Vector;
+
 public class PointDouble {
 
 	private double x;
@@ -60,5 +62,16 @@ public class PointDouble {
 
 	public String toString() {
 		return x + " , " + y;
+	}
+
+	public Vector calculateVectorTo(PointDouble other) {
+
+		double diffX = other.x - this.x;
+		double diffY = other.y - this.y;
+
+		double magnitude = Math.sqrt(Math.pow(diffX, 2) + Math.pow(diffY, 2));
+		double heading = Math.atan2(diffY, diffX);
+
+		return new Vector(magnitude, heading);
 	}
 }
