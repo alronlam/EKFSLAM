@@ -21,10 +21,12 @@ public class PathVectorListComparator {
 		ArrayList<Double> headingErrorList = new ArrayList<Double>();
 
 		int limit = Math.min(actualList.size(), correctList.size());
+
 		for (int i = 0; i < limit; i++) {
-			headingErrorList.add(actualList.get(i).getDirection() - correctList.get(i).getDirection());
+			headingErrorList.add(Math.toDegrees(actualList.get(i).getDirection() - correctList.get(i).getDirection()));
 		}
 
 		return headingErrorList;
 	}
+
 }
