@@ -19,7 +19,7 @@ public class Constants {
 	public static final int MS_INS_SAMPLING_FREQUENCY = 10;
 	public static final int MS_FREQUENCY_FOR_CAMERA_CAPTURE = 350;
 
-	public static final int MS_IMG_DURATION = 66;
+	public static final int MS_IMG_DURATION = 350;
 	public static final int MS_IMU_DURATION = 350;
 
 	// Log related
@@ -81,11 +81,21 @@ public class Constants {
 	public static final String FOLDER_STRT2_LS1_IVAN_MAR27_1 = "Ivan LS 1st Floor 2 Pass Mar 27 Trial 1 - 310 Steps";
 	public static final String FOLDER_STRT2_LS1_IVAN_MAR27_2 = "Ivan LS 1st Floor 2 Pass Mar 27 Trial 2 - 317 Steps";
 
+	/*** Free Form Datasets ***/
+
 	/* Razon Datasets */
 	public static final String FOLDER_OVAL1_RAZON8_IVAN_MAR24_1 = "Ivan Razon 8th Floor 1 Pass Mar 24 Trial 1 - 222 Steps";
 	public static final String FOLDER_OVAL1_RAZON8_IVAN_MAR24_2 = "Ivan Razon 8th Floor 1 Pass Mar 24 Trial 2 - 225 Steps";
 	public static final String FOLDER_OVAL2_RAZON8_IVAN_MAR24 = "Ivan Razon 8th Floor 2 Pass Mar 24 Trial 2 - 441 Steps";
 	public static final String FOLDER_OVAL2_RAZON8_IVAN_MAR27 = "Ivan Razon 8th Floor 2 Pass Mar 27 Trial 1 - 440 Steps";
+
+	/* Zaide Datasets */
+	public static final String FOLDER_ZAIDE_MAR31_1 = "Ivan Zaide 1st Floor 1 Pass Mar 31 Trial 1 - 53 Steps";
+	public static final String FOLDER_ZAIDE_MAR31_2 = "Ivan Zaide 1st Floor 1 Pass Mar 31 Trial 2 - 50 Steps";
+
+	/* DLSU Datasets */
+	public static final String FOLDER_DLSU_MAR31_1 = "Ivan DLSU 1st Floor 1 Pass Mar 31 Trial 1 - 903~923 Steps";
+	public static final String FOLDER_DLSU_MAR31_2 = "Ivan DLSU 1st Floor 1 Pass Mar 31 Trial 2 - 897~905 Steps";
 
 	public static final List<String> SJ_PARTIAL_DATASETS;
 	static {
