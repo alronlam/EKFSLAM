@@ -3,6 +3,7 @@ package pathcomparison;
 import java.io.File;
 import java.util.ArrayList;
 
+import util.AverageHelper;
 import util.FileLog;
 
 public class CSVVectorComparatorDriver {
@@ -19,9 +20,7 @@ public class CSVVectorComparatorDriver {
 		ArrayList<File> folders = CSVReader.getFolders(FOLDER_CSV_RESULT_POINTS);
 
 		for (File datasetFolder : folders) {
-
-			FileLog resultFile = new FileLog(datasetFolder + "/position_error.txt");
-			resultFile.append("Folder: " + datasetFolder + "\r\n");
+			FileLog fileLog = new FileLog(datasetFolder + "/distance_heading_error.txt");
 			System.out.println("Folder: " + datasetFolder);
 			ArrayList<File> csvFiles = CSVReader.getCSVFilesFromFolder(datasetFolder);
 
@@ -41,11 +40,16 @@ public class CSVVectorComparatorDriver {
 				ComparisonResultWriter.writeToCSVFile(datasetFolder + "/result_errors/" + csvFile.getName(),
 						distanceErrorList, headingErrorList);
 
+				fileLog.append("\r\n" + csvFile.getName() + "\r\n");
+				fileLog.append("Avg Distance Error: " + AverageHelper.getAverage(distanceErrorList) + "\r\n");
+				fileLog.append("Avg Heading Error (Degrees): " + AverageHelper.getAverage(headingErrorList) + "\r\n");
+
 			}
 
-			resultFile.writeToFile();
+			fileLog.writeToFile();
+
+			System.out.println();
 
 		}
 	}
-
 }

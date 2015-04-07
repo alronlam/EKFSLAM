@@ -32,6 +32,46 @@ public class PathGenerator {
 			}
 
 		}
+		if (Constants.SJ_DATASETS.contains(datasetName)) {
+			if (datasetName.contains("2 Pass")) {
+				ArrayList<PointDouble> path = new ArrayList<PointDouble>();
+				path.addAll(generateLinePath(new PointDouble(0, 0), new PointDouble(-40.317769744888714,
+						90.55519348882281), timeSteps / 2));
+				if (timeSteps % 2 == 0)
+					path.addAll(generateLinePath(new PointDouble(-40.317769744888714, 90.55519348882281),
+							new PointDouble(0, 0), timeSteps / 2));
+				else
+					path.addAll(generateLinePath(new PointDouble(-40.317769744888714, 90.55519348882281),
+							new PointDouble(0, 0), timeSteps / 2 + 1));
+
+				return path;
+
+			} else {
+				PointDouble start = new PointDouble(0, 0);
+				PointDouble end = new PointDouble(-40.317769744888714, 90.55519348882281);
+				return generateLinePath(start, end, timeSteps);
+			}
+		}
+		if (Constants.LS_DATASETS.contains(datasetName)) {
+			if (datasetName.contains("2 Pass")) {
+				ArrayList<PointDouble> path = new ArrayList<PointDouble>();
+				path.addAll(generateLinePath(new PointDouble(0, 0), new PointDouble(45.7619397124583,
+						-102.78299943936902), timeSteps / 2));
+				if (timeSteps % 2 == 0)
+					path.addAll(generateLinePath(new PointDouble(45.7619397124583, -102.78299943936902),
+							new PointDouble(0, 0), timeSteps / 2));
+				else
+					path.addAll(generateLinePath(new PointDouble(45.7619397124583, -102.78299943936902),
+							new PointDouble(0, 0), timeSteps / 2 + 1));
+
+				return path;
+
+			} else {
+				PointDouble start = new PointDouble(0, 0);
+				PointDouble end = new PointDouble(45.7619397124583, -102.78299943936902);
+				return generateLinePath(start, end, timeSteps);
+			}
+		}
 		if (Constants.MIGUEL_DATASETS.contains(datasetName)) {
 			PointDouble v1 = new PointDouble(0, 0);
 			PointDouble v2 = new PointDouble(-24.867919469670156, -14.357499999999998);
