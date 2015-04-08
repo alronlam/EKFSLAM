@@ -18,9 +18,10 @@ public class PointListToVectorListConverter {
 			Vector currVector = prevPoint.calculateVectorTo(currPoint);
 			vectorList.add(currVector);
 
-			i += 2;
-			if (i >= limit && i < limit + 1)
-				i = limit - 1;
+			i++;
+			// i += 2;
+			// if (i >= limit && i < limit + 1)
+			// i = limit - 1;
 		}
 
 		return vectorList;
