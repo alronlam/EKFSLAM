@@ -6,6 +6,17 @@ import util.FileLog;
 
 public class ComparisonResultWriter {
 
+	public static void writeToCSVFile(String name, ArrayList<Double> list) {
+
+		FileLog fileLog = new FileLog(name);
+
+		for (int i = 0; i < list.size(); i++) {
+			fileLog.append(list.get(i) + "\r\n");
+		}
+
+		fileLog.writeToFile();
+	}
+
 	public static void writeToCSVFile(String name, ArrayList<Double> distanceList, ArrayList<Double> headingList) {
 
 		FileLog fileLog = new FileLog(name);
